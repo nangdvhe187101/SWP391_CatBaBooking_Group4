@@ -1,0 +1,349 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : Oct 6, 2025, 9:06:17 PM
+    Author     : ADMIN
+*/
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f9fafb;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+:root {
+    --primary: #059669;
+    --primary-dark: #065f46;
+    --accent: #a7f3d0;
+    --text-gray: #6b7280;
+    --border: #d1d5db;
+    --bg-light: #ecfdf5;
+    --shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 1;
+    filter: brightness(1.05) contrast(1.15);
+}
+
+.container {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    max-width: 550px;
+    width: 100%;
+    position: relative;
+    z-index: 2;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.container:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-hover);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.header h2 {
+    font-size: 1.75rem;
+    color: var(--primary);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+}
+
+.header p {
+    font-size: 0.9rem;
+    color: var(--text-gray);
+    margin-top: 0.5rem;
+}
+
+.form-section {
+    margin-bottom: 1.5rem;
+}
+
+.form-section h3 {
+    font-size: 1.1rem;
+    color: var(--primary-dark);
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text-gray);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.input-wrapper i {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 1.1rem;
+    transition: color 0.2s;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+textarea,
+select {
+    width: 100%;
+    padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    font-size: 0.95rem;
+    color: #111827;
+    background: white;
+    height: 2.75rem;
+    transition: all 0.3s ease;
+}
+
+textarea {
+    height: auto;
+    min-height: 5rem;
+    padding: 0.75rem;
+}
+
+select {
+    padding: 0.75rem;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+    background: var(--bg-light);
+}
+
+input:hover,
+textarea:hover,
+select:hover {
+    border-color: var(--primary);
+}
+
+.file-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: white;
+    padding: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.file-input-wrapper:hover {
+    border-color: var(--primary);
+}
+
+.file-input-wrapper i {
+    color: #9ca3af;
+    font-size: 1.1rem;
+    margin-right: 0.5rem;
+}
+
+.file-input-label {
+    font-size: 0.95rem;
+    color: #111827;
+    cursor: pointer;
+    flex-grow: 1;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.file-preview {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.file-preview img {
+    max-width: 100px;
+    max-height: 100px;
+    object-fit: cover;
+    border-radius: 0.25rem;
+    border: 1px solid var(--border);
+}
+
+.file-preview p {
+    font-size: 0.85rem;
+    color: var(--text-gray);
+}
+
+.submit-btn {
+    width: 100%;
+    height: 2.75rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.submit-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.submit-btn:active {
+    transform: translateY(0);
+}
+
+.link {
+    text-align: center;
+    margin-top: 1.25rem;
+    font-size: 0.9rem;
+    color: var(--text-gray);
+}
+
+.link a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.link a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+.register-section {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-gray);
+}
+
+.register-section p {
+    margin-bottom: 1rem;
+}
+
+.register-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.register-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--bg-light);
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    border-radius: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.register-btn:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.register-btn:active {
+    transform: translateY(0);
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 1.5rem;
+        margin: 0.5rem;
+        max-height: 85vh;
+    }
+    .header h2 {
+        font-size: 1.5rem;
+    }
+    .form-section h3 {
+        font-size: 1rem;
+    }
+    .form-group label {
+        font-size: 0.85rem;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="tel"],
+    textarea,
+    select {
+        font-size: 0.9rem;
+        height: 2.5rem;
+    }
+    textarea {
+        min-height: 4rem;
+    }
+    .file-input-label {
+        font-size: 0.9rem;
+    }
+    .file-preview img {
+        max-width: 80px;
+        max-height: 80px;
+    }
+    .submit-btn,
+    .register-btn {
+        font-size: 0.95rem;
+        height: 2.5rem;
+    }
+    .link {
+        font-size: 0.85rem;
+    }
+}
