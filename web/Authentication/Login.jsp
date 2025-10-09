@@ -1,6 +1,6 @@
 <%-- 
     Document   : Login
-    Created on : Oct 6, 2025, 9:03:39 PM
+    Created on : Sep 27, 2025, 10:52:01 PM
     Author     : ADMIN
 --%>
 
@@ -11,16 +11,21 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Đăng Nhập - Cát Bà Booking</title>
-        <link rel="stylesheet" href="style-ath.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/Authentication/style-ath.css">
     </head>
     <body>
         <div class="container">
-             <div class="header">
+            <div class="header">
                 <h2>Đăng Nhập</h2>
                 <p>Truy cập tài khoản để đặt homestay và nhà hàng</p>
             </div>
-            
-            <form action="#" method="post">
+            <% if (request.getAttribute("error") != null) { %>
+            <p style="color: red;"><%= request.getAttribute("error") %></p>
+            <% } %>
+            <% if (request.getAttribute("success") != null) { %>
+            <p style="color: green;"><%= request.getAttribute("success") %></p>
+            <% } %>
+            <form action="${pageContext.request.contextPath}/Login" method="post">
                 <div class="form-group">
                     <label for="email">Email</label>
                     <div class="input-wrapper">
@@ -37,16 +42,16 @@
                 </div>
                 <button type="submit" class="submit-btn">Đăng Nhập</button>
                 <div class="forgot-password">
-                    <a href="ForgotPassword.jsp">Quên mật khẩu?</a>
+                    <a href="${pageContext.request.contextPath}/Authentication/ForgotPassword.jsp">Quên mật khẩu?</a>
                 </div>
             </form>
             <div class="register-section">
                 <p>Chưa có tài khoản? Đăng ký theo loại tài khoản:</p>
                 <div class="register-buttons">
-                    <a href="RegisterCustomer.jsp" class="register-btn">Đăng ký tài khoản Khách Hàng</a>
-                    <a href="RegisterOwner.jsp" class="register-btn">Đăng ký tài khoản Chủ Homestay/Nhà Hàng</a>
+                    <a href="${pageContext.request.contextPath}/Authentication/RegisterCustomer.jsp" class="register-btn">Đăng ký tài khoản Khách Hàng</a>
+                    <a href="${pageContext.request.contextPath}/Authentication/RegisterOwner.jsp" class="register-btn">Đăng ký tài khoản Chủ Homestay/Nhà Hàng</a>
                 </div>
-             </div>
+            </div>
         </div>
         <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     </body>

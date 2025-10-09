@@ -347,3 +347,46 @@ input[type="file"] {
         font-size: 0.85rem;
     }
 }
+/* Style cho phần quên mật khẩu */
+.forgot-password {
+    text-align: center;  
+    margin-top: 1rem;    
+    margin-bottom: 1.5rem;  
+}
+
+.forgot-password a {
+    color: #3b82f6;      
+    text-decoration: none;  
+    font-size: 0.9rem;   
+    font-weight: 500;    
+    position: relative; 
+    transition: all 0.3s ease;  
+}
+
+.forgot-password a::after {
+    content: '';         
+    position: absolute;
+    width: 0;
+    height: 1px;
+    bottom: -2px;
+    left: 50%;
+    background-color: #3b82f6;  
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.forgot-password a:hover {
+    color: #1d4ed8;      
+}
+
+.forgot-password a:hover::after {
+    width: 100%;         
+}
+
+
+@media (max-width: 768px) {
+    .forgot-password a {
+        font-size: 1rem;
+        padding: 0.5rem;  
+    }
+}

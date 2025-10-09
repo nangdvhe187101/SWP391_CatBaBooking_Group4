@@ -52,7 +52,7 @@
                  <button type="submit" class="submit-btn">Đăng Ký</button>
             </form>
             <div class="link">
-                Đã có tài khoản? <a href="Login.jsp">Đăng Nhập</a>
+                Đã có tài khoản? <a href="${pageContext.request.contextPath}/Login">Đăng Nhập</a>
             </div>
         </div>
         <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>

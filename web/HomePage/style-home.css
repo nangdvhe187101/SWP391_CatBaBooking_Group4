@@ -1,12 +1,3 @@
-/*
-Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css to edit this template
-*/
-/* 
-    Created on : Oct 6, 2025, 9:09:00 PM
-    Author     : ADMIN
-*/
-
 
 /* Reset và Base Styles */
 * {
@@ -1894,4 +1885,87 @@ a:focus {
 
 .user-btn:hover {
     background: rgba(255, 255, 255, 0.2);
+}
+/* Style cho item logout - giống li khác */
+.logout-item {
+    border-top: 1px solid #e2e8f0 !important;
+    margin-top: 0.5rem;
+    padding-top: 1.25rem;
+}
+
+.logout-submit {
+    background: none;
+    border: none;
+    width: 100%;
+    padding: 1rem 1.5rem;
+    color: #475569;  /* Màu xám giống li khác */
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 0.5rem;
+    position: relative;
+    overflow: hidden;
+    display: flex;  /* Để align icon (qua ::before) và text */
+    align-items: center;
+    gap: 1rem;
+    /* Ẩn border mặc định của input submit */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+.logout-submit::before {
+    content: '\f2f5';  /* Unicode cho icon fa-sign-out-alt từ FontAwesome */
+    font-family: 'Font Awesome 5 Free';  /* Giả sử bạn dùng FontAwesome */
+    font-weight: 900;
+    width: 20px;
+    text-align: center;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+    color: #475569;
+    margin-right: 1rem;  /* Gap với text */
+}
+
+.logout-submit::after {
+    content: '';  /* Viền trái ẩn */
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: transparent;
+    transition: width 0.3s ease;
+}
+
+/* Hover effect: Giống hệt li khác - xanh lá, translateX */
+.logout-item:hover .logout-submit {
+    background: linear-gradient(to right, #ecfdf5 0%, #f0fdf4 100%);
+    color: #059669;
+    transform: translateX(5px);
+}
+
+.logout-item:hover .logout-submit::after {
+    width: 4px;
+    background: #059669;
+}
+
+.logout-item:hover .logout-submit::before {
+    opacity: 1;
+    color: #059669;
+}
+
+/* Active/Click effect */
+.logout-submit:active {
+    transform: scale(0.98);
+    background: #f0fdf4;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .logout-submit {
+        padding: 1.25rem;
+        font-size: 1rem;
+    }
 }
