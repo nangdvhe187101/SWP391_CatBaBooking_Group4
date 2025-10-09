@@ -11,16 +11,21 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Đăng Ký - Cát Bà Booking</title>
-        <link rel="stylesheet" href="style-ath.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/Authentication/style-ath.css">
     </head>
     <body>
         <div class="container">
-             <div class="header">
+            <div class="header">
                 <h2>Đăng Ký</h2>
                 <p>Tạo tài khoản để nhận ưu đãi đặc biệt</p>
             </div>
-
-            <form action="#" method="post">
+            <% if (request.getAttribute("error") != null) { %>
+                <p style="color: red;"><%= request.getAttribute("error") %></p>
+            <% } %>
+            <% if (request.getAttribute("success") != null) { %>
+                <p style="color: green;"><%= request.getAttribute("success") %></p>
+            <% } %>
+            <form action="${pageContext.request.contextPath}/register-customer" method="post">
                 <div class="form-group">
                     <label for="name">Họ và Tên</label>
                     <div class="input-wrapper">
@@ -35,7 +40,7 @@
                         <input type="email" id="email" name="email" placeholder="Nhập email của bạn" required>
                     </div>
                 </div>
-                 <div class="form-group">
+                <div class="form-group">
                     <label for="password">Mật Khẩu</label>
                     <div class="input-wrapper">
                         <i class="fas fa-lock"></i>
@@ -44,12 +49,12 @@
                 </div>
                 <div class="form-group">
                     <label for="confirm-password">Xác Nhận Mật Khẩu</label>
-                     <div class="input-wrapper">
+                    <div class="input-wrapper">
                         <i class="fas fa-lock"></i>
                         <input type="password" id="confirm-password" name="confirm-password" placeholder="Xác nhận mật khẩu" required>
                     </div>
                 </div>
-                 <button type="submit" class="submit-btn">Đăng Ký</button>
+                <button type="submit" class="submit-btn">Đăng Ký</button>
             </form>
             <div class="link">
                 Đã có tài khoản? <a href="${pageContext.request.contextPath}/Login">Đăng Nhập</a>

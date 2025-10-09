@@ -48,7 +48,7 @@
             <div class="register-section">
                 <p>Chưa có tài khoản? Đăng ký theo loại tài khoản:</p>
                 <div class="register-buttons">
-                    <a href="${pageContext.request.contextPath}/Authentication/RegisterCustomer.jsp" class="register-btn">Đăng ký tài khoản Khách Hàng</a>
+                    <a href="${pageContext.request.contextPath}/register-customer" class="register-btn">Đăng ký tài khoản Khách Hàng</a>
                     <a href="${pageContext.request.contextPath}/Authentication/RegisterOwner.jsp" class="register-btn">Đăng ký tài khoản Chủ Homestay/Nhà Hàng</a>
                 </div>
             </div>
