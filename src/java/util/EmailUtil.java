@@ -89,7 +89,33 @@ public class EmailUtil {
         """.formatted(escapeHtml(recipientName), SUPPORT_EMAIL);
     }
 
-    
+    public static void sendOTP(String toEmail, String otp) {
+        Session session = getSmtpSession();
+        try {
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(FROM_EMAIL, "Cát Bà Booking"));
+            message.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
+            message.setSubject("Password Reset OTP Code - Cát Bà Booking");
+            message.setContent(createOTPContent(otp), "text/html; charset=UTF-8");
+            Transport.send(message);
+            System.out.println("✅ OTP email sent to: " + toEmail);
+        } catch (Exception e) {
+            System.err.println("❌ Failed to send OTP email: " + e.getMessage());
+        }
+    }
+
+    private static String createOTPContent(String otp) {
+        return """
+    <html>
+        <body>
+            <h2>Password Reset OTP Code</h2>
+            <p>Your OTP code is: <strong>%s</strong></p>
+            <p>This code is valid for 5 minutes. Please do not share it with anyone.</p>
+            <p>Best regards,<br>Cát Bà Booking</p>
+        </body>
+    </html>
+    """.formatted(otp);
+    }
 
     // Escape HTML characters to prevent XSS in email content
     private static String escapeHtml(String str) {

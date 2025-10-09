@@ -11,7 +11,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Đổi Mật Khẩu - Cát Bà Booking</title>
-        <link rel="stylesheet" href="style-ath.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/Authentication/style-ath.css">
     </head>
     <body>
         <div class="container">
@@ -19,9 +19,15 @@
                 <h2>Đổi Mật Khẩu</h2>
                 <p>Nhập mật khẩu mới</p>
             </div>
-            
-            <form action="#" method="post">
+            <% if (request.getAttribute("error") != null) { %>
+                <p style="color: red;"><%= request.getAttribute("error") %></p>
+            <% } %>
+            <% if (request.getAttribute("success") != null) { %>
+                <p style="color: green;"><%= request.getAttribute("success") %></p>
+            <% } %>
+            <form action="${pageContext.request.contextPath}/forgot-password" method="post">
                 <input type="hidden" name="action" value="reset-password">
+                <input type="hidden" name="email" value="<%= request.getAttribute("email") %>">
                 <div class="form-group">
                     <label for="password">Mật Khẩu Mới</label>
                     <div class="input-wrapper">

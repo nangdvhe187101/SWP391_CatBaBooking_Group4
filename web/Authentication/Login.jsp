@@ -42,7 +42,7 @@
                 </div>
                 <button type="submit" class="submit-btn">Đăng Nhập</button>
                 <div class="forgot-password">
-                    <a href="${pageContext.request.contextPath}/Authentication/ForgotPassword.jsp">Quên mật khẩu?</a>
+                    <a href="${pageContext.request.contextPath}/forgot-password">Quên mật khẩu?</a>
                 </div>
             </form>
             <div class="register-section">
