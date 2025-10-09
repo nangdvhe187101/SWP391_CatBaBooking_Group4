@@ -18,7 +18,7 @@
         <li><a href="#">Cài Đặt</a></li>
     </ul>
     <div class="sidebar-footer">
-        <form action="#" method="post">
+        <form action="${pageContext.request.contextPath}/Logout" method="post">
             <button type="submit" class="logout-btn">Đăng xuất</button>
         </form>
     </div>

@@ -39,7 +39,7 @@
                 <button type="submit" class="submit-btn">Đổi Mật Khẩu</button>
             </form>
             <div class="link">
-                Quay lại <a href="Login.jsp">Đăng Nhập</a>
+                Quay lại <a href="${pageContext.request.contextPath}/Login">Đăng Nhập</a>
             </div>
         </div>
         <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
