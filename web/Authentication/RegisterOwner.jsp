@@ -11,7 +11,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Đăng Ký Chủ Homestay/Nhà Hàng - Cát Bà Booking</title>
-        <link rel="stylesheet" href="style-ath.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/Authentication/style-ath.css">
     </head>
     <body>
         <div class="container">
@@ -19,8 +19,13 @@
                 <h2>Đăng Ký Tài Khoản Chủ Homestay/Nhà Hàng</h2>
                 <p>Cung cấp thông tin để đăng ký và quản lý cơ sở của bạn</p>
             </div>
-
-            <form action="#" method="post">
+            <% if (request.getAttribute("error") != null) { %>
+            <p style="color: red;"><%= request.getAttribute("error") %></p>
+            <% } %>
+            <% if (request.getAttribute("success") != null) { %>
+            <p style="color: green;"><%= request.getAttribute("success") %></p>
+            <% } %>
+            <form action="${pageContext.request.contextPath}/register-owner" method="post">
                 <div class="form-section">
                     <h3>Thông Tin Cá Nhân</h3>
                     <div class="form-group">
@@ -52,6 +57,13 @@
                         </div>
                     </div>
                     <div class="form-group">
+                        <label for="personal-address">Địa Chỉ Cá Nhân</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <input type="text" id="personal-address" name="personal-address" placeholder="Nhập địa chỉ cá nhân" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label for="password">Mật Khẩu</label>
                         <div class="input-wrapper">
                             <i class="fas fa-lock"></i>
@@ -67,17 +79,7 @@
                     </div>
                 </div>
                 <div class="form-section">
-                    <h3>Thông Tin Địa Chỉ Cá Nhân</h3>
-                    <div class="form-group">
-                        <label for="personal-address">Địa Chỉ</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <input type="text" id="personal-address" name="personal-address" placeholder="Nhập địa chỉ cá nhân" required>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-section">
-                    <h3>Thông Tin Homestay/Nhà Hàng</h3>
+                    <h3>Thông Tin Cơ Sở Kinh Doanh</h3>
                     <div class="form-group">
                         <label for="business-name">Tên Homestay/Nhà Hàng</label>
                         <div class="input-wrapper">
@@ -107,7 +109,7 @@
                         <label for="description">Mô Tả</label>
                         <div class="input-wrapper">
                             <i class="fas fa-info-circle"></i>
-                            <textarea id="description" name="description" placeholder="Mô tả về homestay/nhà hàng của bạn" required></textarea>
+                            <textarea id="description" name="description" placeholder="Mô tả về homestay/nhà hàng của bạn" rows="4" required></textarea>
                         </div>
                     </div>
                 </div>
