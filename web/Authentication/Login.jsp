@@ -49,10 +49,9 @@
                 <p>Chưa có tài khoản? Đăng ký theo loại tài khoản:</p>
                 <div class="register-buttons">
                     <a href="${pageContext.request.contextPath}/register-customer" class="register-btn">Đăng ký tài khoản Khách Hàng</a>
-                    <a href="${pageContext.request.contextPath}/Authentication/RegisterOwner.jsp" class="register-btn">Đăng ký tài khoản Chủ Homestay/Nhà Hàng</a>
+                    <a href="${pageContext.request.contextPath}/register-owner" class="register-btn">Đăng ký tài khoản Chủ Homestay/Nhà Hàng</a>
                 </div>
             </div>
         </div>
-        <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     </body>
 </html>

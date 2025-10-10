@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 import util.PassWordUtil;
 
 public class UserDAO {
-    
+
     public Users authenticateUser(String email, String password) {
         String sql = "SELECT u.*, r.role_name FROM users u JOIN roles r ON u.role_id = r.role_id WHERE u.email = ? LIMIT 1";
         try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -42,7 +42,7 @@ public class UserDAO {
         }
         return null;
     }
-    
+
     public int registerUser(Users user) {
         String sql = "INSERT INTO users (role_id, full_name, email, password_hash, phone, citizen_id, personal_address, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -79,14 +79,14 @@ public class UserDAO {
             return -1;
         }
     }
-    
+
     public Users getUserByEmail(String email) {
         String sql = "SELECT * FROM users WHERE email = ?";
         try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                Roles role = new Roles(rs.getInt("role_id"), null, null, null); 
+                Roles role = new Roles(rs.getInt("role_id"), null, null, null);
                 Users user = new Users(
                         rs.getInt("user_id"),
                         role,
@@ -107,7 +107,7 @@ public class UserDAO {
         }
         return null;
     }
-    
+
     public boolean updatePasswordByEmail(String email, String newPassword) {
         String hashedPassword = PassWordUtil.hashPassword(newPassword);
         String sql = "UPDATE users SET password_hash = ?, updated_at = ? WHERE email = ?";
@@ -115,6 +115,22 @@ public class UserDAO {
             ps.setString(1, hashedPassword);
             ps.setObject(2, LocalDateTime.now());
             ps.setString(3, email);
+            int result = ps.executeUpdate();
+            return result > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean checkEmailExists(String email) {
+        return getUserByEmail(email) != null;
+    }
+
+    public boolean deleteUserById(int userId) {
+        String sql = "DELETE FROM users WHERE user_id = ?";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
