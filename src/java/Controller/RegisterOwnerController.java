@@ -67,14 +67,14 @@ public class RegisterOwnerController extends HttpServlet {
             return;
         }
 
-        // Check passwords match (thêm từ dự án cũ)
+        // Check passwords match 
         if (!password.equals(confirmPassword)) {
             request.setAttribute("error", "Mật khẩu và xác nhận mật khẩu không khớp.");
             request.getRequestDispatcher("/Authentication/RegisterOwner.jsp").forward(request, response);
             return;
         }
 
-        // Validate password strength (từ dự án cũ)
+        // Validate password strength
         if (!PassWordUtil.isValidPassword(password)) {
             request.setAttribute("error", "Mật khẩu không đủ mạnh! Yêu cầu: 8-64 ký tự, có chữ hoa, chữ thường, số và ký tự đặc biệt.");
             request.getRequestDispatcher("/Authentication/RegisterOwner.jsp").forward(request, response);
@@ -87,11 +87,11 @@ public class RegisterOwnerController extends HttpServlet {
                 role,
                 fullName,
                 email,
-                password, // Sẽ được hash trong DAO
+                password, 
                 phone,
                 citizenId,
                 personalAddress,
-                null // Status will be set to "pending" in DAO
+                null 
         );
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
@@ -125,12 +125,10 @@ public class RegisterOwnerController extends HttpServlet {
             return;
         }
 
-        // Gửi email xác nhận cho user (pending)
+        // Gửi email xác nhận cho user
         EmailUtil.sendPendingConfirmation(email, fullName);
-
         // Gửi thông báo cho admin
         EmailUtil.sendAdminNotification("catbabooking.fms@gmail.com", fullName, email, businessName, businessType);
-
         request.setAttribute("success", "Đăng ký thành công! Đơn của bạn đã được gửi đến admin và đang chờ duyệt. Vui lòng kiểm tra email.");
         request.getRequestDispatcher("/Authentication/RegisterOwner.jsp").forward(request, response);
     }
