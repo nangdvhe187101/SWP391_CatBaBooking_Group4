@@ -220,3 +220,103 @@ th {
     font-weight: bold;
     margin: 0;
 }
+
+/* --- General Styles --- */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    background-color: #f0f2f5;
+    color: #333;
+    display: flex;
+}
+
+/* --- Main Content --- */
+.main-content {
+    margin-left: 250px;
+    flex-grow: 1;
+    padding: 20px;
+}
+
+main {
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+/* --- List View --- */
+.list-view {
+    display: block;
+}
+
+.list-view table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.list-view th, .list-view td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.list-view th {
+    background-color: #f0f2f5;
+    font-weight: bold;
+}
+
+.btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-approve {
+    background-color: #52c41a;
+    color: white;
+}
+
+.btn-reject {
+    background-color: #ff4d4f;
+    color: white;
+}
+
+.btn-back {
+    background-color: #d9d9d9;
+    color: #333;
+}
+
+/* --- Detail View --- */
+.detail-view {
+    display: none;
+}
+
+.detail-content {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.detail-column {
+    flex: 1;
+}
+
+.detail-item {
+    margin-bottom: 10px;
+}
+
+.actions {
+    text-align: center;
+}
+
+.actions form {
+    display: inline;
+}
+
+.actions textarea {
+    width: 100%;
+    margin: 10px 0;
+}

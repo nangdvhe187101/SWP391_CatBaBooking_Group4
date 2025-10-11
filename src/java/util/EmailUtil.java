@@ -18,9 +18,10 @@ import java.util.Properties;
  * @author ADMIN
  */
 public class EmailUtil {
+
     private static final String FROM_EMAIL = "catbabooking.fms@gmail.com";
     private static final String SUPPORT_EMAIL = "catbabooking.fms@gmail.com";
-    private static final String PASSWORD = "bzsnvnkpjodfwdvx"; 
+    private static final String PASSWORD = "bzsnvnkpjodfwdvx";
 
     // Common method to configure SMTP properties and session
     private static Session getSmtpSession() {
@@ -326,7 +327,74 @@ public class EmailUtil {
         </html>
         """.formatted(escapeHtml(recipientName), escapeHtml(businessName), escapeHtml(reason), SUPPORT_EMAIL, SUPPORT_EMAIL);
     }
-    
+    // Send approval email to owner
+
+    public static void sendApprovalEmail(String toEmail, String recipientName) {
+        Session session = getSmtpSession();
+        try {
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(FROM_EMAIL, "Cat Ba Booking"));
+            message.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
+            message.setSubject("Đăng Ký Owner Đã Được Duyệt!");
+            message.setContent(createApprovalContent(recipientName), "text/html; charset=UTF-8");
+            Transport.send(message);
+            System.out.println("✅ Approval email sent to: " + toEmail);
+        } catch (Exception e) {
+            System.err.println("❌ Failed to send approval email: " + e.getMessage());
+        }
+    }
+
+    private static String createApprovalContent(String recipientName) {
+        return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Đăng Ký Được Duyệt</title>
+    </head>
+    <body>
+        <h2>Xin chào %s,</h2>
+        <p>Đơn đăng ký owner của bạn đã được duyệt! Bạn có thể đăng nhập và quản lý cơ sở ngay.</p>
+        <p>Trân trọng,<br>Cat Ba Booking</p>
+    </body>
+    </html>
+    """.formatted(escapeHtml(recipientName));
+    }
+
+// Send rejection email to owner
+    public static void sendRejectionEmail(String toEmail, String recipientName, String reason) {
+        Session session = getSmtpSession();
+        try {
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(FROM_EMAIL, "Cat Ba Booking"));
+            message.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
+            message.setSubject("Đăng Ký Owner Bị Từ Chối");
+            message.setContent(createRejectionContent(recipientName, reason), "text/html; charset=UTF-8");
+            Transport.send(message);
+            System.out.println("✅ Rejection email sent to: " + toEmail);
+        } catch (Exception e) {
+            System.err.println("❌ Failed to send rejection email: " + e.getMessage());
+        }
+    }
+
+    private static String createRejectionContent(String recipientName, String reason) {
+        return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Đăng Ký Bị Từ Chối</title>
+    </head>
+    <body>
+        <h2>Xin chào %s,</h2>
+        <p>Đơn đăng ký owner của bạn bị từ chối vì: %s</p>
+        <p>Bạn có thể đăng ký lại sau khi chỉnh sửa.</p>
+        <p>Trân trọng,<br>Cat Ba Booking</p>
+    </body>
+    </html>
+    """.formatted(escapeHtml(recipientName), escapeHtml(reason));
+    }
+
     // Escape HTML characters to prevent XSS in email content
     private static String escapeHtml(String str) {
         if (str == null) {
