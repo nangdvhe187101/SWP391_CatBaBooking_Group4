@@ -70,7 +70,7 @@
                             <i class="fas fa-user"></i>
                             <span>Log In</span>
                         </a>
-                        <a href="${pageContext.request.contextPath}/Authentication/RegisterCustomer.jsp" class="user-btn register-btn">
+                        <a href="${pageContext.request.contextPath}/register-customer" class="user-btn register-btn">
                             <span>Register</span>
                         </a>
                     </div>
