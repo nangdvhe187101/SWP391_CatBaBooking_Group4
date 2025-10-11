@@ -34,7 +34,7 @@ public class LoginController extends HttpServlet {
 
         if (email == null || password == null || email.trim().isEmpty() || password.trim().isEmpty()) {
             request.setAttribute("error", "Vui lòng điền đầy đủ email và mật khẩu.");
-            request.getRequestDispatcher("/Login.jsp").forward(request, response);
+            request.getRequestDispatcher("/Authentication/Login.jsp").forward(request, response);
             return;
         }
         Users user = userDAO.authenticateUser(email, password);
@@ -45,9 +45,9 @@ public class LoginController extends HttpServlet {
                     ? user.getRole().getRoleName().trim() : null;
             System.out.println("Login successful for: " + user.getEmail() + ", Role: " + roleName);
             if (roleName != null && roleName.equalsIgnoreCase("admin")) {
-                response.sendRedirect(request.getContextPath() + "/AdminPage/dashboard.jsp");
+                response.sendRedirect(request.getContextPath() + "/AdminPage/Dashboard.jsp");
             } else if (roleName != null && roleName.equalsIgnoreCase("owner")) {
-                response.sendRedirect(request.getContextPath() + "/OwnwrPage/Owner.jsp");
+                response.sendRedirect(request.getContextPath() + "/OwnerPage/Dashboard.jsp");
             } else if (roleName != null && roleName.equalsIgnoreCase("customer")) {
                 response.sendRedirect(request.getContextPath() + "/HomePage/Home.jsp");
             } else {
