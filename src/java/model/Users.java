@@ -22,6 +22,15 @@ public class Users {
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Businesses business;
+
+    public Businesses getBusiness() {
+        return business;
+    }
+
+    public void setBusiness(Businesses business) {
+        this.business = business;
+    }
 
     public Users() {
     }
