@@ -14,7 +14,7 @@
     <ul class="sidebar-menu">
         <li><a href="Dashboard.jsp">Dashboard</a></li>
         <li><a href="${pageContext.request.contextPath}/approve-application">Duyệt Yêu Cầu</a></li>
-        <li><a href="UserManagement.jsp">Quản Lý Người Dùng</a></li>
+        <li><a href="${pageContext.request.contextPath}/user-management">Quản Lý Người Dùng</a></li>
         <li><a href="#">Cài Đặt</a></li>
     </ul>
     <div class="sidebar-footer">
