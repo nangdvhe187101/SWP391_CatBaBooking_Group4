@@ -75,6 +75,16 @@ public class UserManagementController extends HttpServlet {
         try {
             int userId = Integer.parseInt(path.substring(1));
             Users user = userDAO.getUserById(userId);
+            if (user != null && user.getRole().getRoleId() == 2) {
+                Businesses business = businessDAO.getBusinessByOwnerId(userId); 
+                if (business != null) {
+                    user.setBusiness(business);
+                }
+            }
+            request.setAttribute("roleFilter", request.getParameter("role"));
+            request.setAttribute("statusFilter", request.getParameter("status"));
+            request.setAttribute("keywordFilter", request.getParameter("keyword"));
+            request.setAttribute("pageIndex", request.getParameter("page"));
             request.setAttribute("user", user);
             request.getRequestDispatcher("/AdminPage/UserManagement.jsp").forward(request, response);
         } catch (NumberFormatException e) {
