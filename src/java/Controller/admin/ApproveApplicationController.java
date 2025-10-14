@@ -57,6 +57,7 @@ public class ApproveApplicationController extends HttpServlet {
             System.out.println("Business fetched: " + (biz != null ? biz.getName() : "null"));
             request.setAttribute("user", user);
             request.setAttribute("business", biz);
+            System.out.println("Khanh hello");
             request.getRequestDispatcher("/AdminPage/ApproveApplication.jsp").forward(request, response);
         }
     }
