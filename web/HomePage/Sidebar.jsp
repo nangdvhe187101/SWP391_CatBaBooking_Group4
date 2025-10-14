@@ -29,7 +29,7 @@
                 </div>
                 <div class="top-bar-right">
                     <%
-                        Users user = (Users) session.getAttribute("loggedInUser");
+                        Users user = (Users) session.getAttribute("currentUser");
                         if (user != null) {
                             String fullName = user.getFullName(); 
                             String priority = "Bronze Priority"; 
