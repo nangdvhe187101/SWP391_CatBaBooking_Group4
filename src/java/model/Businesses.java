@@ -18,6 +18,7 @@ public class Businesses {
     private String type; //('homestay','restaurant')
     private String address;
     private String description;
+    private String image;
     private Areas area;
     private BigDecimal avgRating;
     private int reviewCount;
@@ -31,13 +32,14 @@ public class Businesses {
     public Businesses() {
     }
 
-    public Businesses(int businessId, Users owner, String name, String type, String address, String description, Areas area, BigDecimal avgRating, int reviewCount, Integer capacity, Integer numBedrooms, BigDecimal pricePerNight, String status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Businesses(int businessId, Users owner, String name, String type, String address, String description, String image, Areas area, BigDecimal avgRating, int reviewCount, Integer capacity, Integer numBedrooms, BigDecimal pricePerNight, String status, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.businessId = businessId;
         this.owner = owner;
         this.name = name;
         this.type = type;
         this.address = address;
         this.description = description;
+        this.image = image;
         this.area = area;
         this.avgRating = avgRating;
         this.reviewCount = reviewCount;
@@ -49,7 +51,6 @@ public class Businesses {
         this.updatedAt = updatedAt;
     }
 
-    // Getters and Setters
     public int getBusinessId() {
         return businessId;
     }
@@ -96,6 +97,14 @@ public class Businesses {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 
     public Areas getArea() {
@@ -172,6 +181,8 @@ public class Businesses {
 
     @Override
     public String toString() {
-        return "Businesses{" + "businessId=" + businessId + ", owner=" + owner + ", name=" + name + ", type=" + type + ", address=" + address + ", description=" + description + ", area=" + area + ", avgRating=" + avgRating + ", reviewCount=" + reviewCount + ", capacity=" + capacity + ", numBedrooms=" + numBedrooms + ", pricePerNight=" + pricePerNight + ", status=" + status + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + '}';
+        return "Businesses{" + "businessId=" + businessId + ", owner=" + owner + ", name=" + name + ", type=" + type + ", address=" + address + ", description=" + description + ", image=" + image + ", area=" + area + ", avgRating=" + avgRating + ", reviewCount=" + reviewCount + ", capacity=" + capacity + ", numBedrooms=" + numBedrooms + ", pricePerNight=" + pricePerNight + ", status=" + status + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + '}';
     }
+
+    
 }
