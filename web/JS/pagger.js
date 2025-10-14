@@ -27,5 +27,5 @@ function pagger(id, pageindex, totalpage, gap, baseUrl)
     }
     if (pageindex < totalpage - gap)
         content += '<a href="' + baseUrl + 'page=' + totalpage + '">Last</a>';
-    container.innerHTML = content;
+    container.innerHTML = content; 
 }
