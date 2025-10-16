@@ -41,7 +41,6 @@ public class UserDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -90,19 +89,18 @@ public class UserDAO {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 Roles role = new Roles(rs.getInt("role_id"), null, null, null);
-                Users user = new Users(
-                        rs.getInt("user_id"),
-                        role,
-                        rs.getString("full_name"),
-                        rs.getString("email"),
-                        rs.getString("password_hash"),
-                        rs.getString("phone"),
-                        rs.getString("citizen_id"),
-                        rs.getString("personal_address"),
-                        rs.getString("status"),
-                        rs.getObject("created_at", LocalDateTime.class),
-                        rs.getObject("updated_at", LocalDateTime.class)
-                );
+                Users user = new Users();
+                user.setUserId(rs.getInt("user_id"));
+                user.setRole(role);
+                user.setFullName(rs.getString("full_name"));
+                user.setEmail(rs.getString("email"));
+                user.setPasswordHash(rs.getString("password_hash"));
+                user.setPhone(rs.getString("phone"));
+                user.setCitizenId(rs.getString("citizen_id"));
+                user.setPersonalAddress(rs.getString("personal_address"));
+                user.setStatus(rs.getString("status"));
+                user.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
+                user.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
                 return user;
             }
         } catch (SQLException e) {
@@ -163,19 +161,18 @@ public class UserDAO {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 Roles role = new Roles(rs.getInt("role_id"), rs.getString("role_name"), null, null);
-                Users user = new Users(
-                        rs.getInt("user_id"),
-                        role,
-                        rs.getString("full_name"),
-                        rs.getString("email"),
-                        rs.getString("password_hash"),
-                        rs.getString("phone"),
-                        rs.getString("citizen_id"),
-                        rs.getString("personal_address"),
-                        rs.getString("status"),
-                        rs.getObject("created_at", LocalDateTime.class),
-                        rs.getObject("updated_at", LocalDateTime.class)
-                );
+                Users user = new Users();
+                user.setUserId(rs.getInt("user_id"));
+                user.setRole(role);
+                user.setFullName(rs.getString("full_name"));
+                user.setEmail(rs.getString("email"));
+                user.setPasswordHash(rs.getString("password_hash"));
+                user.setPhone(rs.getString("phone"));
+                user.setCitizenId(rs.getString("citizen_id"));
+                user.setPersonalAddress(rs.getString("personal_address"));
+                user.setStatus(rs.getString("status"));
+                user.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
+                user.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
                 return user;
             }
         } catch (SQLException e) {
@@ -373,5 +370,88 @@ public class UserDAO {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    /**
+     * Cập nhật thông tin profile của user
+     */
+    public boolean updateUserProfile(int userId, String fullName, String email, String phone, 
+                                   String gender, Integer birthDay, Integer birthMonth, Integer birthYear, String city) {
+        // Chỉ cập nhật các trường cơ bản trước, các trường mới sẽ được thêm sau khi chạy script database
+        String sql = "UPDATE users SET full_name = ?, email = ?, phone = ?, updated_at = ? WHERE user_id = ?";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, fullName);
+            ps.setString(2, email);
+            ps.setString(3, phone);
+            ps.setObject(4, LocalDateTime.now());
+            ps.setInt(5, userId);
+            
+            int result = ps.executeUpdate();
+            return result > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Lấy thông tin user với đầy đủ thông tin profile
+     */
+    public Users getUserProfileById(int userId) {
+        String sql = "SELECT u.*, r.role_name FROM users u JOIN roles r ON u.role_id = r.role_id WHERE u.user_id = ?";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Users user = new Users();
+                user.setUserId(rs.getInt("user_id"));
+                user.setRole(new Roles(rs.getInt("role_id"), rs.getString("role_name"), null, null));
+                user.setFullName(rs.getString("full_name"));
+                user.setEmail(rs.getString("email"));
+                user.setPasswordHash(rs.getString("password_hash"));
+                user.setPhone(rs.getString("phone"));
+                user.setCitizenId(rs.getString("citizen_id"));
+                user.setPersonalAddress(rs.getString("personal_address"));
+                
+                // Kiểm tra và set các trường mới (có thể null nếu chưa có trong DB)
+                try {
+                    user.setGender(rs.getString("gender"));
+                } catch (SQLException e) {
+                    user.setGender(null);
+                }
+                
+                try {
+                    user.setBirthDay(rs.getInt("birth_day"));
+                } catch (SQLException e) {
+                    user.setBirthDay(0);
+                }
+                
+                try {
+                    user.setBirthMonth(rs.getInt("birth_month"));
+                } catch (SQLException e) {
+                    user.setBirthMonth(0);
+                }
+                
+                try {
+                    user.setBirthYear(rs.getInt("birth_year"));
+                } catch (SQLException e) {
+                    user.setBirthYear(0);
+                }
+                
+                try {
+                    user.setCity(rs.getString("city"));
+                } catch (SQLException e) {
+                    user.setCity(null);
+                }
+                
+                user.setStatus(rs.getString("status"));
+                user.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
+                user.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
+                return user;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

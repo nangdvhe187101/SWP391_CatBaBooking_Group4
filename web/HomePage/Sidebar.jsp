@@ -49,7 +49,7 @@
                                 </div>
                             </div>
                             <ul class="dropdown-list">
-                                <li><i class="fas fa-user-edit"></i> Edit Profile</li>
+                                <li><a href="${pageContext.request.contextPath}/edit-profile"><i class="fas fa-user-edit"></i> Edit Profile</a></li>
                                 <li><i class="fas fa-credit-card"></i> My Cards</li>
                                 <li><i class="fas fa-shopping-cart"></i> Purchase List</li>
                                 <li><i class="fas fa-calendar-check"></i> My Booking</li>
