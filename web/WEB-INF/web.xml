@@ -8,4 +8,13 @@
         <servlet-name>EditProfileController</servlet-name>
         <url-pattern>/edit-profile</url-pattern>
     </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>UpdateHomestayController</servlet-name>
+        <servlet-class>Controller.owner.UpdateHomestayController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UpdateHomestayController</servlet-name>
+        <url-pattern>/update-homestay</url-pattern>
+    </servlet-mapping>
 </web-app>

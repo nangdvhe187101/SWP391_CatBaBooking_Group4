@@ -12,6 +12,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Homestay - Cát Bà Booking</title>
     <link rel="stylesheet" href="owner-styles.css">
+    <style>
+        .btn-small {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .btn-small:hover {
+            background-color: var(--primary-dark);
+        }
+    </style>
 </head>
 <body>
     <!-- Sidebar (active Quản lý Homestay) -->
@@ -77,10 +92,13 @@
                         <p>₫500.000/đêm</p>
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span>24 lượt xem</span>
-                            <label class="switch">
-                                <input type="checkbox" checked>
-                                <span class="slider"></span>
-                            </label>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <button class="btn-small" onclick="window.location.href='UpdateHomestay.jsp'">Cập nhật</button>
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -94,10 +112,13 @@
                         <p>₫1.200.000/đêm</p>
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span>18 lượt xem</span>
-                            <label class="switch">
-                                <input type="checkbox" checked>
-                                <span class="slider"></span>
-                            </label>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <button class="btn-small" onclick="updateHomestay(2)">Cập nhật</button>
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -110,10 +131,13 @@
                         <p>₫350.000/đêm</p>
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span>0 lượt xem</span>
-                            <label class="switch">
-                                <input type="checkbox">
-                                <span class="slider"></span>
-                            </label>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <button class="btn-small" onclick="updateHomestay(3)">Cập nhật</button>
+                                <label class="switch">
+                                    <input type="checkbox">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -126,10 +150,13 @@
                         <p>₫800.000/đêm</p>
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span>12 lượt xem</span>
-                            <label class="switch">
-                                <input type="checkbox" checked>
-                                <span class="slider"></span>
-                            </label>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <button class="btn-small" onclick="updateHomestay(4)">Cập nhật</button>
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -160,6 +187,11 @@
             document.querySelectorAll('.switch input').forEach(input => {
                 input.addEventListener('change', () => alert('Cập nhật trạng thái!'));
             });
+        });
+        
+        // Function to redirect to update homestay page
+        function updateHomestay(businessId) {
+            window.location.href = 'update-homestay';
         });
     </script>
 </body>

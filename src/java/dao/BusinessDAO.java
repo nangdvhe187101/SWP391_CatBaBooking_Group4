@@ -6,12 +6,10 @@ package dao;
 
 import model.Businesses;
 import model.Users;
-import model.Areas;
 import util.DBUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.ResultSet;
 import java.time.LocalDateTime;
 /**
@@ -78,6 +76,69 @@ public class BusinessDAO {
                 biz.setType(rs.getString("type"));
                 biz.setAddress(rs.getString("address"));
                 biz.setDescription(rs.getString("description"));
+                biz.setImage(rs.getString("image"));
+                biz.setPricePerNight(rs.getBigDecimal("price_per_night"));
+                biz.setCapacity(rs.getInt("capacity"));
+                biz.setNumBedrooms(rs.getInt("num_bedrooms"));
+                biz.setStatus(rs.getString("status"));
+                biz.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
+                biz.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
+                return biz;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    public boolean updateBusinessProfile(int businessId, String name, String address, String description, 
+                                       String image, java.math.BigDecimal pricePerNight, 
+                                       Integer capacity, Integer numBedrooms) {
+        String sql = "UPDATE businesses SET name = ?, address = ?, description = ?, image = ?, " +
+                    "price_per_night = ?, capacity = ?, num_bedrooms = ?, updated_at = ? " +
+                    "WHERE business_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setString(1, name);
+            ps.setString(2, address);
+            ps.setString(3, description);
+            ps.setString(4, image);
+            ps.setBigDecimal(5, pricePerNight);
+            ps.setInt(6, capacity);
+            ps.setInt(7, numBedrooms);
+            ps.setObject(8, LocalDateTime.now());
+            ps.setInt(9, businessId);
+            
+            int result = ps.executeUpdate();
+            return result > 0;
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    public Businesses getBusinessById(int businessId) {
+        String sql = "SELECT * FROM businesses WHERE business_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, businessId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Users owner = new Users(); 
+                owner.setUserId(rs.getInt("owner_id"));
+                Businesses biz = new Businesses(); 
+                biz.setBusinessId(rs.getInt("business_id"));
+                biz.setOwner(owner);
+                biz.setName(rs.getString("name"));
+                biz.setType(rs.getString("type"));
+                biz.setAddress(rs.getString("address"));
+                biz.setDescription(rs.getString("description"));
+                biz.setImage(rs.getString("image"));
+                biz.setPricePerNight(rs.getBigDecimal("price_per_night"));
+                biz.setCapacity(rs.getInt("capacity"));
+                biz.setNumBedrooms(rs.getInt("num_bedrooms"));
                 biz.setStatus(rs.getString("status"));
                 biz.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
                 biz.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));

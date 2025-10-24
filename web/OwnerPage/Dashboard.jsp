@@ -24,7 +24,7 @@
             <ul>
                 <li><a href="Dashboard.jsp" class="nav-link active">🏠 Tổng quan</a></li>
                 <li><a href="AddHomestay.jsp" class="nav-link">👤 Hồ sơ</a></li>
-                <li><a href="ManageHomestay.jsp" class="nav-link">🏠 Quản lý Homestay</a></li>
+                <li><a href="${pageContext.request.contextPath}/ManageHomestay.jsp" class="nav-link">🏠 Quản lý Homestay</a></li>
                 <li><a href="Feedback.jsp" class="nav-link">💬 Phản hồi & Đánh giá</a></li>
                 <li><a href="Reports.jsp" class="nav-link">📊 Báo cáo Doanh thu</a></li>
                 <li><a href="#" class="nav-link logout">➡️ Đăng xuất</a></li>
