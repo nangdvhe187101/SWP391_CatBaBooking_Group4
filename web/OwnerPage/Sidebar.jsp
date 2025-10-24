@@ -21,7 +21,7 @@
             <li><a href="RestaurantBookings.jsp" class="nav-link">📅 Đặt bàn</a></li>
             <li><a href="RestaurantManageTables.jsp" class="nav-link">🍽️ Quản lý Bàn</a></li>
             <li><a href="RestaurantTableAvailability.jsp" class="nav-link">🪑 Tình trạng bàn</a></li>
-            <li><a href="${pageContext.request.contextPath}/restaurant-settings" class="nav-link">⚙ Thông tin nhà hàng</a></li>
+            <li><a href="${pageContext.request.contextPath}/restaurant-settings" class="nav-link">Thông tin cơ sở kinh doanh</a></li>
             <li><a href="Feedback.jsp" class="nav-link">💬 Phản hồi & Đánh giá</a></li>
             <li><a href="Reports.jsp" class="nav-link">📊 Báo cáo Doanh thu</a></li>
             <li>
