@@ -29,23 +29,8 @@
     </style>
 </head>
 <body>
-    <!-- Sidebar (active Quản lý Homestay) -->
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <h2>🐚 Cát Bà Booking</h2>
-            <h3>Owner Dashboard</h3>
-        </div>
-        <nav class="sidebar-nav">
-            <ul>
-                <li><a href="Dashboard.jsp" class="nav-link">🏠 Tổng quan</a></li>
-                <li><a href="AddHomestay.jsp" class="nav-link">👤 Hồ sơ</a></li>
-                <li><a href="ManageHomestay.jsp" class="nav-link active">🏠 Quản lý Homestay</a></li>
-                <li><a href="Feedback.jsp" class="nav-link">💬 Phản hồi & Đánh giá</a></li>
-                <li><a href="Reports.jsp" class="nav-link">📊 Báo cáo Doanh thu</a></li>
-                <li><a href="#" class="nav-link logout">➡️ Đăng xuất</a></li>
-            </ul>
-        </nav>
-    </aside>
+    
+    <%@ include file="Sidebar.jsp" %>
 
     <!-- Overlay -->
     <div id="sidebar-overlay" class="hidden"></div>
