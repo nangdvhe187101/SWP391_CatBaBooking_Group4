@@ -11,50 +11,139 @@ import jakarta.mail.Session;
 import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import java.io.InputStream;
 import java.util.Properties;
 
 /**
- *
- * @author ADMIN
+ * @author ADMIN 
  */
 public class EmailUtil {
 
-    private static final String FROM_EMAIL = "catbabooking.fms@gmail.com";
-    private static final String SUPPORT_EMAIL = "catbabooking.fms@gmail.com";
-    private static final String PASSWORD = "bzsnvnkpjodfwdvx";
+    private static final Properties properties = new Properties();
+    private static final Session session;
 
-    // Common method to configure SMTP properties and session
-    private static Session getSmtpSession() {
-        Properties props = new Properties();
-        props.put("mail.smtp.host", "smtp.gmail.com");
-        props.put("mail.smtp.port", "587");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-
-        return Session.getInstance(props, new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(FROM_EMAIL, PASSWORD);
+    static {
+        String resourcePath = "properties/Email.properties";
+        try (InputStream input = EmailUtil.class.getClassLoader().getResourceAsStream(resourcePath)) {
+            if (input == null) {
+                throw new RuntimeException("Không tìm thấy file cấu hình email.");
             }
-        });
+            properties.load(input);
+            session = Session.getInstance(properties, new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(
+                            properties.getProperty("mail.app.username"),
+                            properties.getProperty("mail.app.password")
+                    );
+                }
+            });
+            System.out.println("✅ Đã tải cấu hình email và khởi tạo Session thành công!");
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Lỗi nghiêm trọng khi khởi tạo cấu hình email.", e);
+        }
     }
 
-    // Send registration confirmation email to regular users
+    private static String getFromEmail() {
+        return properties.getProperty("mail.app.username");
+    }
+
+    private static String getSupportEmail() {
+        return properties.getProperty("mail.support.address");
+    }
+
+    private static String getSenderName() {
+        return properties.getProperty("mail.app.sender_name", "Cat Ba Booking");
+    }
+
+    // --- CÁC PHƯƠNG THỨC GỬI EMAIL ---
     public static void sendRegistrationConfirmation(String toEmail, String recipientName) {
-        Session session = getSmtpSession();
         try {
             MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(FROM_EMAIL, "Cat Ba Booking"));
+            message.setFrom(new InternetAddress(getFromEmail(), getSenderName()));
             message.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
             message.setSubject("Welcome to Cat Ba Booking!");
             message.setContent(createRegistrationContent(recipientName), "text/html; charset=UTF-8");
             Transport.send(message);
             System.out.println("✅ Registration confirmation email sent to: " + toEmail);
         } catch (Exception e) {
-            System.err.println("❌ Failed to send registration confirmation email: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
+    public static void sendOTP(String toEmail, String otp) {
+        try {
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(getFromEmail(), "Cát Bà Booking"));
+            message.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
+            message.setSubject("Password Reset OTP Code - Cát Bà Booking");
+            message.setContent(createOTPContent(otp), "text/html; charset=UTF-8");
+            Transport.send(message);
+            System.out.println("✅ OTP email sent to: " + toEmail);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // (Các hàm send... khác giữ nguyên logic, chỉ cần gọi session đã có)
+    public static void sendPendingConfirmation(String toEmail, String recipientName) {
+        try {
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(getFromEmail(), getSenderName()));
+            message.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
+            message.setSubject("Your Registration is Under Review - Cat Ba Booking");
+            message.setContent(createPendingContent(recipientName), "text/html; charset=UTF-8");
+            Transport.send(message);
+            System.out.println("✅ Pending confirmation email sent to: " + toEmail);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void sendAdminNotification(String adminEmail, String fullName, String userEmail, String businessName, String businessType) {
+        try {
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(getFromEmail(), getSenderName()));
+            message.setRecipient(Message.RecipientType.TO, new InternetAddress(adminEmail));
+            message.setSubject("New Owner Registration Pending Approval - Cat Ba Booking");
+            message.setContent(createAdminNotificationContent(fullName, userEmail, businessName, businessType), "text/html; charset=UTF-8");
+            Transport.send(message);
+            System.out.println("✅ Admin notification email sent to: " + adminEmail);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void sendApprovalConfirmation(String toEmail, String recipientName, String businessName) {
+        try {
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(getFromEmail(), getSenderName()));
+            message.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
+            message.setSubject("Your Registration Has Been Approved - Cat Ba Booking");
+            message.setContent(createApprovalContent(recipientName, businessName), "text/html; charset=UTF-8");
+            Transport.send(message);
+            System.out.println("✅ Approval confirmation email sent to: " + toEmail);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void sendRejectionNotification(String toEmail, String recipientName, String businessName, String reason) {
+        try {
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(getFromEmail(), getSenderName()));
+            message.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
+            message.setSubject("Your Registration Has Been Rejected - Cat Ba Booking");
+            message.setContent(createRejectionContent(recipientName, businessName, reason), "text/html; charset=UTF-8");
+            Transport.send(message);
+            System.out.println("✅ Rejection notification email sent to: " + toEmail);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // --- CÁC PHƯƠNG THỨC TẠO NỘI DUNG HTML (GIỮ NGUYÊN TỪ FILE CŨ CỦA BẠN) ---
     private static String createRegistrationContent(String recipientName) {
         return """
         <!DOCTYPE html>
@@ -87,50 +176,20 @@ public class EmailUtil {
             </div>
         </body>
         </html>
-        """.formatted(escapeHtml(recipientName), SUPPORT_EMAIL);
-    }
-
-    public static void sendOTP(String toEmail, String otp) {
-        Session session = getSmtpSession();
-        try {
-            MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(FROM_EMAIL, "Cát Bà Booking"));
-            message.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
-            message.setSubject("Password Reset OTP Code - Cát Bà Booking");
-            message.setContent(createOTPContent(otp), "text/html; charset=UTF-8");
-            Transport.send(message);
-            System.out.println("✅ OTP email sent to: " + toEmail);
-        } catch (Exception e) {
-            System.err.println("❌ Failed to send OTP email: " + e.getMessage());
-        }
+        """.formatted(escapeHtml(recipientName), getSupportEmail());
     }
 
     private static String createOTPContent(String otp) {
         return """
-    <html>
-        <body>
-            <h2>Password Reset OTP Code</h2>
-            <p>Your OTP code is: <strong>%s</strong></p>
-            <p>This code is valid for 5 minutes. Please do not share it with anyone.</p>
-            <p>Best regards,<br>Cát Bà Booking</p>
-        </body>
-    </html>
-    """.formatted(otp);
-    }
-
-    public static void sendPendingConfirmation(String toEmail, String recipientName) {
-        Session session = getSmtpSession();
-        try {
-            MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(FROM_EMAIL, "Cat Ba Booking"));
-            message.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
-            message.setSubject("Your Registration is Under Review - Cat Ba Booking");
-            message.setContent(createPendingContent(recipientName), "text/html; charset=UTF-8");
-            Transport.send(message);
-            System.out.println("✅ Pending confirmation email sent to: " + toEmail);
-        } catch (Exception e) {
-            System.err.println("❌ Failed to send pending confirmation email: " + e.getMessage());
-        }
+        <html>
+            <body>
+                <h2>Password Reset OTP Code</h2>
+                <p>Your OTP code is: <strong>%s</strong></p>
+                <p>This code is valid for 5 minutes. Please do not share it with anyone.</p>
+                <p>Best regards,<br>Cát Bà Booking</p>
+            </body>
+        </html>
+        """.formatted(otp);
     }
 
     private static String createPendingContent(String recipientName) {
@@ -164,23 +223,7 @@ public class EmailUtil {
             </div>
         </body>
         </html>
-        """.formatted(escapeHtml(recipientName), SUPPORT_EMAIL);
-    }
-
-    // Send notification to admin about new owner registration
-    public static void sendAdminNotification(String adminEmail, String fullName, String userEmail, String businessName, String businessType) {
-        Session session = getSmtpSession();
-        try {
-            MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(FROM_EMAIL, "Cat Ba Booking"));
-            message.setRecipient(Message.RecipientType.TO, new InternetAddress(adminEmail));
-            message.setSubject("New Owner Registration Pending Approval - Cat Ba Booking");
-            message.setContent(createAdminNotificationContent(fullName, userEmail, businessName, businessType), "text/html; charset=UTF-8");
-            Transport.send(message);
-            System.out.println("✅ Admin notification email sent to: " + adminEmail);
-        } catch (Exception e) {
-            System.err.println("❌ Failed to send admin notification email: " + e.getMessage());
-        }
+        """.formatted(escapeHtml(recipientName), getSupportEmail());
     }
 
     private static String createAdminNotificationContent(String fullName, String userEmail, String businessName, String businessType) {
@@ -221,23 +264,7 @@ public class EmailUtil {
             </div>
         </body>
         </html>
-        """.formatted(escapeHtml(fullName), escapeHtml(userEmail), escapeHtml(businessName), escapeHtml(businessType), SUPPORT_EMAIL);
-    }
-
-    // Send approval confirmation email to approved owners
-    public static void sendApprovalConfirmation(String toEmail, String recipientName, String businessName) {
-        Session session = getSmtpSession();
-        try {
-            MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(FROM_EMAIL, "Cat Ba Booking"));
-            message.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
-            message.setSubject("Your Registration Has Been Approved - Cat Ba Booking");
-            message.setContent(createApprovalContent(recipientName, businessName), "text/html; charset=UTF-8");
-            Transport.send(message);
-            System.out.println("✅ Approval confirmation email sent to: " + toEmail);
-        } catch (Exception e) {
-            System.err.println("❌ Failed to send approval confirmation email: " + e.getMessage());
-        }
+        """.formatted(escapeHtml(fullName), escapeHtml(userEmail), escapeHtml(businessName), escapeHtml(businessType), getSupportEmail());
     }
 
     private static String createApprovalContent(String recipientName, String businessName) {
@@ -272,23 +299,7 @@ public class EmailUtil {
             </div>
         </body>
         </html>
-        """.formatted(escapeHtml(recipientName), escapeHtml(businessName), SUPPORT_EMAIL);
-    }
-
-    // Send rejection notification email to rejected owners
-    public static void sendRejectionNotification(String toEmail, String recipientName, String businessName, String reason) {
-        Session session = getSmtpSession();
-        try {
-            MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(FROM_EMAIL, "Cat Ba Booking"));
-            message.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
-            message.setSubject("Your Registration Has Been Rejected - Cat Ba Booking");
-            message.setContent(createRejectionContent(recipientName, businessName, reason), "text/html; charset=UTF-8");
-            Transport.send(message);
-            System.out.println("✅ Rejection notification email sent to: " + toEmail);
-        } catch (Exception e) {
-            System.err.println("❌ Failed to send rejection notification email: " + e.getMessage());
-        }
+        """.formatted(escapeHtml(recipientName), escapeHtml(businessName), getSupportEmail());
     }
 
     private static String createRejectionContent(String recipientName, String businessName, String reason) {
@@ -325,92 +336,19 @@ public class EmailUtil {
             </div>
         </body>
         </html>
-        """.formatted(escapeHtml(recipientName), escapeHtml(businessName), escapeHtml(reason), SUPPORT_EMAIL, SUPPORT_EMAIL);
-    }
-    // Send approval email to owner
-
-    public static void sendApprovalEmail(String toEmail, String recipientName) {
-        Session session = getSmtpSession();
-        try {
-            MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(FROM_EMAIL, "Cat Ba Booking"));
-            message.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
-            message.setSubject("Đăng Ký Owner Đã Được Duyệt!");
-            message.setContent(createApprovalContent(recipientName), "text/html; charset=UTF-8");
-            Transport.send(message);
-            System.out.println("✅ Approval email sent to: " + toEmail);
-        } catch (Exception e) {
-            System.err.println("❌ Failed to send approval email: " + e.getMessage());
-        }
+        """.formatted(escapeHtml(recipientName), escapeHtml(businessName), escapeHtml(reason), getSupportEmail(), getSupportEmail());
     }
 
-    private static String createApprovalContent(String recipientName) {
-        return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>Đăng Ký Được Duyệt</title>
-    </head>
-    <body>
-        <h2>Xin chào %s,</h2>
-        <p>Đơn đăng ký owner của bạn đã được duyệt! Bạn có thể đăng nhập và quản lý cơ sở ngay.</p>
-        <p>Trân trọng,<br>Cat Ba Booking</p>
-    </body>
-    </html>
-    """.formatted(escapeHtml(recipientName));
-    }
-
-// Send rejection email to owner
-    public static void sendRejectionEmail(String toEmail, String recipientName, String reason) {
-        Session session = getSmtpSession();
-        try {
-            MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(FROM_EMAIL, "Cat Ba Booking"));
-            message.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
-            message.setSubject("Đăng Ký Owner Bị Từ Chối");
-            message.setContent(createRejectionContent(recipientName, reason), "text/html; charset=UTF-8");
-            Transport.send(message);
-            System.out.println("✅ Rejection email sent to: " + toEmail);
-        } catch (Exception e) {
-            System.err.println("❌ Failed to send rejection email: " + e.getMessage());
-        }
-    }
-
-    private static String createRejectionContent(String recipientName, String reason) {
-        return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>Đăng Ký Bị Từ Chối</title>
-    </head>
-    <body>
-        <h2>Xin chào %s,</h2>
-        <p>Đơn đăng ký owner của bạn bị từ chối vì: %s</p>
-        <p>Bạn có thể đăng ký lại sau khi chỉnh sửa.</p>
-        <p>Trân trọng,<br>Cat Ba Booking</p>
-    </body>
-    </html>
-    """.formatted(escapeHtml(recipientName), escapeHtml(reason));
-    }
-
-    // Escape HTML characters to prevent XSS in email content
     private static String escapeHtml(String str) {
         if (str == null) {
             return "";
         }
-        return str.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;")
-                .replace("'", "&#39;");
+        return str.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&#39;");
     }
 
-    // Test method for sending emails
     public static void main(String[] args) {
         System.out.println("=== Email Test ===");
-//        sendRegistrationConfirmation("test@example.com", "Test User");
+        sendRegistrationConfirmation("nangdvhe187101@fpt.edu.vn", "Năng");
         System.out.println("=== Test Complete ===");
     }
 }

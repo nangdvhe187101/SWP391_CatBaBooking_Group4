@@ -257,9 +257,7 @@
                         <span class="filter-tag">Giá rẻ</span>
                     </div>
 
-                    <!-- Homestay Grid (tĩnh ví dụ) -->
                     <div class="homestays-grid" id="homestays-container">
-                        <!-- Homestay Card 1 -->
                         <div class="homestay-card">
                             <div class="card-image">
                                 <img src="https://images.unsplash.com/photo-1710702418104-6bf5419ab03d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aWV0bmFtZXNlJTIwaG9tZXN0YXl8ZW58MXx8fHwxNzU3Njg2OTkyfDA&ixlib=rb-4.1.0&q=80&w=1080" alt="Homestay Ví dụ">
@@ -287,10 +285,8 @@
                                     <i class="fas fa-map-marker-alt"></i>
                                     Bãi Cát Cò 1
                                 </div>
-                                <!-- Thêm chi tiết khác nếu cần -->
                             </div>
                         </div>
-                        <!-- Thêm các card khác tương tự nếu cần -->
                     </div>
 
                     <!-- Pagination -->
