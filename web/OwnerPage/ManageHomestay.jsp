@@ -177,7 +177,7 @@
         // Function to redirect to update homestay page
         function updateHomestay(businessId) {
             window.location.href = 'update-homestay';
-        });
+        }
     </script>
 </body>
 </html>
