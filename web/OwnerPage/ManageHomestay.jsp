@@ -5,6 +5,9 @@
 --%>
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -29,8 +32,8 @@
     </style>
 </head>
 <body>
-    
-    <%@ include file="Sidebar.jsp" %>
+    <div class="owner-container">
+        <jsp:include page="Sidebar.jsp" />
 
     <!-- Overlay -->
     <div id="sidebar-overlay" class="hidden"></div>
@@ -65,9 +68,59 @@
                     <option>Tạm ngưng</option>
                 </select>
             </div>
+            
+            <div class="content-body">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Tên Homestay</th>
+                                <th>Địa chỉ</th>
+                                <th>Khu vực</th>
+                                <th>Giá (VND/đêm)</th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <%-- 2. Dùng JSTL <c:forEach> để lặp qua danh sách "listH" --%>
+                            <c:forEach var="h" items="${listH}" varStatus="loop">
+                                <tr>
+                                    <td>${loop.count}</td>
+                                    <td><c:out value="${h.getName()}"/></td>
+                                    <td><c:out value="${h.getAddress()}"/></td>
+                                    <%-- Lấy tên khu vực (đã được set ở Bước 1) --%>
+                                    <td><c:out value="${h.getArea().getName()}"/></td>
+                                    <td>
+                                        <fmt:formatNumber value="${h.getPricePerNight()}" type="currency" currencyCode="VND" minFractionDigits="0" />
+                                    </td>
+                                    <td>
+                                        <span class="status status-${fn:toLowerCase(h.getStatus())}">
+                                            ${h.getStatus()}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <%-- 3. NÚT CẬP NHẬT --%>
+                                        <%-- Trỏ đến "update-homestay" (servlet UpdateHomestayController của bạn) --%>
+                                        <a href="update-homestay?id=${h.getBusinessId()}" class="btn-action btn-update">Cập nhật</a>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                            
+                            <%-- 4. Hiển thị thông báo nếu danh sách rỗng --%>
+                            <c:if test="${empty listH}">
+                                <tr>
+                                    <td colspan="7" style="text-align: center;">Bạn chưa có homestay nào. Vui lòng "Thêm Homestay" từ menu.</td>
+                                </tr>
+                            </c:if>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
             <!-- Homestay Grid -->
-            <div class="homestay-grid">
+<!--            <div class="homestay-grid">
                 <div class="homestay-card">
                     <img src="https://source.unsplash.com/300x200/?homestay,beach" alt="Homestay Biển Xanh" class="homestay-image">
                     <div class="homestay-status">Hoạt động</div>
@@ -87,7 +140,7 @@
                         </div>
                     </div>
                 </div>
-                <!-- Thêm 3 card tương tự với ảnh khác -->
+                 Thêm 3 card tương tự với ảnh khác 
                 <div class="homestay-card">
                     <img src="https://source.unsplash.com/300x200/?villa,sunset" alt="Villa Sunset Cát Bà" class="homestay-image">
                     <div class="homestay-status">Hoạt động</div>
@@ -145,11 +198,11 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div>-->
         </main>
     </div>
 
-    <!-- JS -->
+<!--     JS 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Sidebar toggle (giống Dashboard)
@@ -178,6 +231,6 @@
         function updateHomestay(businessId) {
             window.location.href = 'update-homestay';
         }
-    </script>
+    </script>-->
 </body>
 </html>

@@ -17,4 +17,13 @@
         <servlet-name>UpdateHomestayController</servlet-name>
         <url-pattern>/update-homestay</url-pattern>
     </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>ManageHomestayController</servlet-name>
+        <servlet-class>Controller.owner.ManageHomestayController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ManageHomestayController</servlet-name>
+        <url-pattern>/manage-homestay</url-pattern>
+    </servlet-mapping>
 </web-app>

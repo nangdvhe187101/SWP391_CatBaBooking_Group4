@@ -4,6 +4,7 @@
  */
 package dao;
 
+import java.math.BigDecimal;
 import model.Businesses;
 import model.Users;
 import util.DBUtil;
@@ -12,6 +13,10 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import model.Areas;
+import java.sql.Timestamp;
 
 /**
  *
@@ -171,4 +176,118 @@ public class BusinessDAO {
             return ps.executeUpdate();
         }
     }
+
+    //Lấy danh sách các cơ sở kinh doanh (Homestay) theo ID của chủ sở hữu.
+    public List<Businesses> getBusinessesByOwnerIdAndType(int ownerId, String type) {
+        List<Businesses> list = new ArrayList<>();
+
+        // Câu SQL JOIN với bảng 'areas' để lấy tên khu vực
+        String sql = "SELECT b.*, a.name AS area_name "
+                   + "FROM businesses b "
+                   + "LEFT JOIN areas a ON b.area_id = a.area_id "
+                   + "WHERE b.owner_id = ? AND b.type = ?";
+        // DÒNG DEBUG 1: Kiểm tra xem phương thức có được gọi với đúng tham số không
+        System.out.println("[BusinessDAO] Đang tìm homestay cho owner_id = " + ownerId + " VÀ type = " + type);
+
+        // 1. Dùng try-with-resources (giống code mẫu của bạn)
+        // conn và ps sẽ được tự động đóng, không cần 'finally'
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, ownerId);
+            ps.setString(2, type);
+
+            // ResultSet sẽ tự động đóng khi PreparedStatement (ps) đóng
+            ResultSet rs = ps.executeQuery();
+
+            // 2. Lặp qua tất cả kết quả
+            while (rs.next()) {
+
+                // 3. Dùng style Setter (giống code mẫu của bạn)
+                Businesses biz = new Businesses();
+
+                // 4. Tạo và set đối tượng Users lồng nhau (giống code mẫu)
+                Users owner = new Users();
+                owner.setUserId(rs.getInt("owner_id"));
+                biz.setOwner(owner);
+
+                // 5. Tạo và set đối tượng Areas lồng nhau (phần mở rộng)
+                Areas area = new Areas(rs.getInt("area_id"), rs.getString("area_name"));
+                biz.setArea(area); // Gán đối tượng khu vực
+
+                // 6. Set các trường còn lại
+                biz.setBusinessId(rs.getInt("business_id"));
+                biz.setName(rs.getString("name"));
+                biz.setType(rs.getString("type"));
+                biz.setAddress(rs.getString("address"));
+                biz.setDescription(rs.getString("description"));
+                biz.setPricePerNight(rs.getBigDecimal("price_per_night"));
+                biz.setCapacity(rs.getInt("capacity"));
+                biz.setNumBedrooms(rs.getInt("num_bedrooms"));
+                biz.setStatus(rs.getString("status"));
+
+                // 7. Lấy Timestamp (phổ biến) hoặc LocalDateTime (như code mẫu)
+                biz.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
+                biz.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
+
+                list.add(biz);
+            }
+        } catch (Exception e) { // Bắt Exception chung
+            System.out.println("[BusinessDAO] LỖI SQL: " + e.getMessage());
+            e.printStackTrace();
+        }
+        // DÒNG DEBUG 2: Kiểm tra xem DAO tìm thấy bao nhiêu homestay
+        System.out.println("[BusinessDAO] Đã tìm thấy " + list.size() + " homestay.");
+
+        // 8. Không cần khối 'finally'
+        return list;
+    }
+
+    public boolean updateHomestay(int id, String name, String address,
+        String description, BigDecimal pricePerNight,
+        int capacity, int numBedrooms, int areaId, int ownerId) {
+
+        // Câu SQL UPDATE, cập nhật tất cả các trường
+        // Thêm điều kiện AND owner_id = ? để bảo mật
+        String sql = "UPDATE businesses SET "
+                + "name = ?, "
+                + "address = ?, "
+                + "description = ?, "
+                + "price_per_night = ?, "
+                + "capacity = ?, "
+                + "num_bedrooms = ?, "
+                + "area_id = ?, "
+                + "updated_at = CURRENT_TIMESTAMP "
+                + "WHERE business_id = ? AND owner_id = ?";
+
+        // Dùng try-with-resources (giống phong cách code getBusinessById của bạn)
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            // 1. Set các tham số cho câu lệnh SQL
+            ps.setString(1, name);
+            ps.setString(2, address);
+            ps.setString(3, description);
+            ps.setBigDecimal(4, pricePerNight);
+            ps.setInt(5, capacity);
+            ps.setInt(6, numBedrooms);
+            ps.setInt(7, areaId);
+
+            // 2. Set các tham số cho WHERE
+            ps.setInt(8, id);
+            ps.setInt(9, ownerId); // Tham số bảo mật
+
+            // 3. Thực thi update và lấy số hàng bị ảnh hưởng
+            int rowsAffected = ps.executeUpdate();
+
+            // 4. Trả về true nếu có 1 hàng bị ảnh hưởng (tức là thành công)
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            System.out.println("[BusinessDAO] LỖI updateHomestay: " + e.getMessage());
+            e.printStackTrace();
+            return false; // Trả về false nếu có lỗi
+        }
+    }
+    
 }
