@@ -27,7 +27,7 @@ import service.RestaurantBusinessSettingsValidator;
  * @author ADMIN
  */
 @WebServlet(name = "RestaurantSettingsServlet", urlPatterns = {"/restaurant-settings"})
-public class RestaurantSettingsServlet extends HttpServlet {
+public class RestaurantSettingsController extends HttpServlet {
 
     private BusinessDAO businessDAO;
     private AreaDAO areaDAO; 
