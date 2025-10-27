@@ -2,16 +2,19 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package model;
+package model.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import model.Areas;
+import model.Users;
+
 /**
  *
- * @author ADMIN
+ * @author Admin
  */
-public class Businesses {
+public class BusinessesDTO {
 
     private int businessId;
     private Users owner;
@@ -24,17 +27,15 @@ public class Businesses {
     private BigDecimal avgRating;
     private int reviewCount;
     private Integer capacity;
-    private Integer numBedrooms;
-    private BigDecimal pricePerNight;
     private String status; //('active','pending','rejected')
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private List<Amenities> amenities; // Danh sách tiện nghi
+    private List<String> cuisines; // Danh sách loại ẩm thực
 
-    public Businesses() {
+    public BusinessesDTO() {
     }
 
-    public Businesses(int businessId, Users owner, String name, String type, String address, String description, String image, Areas area, BigDecimal avgRating, int reviewCount, Integer capacity, Integer numBedrooms, BigDecimal pricePerNight, String status, LocalDateTime createdAt, LocalDateTime updatedAt, List<Amenities> amenities) {
+    public BusinessesDTO(int businessId, Users owner, String name, String type, String address, String description, String image, Areas area, BigDecimal avgRating, int reviewCount, Integer capacity, String status, LocalDateTime createdAt, LocalDateTime updatedAt, List<String> cuisines) {
         this.businessId = businessId;
         this.owner = owner;
         this.name = name;
@@ -46,12 +47,10 @@ public class Businesses {
         this.avgRating = avgRating;
         this.reviewCount = reviewCount;
         this.capacity = capacity;
-        this.numBedrooms = numBedrooms;
-        this.pricePerNight = pricePerNight;
         this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-        this.amenities = amenities;
+        this.cuisines = cuisines;
     }
 
     public int getBusinessId() {
@@ -142,22 +141,6 @@ public class Businesses {
         this.capacity = capacity;
     }
 
-    public Integer getNumBedrooms() {
-        return numBedrooms;
-    }
-
-    public void setNumBedrooms(Integer numBedrooms) {
-        this.numBedrooms = numBedrooms;
-    }
-
-    public BigDecimal getPricePerNight() {
-        return pricePerNight;
-    }
-
-    public void setPricePerNight(BigDecimal pricePerNight) {
-        this.pricePerNight = pricePerNight;
-    }
-
     public String getStatus() {
         return status;
     }
@@ -182,17 +165,12 @@ public class Businesses {
         this.updatedAt = updatedAt;
     }
 
-    public List<Amenities> getAmenities() {
-        return amenities;
+    public List<String> getCuisines() {
+        return cuisines;
     }
 
-    public void setAmenities(List<Amenities> amenities) {
-        this.amenities = amenities;
-    }
-
-    @Override
-    public String toString() {
-        return "Businesses{" + "businessId=" + businessId + ", owner=" + owner + ", name=" + name + ", type=" + type + ", address=" + address + ", description=" + description + ", image=" + image + ", area=" + area + ", avgRating=" + avgRating + ", reviewCount=" + reviewCount + ", capacity=" + capacity + ", numBedrooms=" + numBedrooms + ", pricePerNight=" + pricePerNight + ", status=" + status + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + ", amenities=" + amenities + '}';
+    public void setCuisines(List<String> cuisines) {
+        this.cuisines = cuisines;
     }
 
 }

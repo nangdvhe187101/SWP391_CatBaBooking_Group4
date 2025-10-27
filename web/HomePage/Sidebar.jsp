@@ -92,11 +92,11 @@
                 </a>
 
                 <nav class="nav-links">
-                    <a href="Homestay.jsp" class="nav-link">
+                    <a href="${pageContext.request.contextPath}/homestay-list" class="nav-link">
                         <i class="fas fa-home"></i>
                         <span>Homestay</span>
                     </a>
-                    <a href="Restaurant.jsp" class="nav-link">
+                    <a href="${pageContext.request.contextPath}/restaurant" class="nav-link">
                         <i class="fas fa-utensils"></i>
                         <span>Nhà hàng</span>
                     </a>
