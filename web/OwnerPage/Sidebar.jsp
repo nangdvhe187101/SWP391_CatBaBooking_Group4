@@ -16,7 +16,7 @@
         <ul>
             <li><a href="Dashboard.jsp" class="nav-link">🏠 Tổng quan</a></li>
             <li><a href="AddHomestay.jsp" class="nav-link">🏠 Thêm Homestay</a></li>
-            <li><a href="ManageHomestay.jsp" class="nav-link">🏠 Quản lý Homestay</a></li>
+            <li><a href="${pageContext.request.contextPath}/manage-homestay" class="nav-link">🏠 Quản lý Homestay</a></li>
             <li><a href="RestaurantManageDishes.jsp" class="nav-link">🍽️ Quản lý Món ăn</a></li>
             <li><a href="RestaurantBookings.jsp" class="nav-link">📅 Đặt bàn</a></li>
             <li><a href="RestaurantManageTables.jsp" class="nav-link">🍽️ Quản lý Bàn</a></li>

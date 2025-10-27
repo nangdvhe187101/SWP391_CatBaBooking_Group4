@@ -178,44 +178,33 @@ public class BusinessDAO {
     }
 
     //Lấy danh sách các cơ sở kinh doanh (Homestay) theo ID của chủ sở hữu.
-    public List<Businesses> getBusinessesByOwnerIdAndType(int ownerId, String type) {
-        List<Businesses> list = new ArrayList<>();
-
-        // Câu SQL JOIN với bảng 'areas' để lấy tên khu vực
+    public Businesses getBusinessByOwnerIdAndType(int ownerId, String type) {
         String sql = "SELECT b.*, a.name AS area_name "
                    + "FROM businesses b "
                    + "LEFT JOIN areas a ON b.area_id = a.area_id "
-                   + "WHERE b.owner_id = ? AND b.type = ?";
-        // DÒNG DEBUG 1: Kiểm tra xem phương thức có được gọi với đúng tham số không
-        System.out.println("[BusinessDAO] Đang tìm homestay cho owner_id = " + ownerId + " VÀ type = " + type);
+                   + "WHERE b.owner_id = ? AND UPPER(b.type) = ? "
+                   + "LIMIT 1"; // Chỉ lấy 1 kết quả đầu tiên
+        Businesses biz = null;
 
-        // 1. Dùng try-with-resources (giống code mẫu của bạn)
-        // conn và ps sẽ được tự động đóng, không cần 'finally'
+        System.out.println("[BusinessDAO] Đang tìm business duy nhất cho owner_id = " + ownerId + ", type = " + type.toUpperCase());
+
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, ownerId);
-            ps.setString(2, type);
-
-            // ResultSet sẽ tự động đóng khi PreparedStatement (ps) đóng
+            ps.setString(2, type.toUpperCase());
             ResultSet rs = ps.executeQuery();
 
-            // 2. Lặp qua tất cả kết quả
-            while (rs.next()) {
+            if (rs.next()) { // Chỉ cần kiểm tra if, không cần while
+                biz = new Businesses();
 
-                // 3. Dùng style Setter (giống code mẫu của bạn)
-                Businesses biz = new Businesses();
-
-                // 4. Tạo và set đối tượng Users lồng nhau (giống code mẫu)
                 Users owner = new Users();
                 owner.setUserId(rs.getInt("owner_id"));
                 biz.setOwner(owner);
 
-                // 5. Tạo và set đối tượng Areas lồng nhau (phần mở rộng)
                 Areas area = new Areas(rs.getInt("area_id"), rs.getString("area_name"));
-                biz.setArea(area); // Gán đối tượng khu vực
+                biz.setArea(area);
 
-                // 6. Set các trường còn lại
                 biz.setBusinessId(rs.getInt("business_id"));
                 biz.setName(rs.getString("name"));
                 biz.setType(rs.getString("type"));
@@ -225,22 +214,18 @@ public class BusinessDAO {
                 biz.setCapacity(rs.getInt("capacity"));
                 biz.setNumBedrooms(rs.getInt("num_bedrooms"));
                 biz.setStatus(rs.getString("status"));
-
-                // 7. Lấy Timestamp (phổ biến) hoặc LocalDateTime (như code mẫu)
                 biz.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
                 biz.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
-
-                list.add(biz);
+                // biz.setImage(rs.getString("image"));
+                 System.out.println("[BusinessDAO] Đã tìm thấy business ID: " + biz.getBusinessId());
+            } else {
+                 System.out.println("[BusinessDAO] Không tìm thấy business nào.");
             }
-        } catch (Exception e) { // Bắt Exception chung
-            System.out.println("[BusinessDAO] LỖI SQL: " + e.getMessage());
+        } catch (SQLException e) {
+            System.out.println("[BusinessDAO] LỖI getBusinessByOwnerIdAndType: " + e.getMessage());
             e.printStackTrace();
         }
-        // DÒNG DEBUG 2: Kiểm tra xem DAO tìm thấy bao nhiêu homestay
-        System.out.println("[BusinessDAO] Đã tìm thấy " + list.size() + " homestay.");
-
-        // 8. Không cần khối 'finally'
-        return list;
+        return biz;
     }
 
     public boolean updateHomestay(int id, String name, String address,

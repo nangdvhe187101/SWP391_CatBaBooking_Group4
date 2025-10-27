@@ -1,4 +1,4 @@
-package Controller.owner;
+package controller.owner;
 
 import dao.AreaDAO;
 import dao.BusinessDAO;
@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,6 +15,7 @@ import model.Areas;
 import model.Businesses;
 import model.Users;
 
+@WebServlet(name = "UpdateHomestayController", urlPatterns = {"/update-homestay"})
 public class UpdateHomestayController extends HttpServlet {
 
     @Override
@@ -72,7 +74,7 @@ public class UpdateHomestayController extends HttpServlet {
             int areaId = Integer.parseInt(request.getParameter("area_id"));
             
             // Lấy ownerId từ session để bảo mật
-            Users owner = (Users) session.getAttribute("user");
+            Users owner = (Users) session.getAttribute("currentUser");
             int ownerId = owner.getUserId();
 
             // 2. Gọi DAO để update
