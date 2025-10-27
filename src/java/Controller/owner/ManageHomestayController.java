@@ -24,17 +24,15 @@ public class ManageHomestayController extends HttpServlet {
         System.out.println("[ManageHomestayController] Đã vào doGet().");
         HttpSession session = request.getSession();
 
-        // 1. Kiểm tra đăng nhập
-        Users owner = (Users) session.getAttribute("currentUser"); // Dùng key "currentUser" như code của bạn
-        if (owner == null || owner.getRole().getRoleId() != 2) { // Kiểm tra Role ID = 2 (Owner)
+        Users owner = (Users) session.getAttribute("currentUser");
+        if (owner == null || owner.getRole().getRoleId() != 2) {
             System.out.println("[ManageHomestayController] Chưa đăng nhập hoặc không phải Owner.");
-            response.sendRedirect(request.getContextPath() + "/Login"); // Chuyển về trang Login của bạn
+            response.sendRedirect(request.getContextPath() + "/Login");
             return;
         }
         int ownerId = owner.getUserId();
         System.out.println("[ManageHomestayController] Owner ID = " + ownerId);
 
-        // 2. Lấy Flash Messages (Giữ nguyên)
         String successMessage = (String) session.getAttribute("successMessage");
         String errorMessage = (String) session.getAttribute("errorMessage");
         if (successMessage != null) {
@@ -47,35 +45,24 @@ public class ManageHomestayController extends HttpServlet {
         }
 
         try {
-            // 3. Gọi DAO để lấy thông tin Homestay duy nhất
             BusinessDAO businessDAO = new BusinessDAO();
-            // Gọi phương thức DAO mới để lấy 1 business
             Businesses homestayDetail = businessDAO.getBusinessByOwnerIdAndType(ownerId, "HOMESTAY");
+            List<Rooms> roomList = null;
 
-            List<Rooms> roomList = null; // Khởi tạo danh sách phòng là null
-
-            // 4. Nếu tìm thấy homestay -> lấy danh sách phòng
             if (homestayDetail != null) {
-                System.out.println("[ManageHomestayController] Tìm thấy homestay: " + homestayDetail.getName());
-                RoomDAO roomDAO = new RoomDAO(); // Tạo instance RoomDAO
+                RoomDAO roomDAO = new RoomDAO();
                 int businessId = homestayDetail.getBusinessId();
-                roomList = roomDAO.getRoomsByBusinessId(businessId); // Lấy danh sách phòng
+                roomList = roomDAO.getRoomsByBusinessId(businessId);
             } else {
-                 System.out.println("[ManageHomestayController] Không tìm thấy homestay nào cho owner này.");
-                 // Có thể đặt thông báo nếu owner chưa có homestay
-                 request.setAttribute("error", "Bạn chưa đăng ký homestay nào.");
+                request.setAttribute("error", "Bạn chưa đăng ký homestay nào.");
             }
 
-            // 5. Đặt dữ liệu vào Request
-            request.setAttribute("homestayDetail", homestayDetail); // Gửi chi tiết homestay
-            request.setAttribute("roomList", roomList); // Gửi danh sách phòng (có thể null hoặc rỗng)
-            
-            // 6. Forward đến JSP
-            System.out.println("[ManageHomestayController] Forwarding đến ManageHomestay.jsp...");
+            request.setAttribute("homestayDetail", homestayDetail);
+            request.setAttribute("roomList", roomList);
+
             request.getRequestDispatcher("OwnerPage/ManageHomestay.jsp").forward(request, response);
             
         } catch (Exception e) {
-             System.out.println("[ManageHomestayController] Lỗi nghiêm trọng: " + e.getMessage());
             e.printStackTrace();
             request.setAttribute("error", "Lỗi hệ thống khi tải dữ liệu homestay.");
             request.getRequestDispatcher("OwnerPage/ManageHomestay.jsp").forward(request, response);
@@ -85,7 +72,6 @@ public class ManageHomestayController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Hiện tại trang này không xử lý POST, nhưng để đó phòng khi cần (ví dụ: tìm kiếm phòng)
         doGet(request, response);
     }
 }
