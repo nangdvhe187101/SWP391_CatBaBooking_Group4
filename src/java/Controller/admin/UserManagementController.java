@@ -61,7 +61,7 @@ public class UserManagementController extends HttpServlet {
                 }
             }
             int totalUsers = userDAO.countAllUsers(roleId, statusParam, keyword);
-            int totalPage = (totalUsers > 0) ? (int) Math.ceil((double) totalUsers / pageSize) : 1;
+            int totalPage = (totalUsers + pageSize - 1) / pageSize;
             List<Users> users = userDAO.getAllUsers(roleId, statusParam, keyword, pageIndex, pageSize);
             request.setAttribute("users", users);
             request.setAttribute("pageIndex", pageIndex);

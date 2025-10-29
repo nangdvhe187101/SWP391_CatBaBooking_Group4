@@ -55,7 +55,8 @@
                     <c:set var="vDescription" value="${empty param.description ? business.description : param.description}" />
                     <c:set var="vImage"       value="${empty param.image ? business.image : param.image}" />
                     <c:set var="vAreaId"      value="${empty param.areaId ? (business.area != null ? business.area.areaId : '') : param.areaId}" />
-
+                    <c:set var="vOpeningHour" value="${empty param.openingHour ? business.openingHour : param.openingHour}" />
+                    <c:set var="vClosingHour" value="${empty param.closingHour ? business.closingHour : param.closingHour}" />
                     <div class="card">
                         <div class="card-body p-4">
                             <form action="${pageContext.request.contextPath}/restaurant-settings" method="post">
@@ -96,6 +97,14 @@
                                                     </option>
                                                 </c:forEach>
                                             </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Giờ mở cửa</label>
+                                            <input class="form-control" type="time" name="openingHour" value="${vOpeningHour}" />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Giờ đóng cửa</label>
+                                            <input class="form-control" type="time" name="closingHour" value="${vClosingHour}" />
                                         </div>
                                     </div>
                                 </div>

@@ -1,0 +1,896 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : Oct 30, 2025, 1:11:45 AM
+    Author     : ADMIN
+*/
+
+
+.sticky-search-bar {
+    position: sticky;
+    /* Đặt top: 0 để thanh ở trên cùng khi cuộn */
+    top: 0;
+    z-index: 999;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.08);
+    font-size: 0.9rem;
+    /* Không padding để sát mép trên */
+    padding: 0;
+}
+
+/* Hàng đầu: các ô thông tin và nút "Kiểm tra phòng trống" */
+.sticky-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    background: #ffffff;
+    /* Không có viền ngoài */
+    border: none;
+    /* Không bo tròn */
+    border-radius: 0;
+    overflow: hidden;
+    /* Loại bỏ margin-top để padding của bar xử lý */
+    margin-top: 0;
+}
+
+/* Mỗi block thông tin */
+.sticky-block {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .75rem 1rem;
+    flex: 1 1 200px;
+    min-width: 0;
+    background: #ffffff;
+    border-right: 1px solid #e5e7eb;
+    position: relative;
+}
+
+.sticky-block:last-of-type {
+    border-right: none;
+}
+
+/* Icon */
+.sticky-icon {
+    color: #9ca3af;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+/* Label nhỏ xám */
+.sticky-label {
+    font-size: .75rem;
+    line-height: 1rem;
+    color: #6b7280;
+    font-weight: 500;
+    margin-bottom: .15rem;
+}
+
+/* Giá trị đậm */
+.sticky-value {
+    color: #111827;
+    font-size: .9rem;
+    font-weight: 500;
+    line-height: 1.2rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+/* Input fields cho editable content */
+.sticky-input {
+    background: transparent;
+    border: none;
+    color: #111827;
+    font-size: .9rem;
+    font-weight: 500;
+    line-height: 1.2rem;
+    width: 100%;
+    outline: none;
+    text-align: left;
+}
+
+.sticky-input:focus {
+    background: #f9fafb;
+    border-radius: .25rem;
+    padding: .25rem;
+}
+
+.date-input-group {
+    display: flex;
+    gap: .5rem;
+    align-items: center;
+}
+
+.date-input-group input {
+    flex: 1;
+    min-width: 120px;
+}
+
+.date-input-group i {
+    color: #059669;
+    font-size: .95rem;
+}
+
+/* Dropdown cho số khách */
+.guest-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: .5rem;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.guest-dropdown.show {
+    display: flex;
+}
+
+.guest-counter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: .75rem;
+    padding: .5rem 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.guest-counter:last-child {
+    border-bottom: none;
+}
+
+.guest-counter label {
+    font-size: .875rem;
+    color: #4b5563;
+    font-weight: 500;
+}
+
+.counter-controls {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.counter-btn {
+    background: #f3f4f6;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: .25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .875rem;
+    color: #6b7280;
+    transition: all .2s ease;
+}
+
+.counter-btn:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.counter-btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.counter-value {
+    min-width: 24px;
+    text-align: center;
+    font-weight: 600;
+    color: #111827;
+}
+
+/* Nút xanh */
+.sticky-search-btn {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: #ffffff;
+    border: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+
+    /* tăng chiều cao cảm giác */
+    padding: .5rem 1rem;
+
+    font-size: .85rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all .2s ease;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+
+    /* bo nhẹ 4px ở 4 góc */
+    border-radius: 4px;
+
+    /* ngăn nút dính sát các block bên cạnh */
+    margin: .5rem 0;
+    box-sizing: border-box;
+}
+
+
+.sticky-search-btn i {
+    font-size: .9rem;
+}
+
+.sticky-search-btn:hover {
+    background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.15);
+}
+
+/* Hàng dưới: nav tab + actions */
+.sticky-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: .75rem 0 .5rem;
+    font-size: .9rem;
+    row-gap: .75rem;
+    background: #ffffff;
+}
+
+.sticky-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    font-weight: 500;
+    color: #4b5563;
+    line-height: 1.2;
+    padding-left: .5rem;
+}
+
+.sticky-link {
+    text-decoration: none;
+    color: #4b5563;
+    position: relative;
+    padding-bottom: .5rem;
+}
+
+.sticky-link:hover {
+    color: #111827;
+}
+
+.sticky-link.active {
+    color: #111827;
+}
+.sticky-link.active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: #0069d9;
+    border-radius: 9999px;
+}
+
+.sticky-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    color: #0069d9;
+    font-weight: 500;
+    font-size: .85rem;
+    line-height: 1.2;
+    padding-right: .5rem;
+}
+
+.sticky-action-btn {
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    color: #0069d9;
+    cursor: pointer;
+    padding: 0;
+    font-size: .85rem;
+}
+
+.sticky-action-btn i {
+    font-size: 1rem;
+}
+
+.sticky-action-btn:hover {
+    text-decoration: underline;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+    .sticky-inner {
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        border-bottom: 1px solid #d1d5db;
+        border-top: 1px solid #d1d5db;
+    }
+}
+
+@media (max-width: 768px) {
+    .sticky-inner {
+        flex-direction: column;
+        /* Không bo tròn */
+        border-radius: 0;
+    }
+
+    .sticky-block {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .sticky-block:last-of-type {
+        border-bottom: none;
+    }
+
+    .sticky-search-btn {
+        width: 100%;
+        justify-content: center;
+        /* Làm nút nhỏ hơn trên mobile */
+        padding: .4rem .8rem;
+        font-size: .9rem;
+        border-top: none;
+        /* Bo tròn nút */
+        border-radius: 9999px;
+    }
+
+    .sticky-nav {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .sticky-actions {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: .75rem 1rem;
+        padding-left: .5rem;
+        padding-right: .5rem;
+    }
+
+    .date-input-group {
+        flex-direction: column;
+        gap: .25rem;
+    }
+
+    .date-input-group input {
+        min-width: auto;
+    }
+
+    .guest-dropdown {
+        left: -1rem;
+        right: -1rem;
+    }
+}
+/*********************************
+ * LAYOUT CHI TIẾT HOMESTAY
+ *********************************/
+
+.detail-hero {
+    background: #fff;
+    padding: 2rem 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.gallery-layout {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: 2fr 1fr;
+}
+
+.main-photo {
+    height: 320px;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.main-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.side-photos {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.side-photo {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    height: 155px;
+}
+
+.side-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.stay-header {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.stay-info {
+    flex: 1;
+    min-width: 250px;
+}
+
+.stay-name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem;
+}
+
+.stay-name h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #111827;
+    line-height: 1.3;
+}
+
+.badge-type {
+    background: #065f46;
+    color: #fff;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    padding: 0.25rem .5rem;
+    border-radius: .25rem;
+    font-weight: 500;
+}
+
+.rating-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem;
+    margin-top: .5rem;
+}
+
+.rating-score {
+    background: #059669;
+    color: #fff;
+    border-radius: .5rem;
+    font-size: .875rem;
+    font-weight: 600;
+    padding: .4rem .6rem;
+    line-height: 1;
+}
+
+.rating-details {
+    font-size: .875rem;
+    color: #374151;
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+}
+
+.rating-details .stars i {
+    font-size: .875rem;
+}
+
+.stay-location {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem;
+    font-size: .875rem;
+    color: #6b7280;
+    margin-top: .5rem;
+}
+
+.stay-location i {
+    color: #059669;
+}
+
+.detail-content {
+    background: #f9fafb;
+    padding: 2rem 0 4rem;
+}
+
+.detail-layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+.left-col {
+    display: grid;
+    gap: 2rem;
+}
+
+.section-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: .5rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+}
+
+.section-title {
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-bottom: 1rem;
+}
+
+.section-title i {
+    color: #059669;
+}
+
+.desc-text {
+    font-size: .95rem;
+    line-height: 1.5;
+    color: #4b5563;
+    white-space: pre-line;
+}
+
+/* tiện ích */
+.amenities-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+.amenity-pill {
+    background: #ecfdf5;
+    color: #065f46;
+    border-radius: .5rem;
+    border: 1px solid #a7f3d0;
+    font-size: .8rem;
+    padding: .4rem .6rem;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+
+/* room cards */
+.room-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: .5rem;
+    overflow: hidden;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+}
+
+.room-img {
+    flex: 1 1 280px;
+    max-width: 320px;
+    height: 200px;
+    position: relative;
+}
+
+.room-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.room-body {
+    flex: 1 1 300px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.room-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.room-info h3 {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #111827;
+    margin-bottom: .25rem;
+}
+
+.room-meta {
+    font-size: .875rem;
+    color: #6b7280;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    line-height: 1.4;
+}
+
+.room-meta i {
+    color: #059669;
+}
+
+.room-price {
+    text-align: right;
+}
+
+.room-price .current-price {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #059669;
+}
+
+.room-price .per-night {
+    font-size: .75rem;
+    color: #6b7280;
+}
+
+.room-bottom {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.availability-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    font-size: .8rem;
+    color: #059669;
+    background: #ecfdf5;
+    border-radius: .5rem;
+    border: 1px solid #a7f3d0;
+    padding: .4rem .6rem;
+    font-weight: 500;
+}
+
+.book-btn {
+    background: #059669;
+    border: none;
+    border-radius: .5rem;
+    color: #fff;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: .875rem;
+    padding: .6rem 1rem;
+}
+
+.book-btn:hover {
+    background: #047857;
+}
+
+/* reviews */
+.review-summary {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.review-score-box {
+    background: #059669;
+    color: #fff;
+    border-radius: .75rem;
+    padding: 1rem;
+    min-width: 70px;
+    text-align: center;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.review-score-box .big {
+    font-size: 1.5rem;
+}
+
+.review-text {
+    font-size: .9rem;
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+/* RIGHT COLUMN */
+.right-col {
+    display: grid;
+    gap: 2rem;
+    align-content: start;
+}
+
+.map-card iframe {
+    width: 100%;
+    border: 0;
+    border-radius: .5rem;
+    height: 220px;
+}
+
+.host-card .host-header {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin-bottom: 1rem;
+}
+
+.host-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 9999px;
+    background: #ecfdf5;
+    color: #065f46;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+}
+
+.host-name-role {
+    display: flex;
+    flex-direction: column;
+}
+
+.host-name-role span:first-child {
+    font-weight: 500;
+    color: #111827;
+}
+
+.host-name-role span:last-child {
+    font-size: .8rem;
+    color: #6b7280;
+}
+
+.host-desc {
+    font-size: .875rem;
+    color: #4b5563;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.contact-host-btn {
+    width: 100%;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    color: #374151;
+    border-radius: .5rem;
+    padding: .6rem 1rem;
+    font-size: .875rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.contact-host-btn:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+/* responsive gallery / layout */
+@media (max-width:768px){
+    .gallery-layout {
+        grid-template-columns: 1fr;
+    }
+    .main-photo {
+        height: 250px;
+    }
+    .side-photos {
+        grid-template-columns: repeat(2,1fr);
+        grid-template-rows: 1fr;
+        height: 120px;
+    }
+    .side-photo {
+        height: 120px;
+    }
+}
+
+@media (max-width: 1024px){
+    .detail-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Nhóm 2 ô Số người / Số phòng hiển thị theo hàng ngang */
+.guest-room-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: flex-start;
+    width: 100%;
+    margin-top: .25rem;
+}
+
+/* Mỗi ô nhỏ */
+.mini-field {
+    flex: 1 1 90px;
+    min-width: 90px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Nhãn nhỏ trên input */
+.mini-label {
+    font-size: .7rem;
+    line-height: 1rem;
+    color: #6b7280;
+    font-weight: 500;
+    margin-bottom: .25rem;
+}
+
+/* Wrapper có icon bên trái + input */
+.mini-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #f9fafb;
+    border: 1px solid #d1d5db;
+    border-radius: .375rem; /* bo nhẹ 6px */
+    padding: .4rem .5rem .4rem 2rem;
+    font-size: .8rem;
+    line-height: 1rem;
+    color: #111827;
+}
+
+/* Icon bên trong ô */
+.mini-input-wrapper i {
+    position: absolute;
+    left: .5rem;
+    color: #6b7280;
+    font-size: .8rem;
+}
+
+/* Ô input number */
+.mini-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: .8rem;
+    color: #111827;
+    line-height: 1rem;
+    padding: 0;
+    -moz-appearance: textfield; /* ẩn mũi tên trên Firefox */
+}
+
+/* Ẩn mũi tên tăng/giảm trên Chrome/Safari */
+.mini-input::-webkit-outer-spin-button,
+.mini-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* block chứa hai ô khách/phòng có thể wrap ở mobile */
+.guests-block-simple {
+    align-items: flex-start;
+}
+
+/* Responsive: trên màn hình nhỏ (<768px), cho hai ô xuống 2 hàng nếu chật */
+@media (max-width:768px){
+    .guest-room-inline {
+        flex-direction: column;
+    }
+}
