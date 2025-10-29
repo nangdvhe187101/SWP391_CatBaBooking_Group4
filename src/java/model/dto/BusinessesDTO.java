@@ -6,6 +6,7 @@ package model.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import model.Areas;
 import model.Users;
@@ -30,12 +31,14 @@ public class BusinessesDTO {
     private String status; //('active','pending','rejected')
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private List<String> cuisines; // Danh sách loại ẩm thực
+    private LocalTime openingHour;
+    private LocalTime closingHour;
+    private List<String> cuisines;
 
     public BusinessesDTO() {
     }
 
-    public BusinessesDTO(int businessId, Users owner, String name, String type, String address, String description, String image, Areas area, BigDecimal avgRating, int reviewCount, Integer capacity, String status, LocalDateTime createdAt, LocalDateTime updatedAt, List<String> cuisines) {
+    public BusinessesDTO(int businessId, Users owner, String name, String type, String address, String description, String image, Areas area, BigDecimal avgRating, int reviewCount, Integer capacity, String status, LocalDateTime createdAt, LocalDateTime updatedAt, LocalTime openingHour, LocalTime closingHour, List<String> cuisines) {
         this.businessId = businessId;
         this.owner = owner;
         this.name = name;
@@ -50,6 +53,8 @@ public class BusinessesDTO {
         this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.openingHour = openingHour;
+        this.closingHour = closingHour;
         this.cuisines = cuisines;
     }
 
@@ -165,6 +170,22 @@ public class BusinessesDTO {
         this.updatedAt = updatedAt;
     }
 
+    public LocalTime getOpeningHour() {
+        return openingHour;
+    }
+
+    public void setOpeningHour(LocalTime openingHour) {
+        this.openingHour = openingHour;
+    }
+
+    public LocalTime getClosingHour() {
+        return closingHour;
+    }
+
+    public void setClosingHour(LocalTime closingHour) {
+        this.closingHour = closingHour;
+    }
+
     public List<String> getCuisines() {
         return cuisines;
     }
@@ -173,4 +194,5 @@ public class BusinessesDTO {
         this.cuisines = cuisines;
     }
 
+    
 }

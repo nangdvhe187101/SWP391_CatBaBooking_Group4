@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.ResultSet;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import model.dto.BusinessesDTO;
@@ -112,69 +113,6 @@ public class BusinessDAO {
             ps.setInt(7, ownerId);
             return ps.executeUpdate();
         }
-    }
-
-//lấy ds nhà hàng
-    public List<BusinessesDTO> getAllRestaurants() {
-        List<BusinessesDTO> restaurants = new ArrayList<>();
-        String sql = "SELECT b.business_id, b.owner_id, b.name, b.address, b.description, "
-           + "b.image, b.avg_rating, b.review_count, b.status, "   
-           + "a.area_id, a.name AS area_name, u.user_id, u.full_name AS owner_name "
-           + "FROM businesses b "
-           + "LEFT JOIN areas a ON b.area_id = a.area_id "
-           + "JOIN users u ON b.owner_id = u.user_id "
-           + "WHERE b.type = 'restaurant' AND b.status = 'active'";
-        try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                BusinessesDTO restaurant = new BusinessesDTO();
-                restaurant.setBusinessId(rs.getInt("business_id"));
-                restaurant.setName(rs.getString("name"));
-                restaurant.setAddress(rs.getString("address"));
-                restaurant.setDescription(rs.getString("description"));
-                restaurant.setImage(rs.getString("image"));
-                restaurant.setAvgRating(rs.getBigDecimal("avg_rating"));
-                restaurant.setReviewCount(rs.getInt("review_count"));
-                restaurant.setStatus(rs.getString("status"));
-
-                Areas area = new Areas();
-                area.setAreaId(rs.getInt("area_id"));
-                area.setName(rs.getString("area_name"));
-                restaurant.setArea(area);
-
-                Users owner = new Users();
-                owner.setUserId(rs.getInt("user_id"));
-                owner.setFullName(rs.getString("owner_name"));
-                restaurant.setOwner(owner);
-
-                // Lấy danh sách loại ẩm thực
-                restaurant.setCuisines(getCuisinesForRestaurant(restaurant.getBusinessId()));
-
-
-                restaurants.add(restaurant);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return restaurants;
-    }
-
-    // Lấy danh sách loại ẩm thực cho một nhà hàng
-    private List<String> getCuisinesForRestaurant(int businessId) throws SQLException {
-        List<String> cuisines = new ArrayList<>();
-        String sql = "SELECT ct.name "
-                + "FROM business_cuisines bc "
-                + "JOIN cuisine_types ct ON bc.cuisine_id = ct.cuisine_id "
-                + "WHERE bc.business_id = ?";
-        try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, businessId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    cuisines.add(rs.getString("name"));
-                }
-            }
-        }
-        return cuisines;
     }
 
 

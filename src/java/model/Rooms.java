@@ -17,19 +17,17 @@ public class Rooms {
     private String name;
     private int capacity;
     private BigDecimal pricePerNight;
-    private String image;
     private boolean isActive;
 
     public Rooms() {
     }
 
-    public Rooms(int roomId, Businesses business, String name, int capacity, BigDecimal pricePerNight, String image, boolean isActive) {
+    public Rooms(int roomId, Businesses business, String name, int capacity, BigDecimal pricePerNight, boolean isActive) {
         this.roomId = roomId;
         this.business = business;
         this.name = name;
         this.capacity = capacity;
         this.pricePerNight = pricePerNight;
-        this.image = image;
         this.isActive = isActive;
     }
 
@@ -73,14 +71,6 @@ public class Rooms {
         this.pricePerNight = pricePerNight;
     }
 
-    public String getImage() {
-        return image;
-    }
-
-    public void setImage(String image) {
-        this.image = image;
-    }
-
     public boolean isIsActive() {
         return isActive;
     }
@@ -89,10 +79,7 @@ public class Rooms {
         this.isActive = isActive;
     }
 
-    @Override
-    public String toString() {
-        return "Rooms{" + "roomId=" + roomId + ", business=" + business + ", name=" + name + ", capacity=" + capacity + ", pricePerNight=" + pricePerNight + ", image=" + image + ", isActive=" + isActive + '}';
-    }
+    
 
     
 }

@@ -148,85 +148,89 @@
                     </div>
 
                     <!-- Search Form -->
-                    <div class="search-forms">
-                        <div class="search-form active" id="restaurant-search">
-                            <div class="form-tabs">
-                                <button class="form-tab active">
-                                    <i class="fas fa-utensils"></i>
-                                    <span>Tất cả</span>
-                                </button>
-                                <button class="form-tab">
-                                    <span>Hải sản</span>
-                                </button>
-                                <button class="form-tab">
-                                    <span>Món Việt</span>
-                                </button>
-                                <button class="form-tab">
-                                    <span>BBQ</span>
-                                </button>
-                            </div>
-
-                            <div class="form-grid">
-                                <div class="form-field">
-                                    <label>Loại hình</label>
-                                    <div class="input-wrapper">
+                    <form action="${pageContext.request.contextPath}/restaurants" method="post" id="restaurant-search-form">
+                        <div class="search-forms">
+                            <div class="search-form active" id="restaurant-search">
+                                <div class="form-tabs">
+                                    <button class="form-tab active">
                                         <i class="fas fa-utensils"></i>
-                                        <select class="form-select">
-                                            <option>Chọn loại nhà hàng</option>
-                                            <option>Nhà hàng hải sản</option>
-                                            <option>Quán ăn địa phương</option>
-                                            <option>Nướng BBQ</option>
-                                            <option>Quán cà phê</option>
-                                            <option>Bar/Pub</option>
-                                            <option>Lẩu</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="form-field">
-                                    <label>Ngày đặt bàn</label>
-                                    <div class="input-wrapper">
-                                        <i class="fas fa-calendar"></i>
-                                        <input type="date" class="form-input" 
-                                               min="<fmt:formatDate value="<%= new java.util.Date() %>" pattern="yyyy-MM-dd" />">
-                                    </div>
-                                </div>
-
-                                <div class="form-field">
-                                    <div class="time-guests">
-                                        <div class="time-field">
-                                            <label>Giờ</label>
-                                            <div class="input-wrapper">
-                                                <i class="fas fa-clock"></i>
-                                                <select class="form-select">
-                                                    <option>11:00</option>
-                                                    <option>12:00</option>
-                                                    <option>13:00</option>
-                                                    <option>18:00</option>
-                                                    <option>19:00</option>
-                                                    <option>20:00</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="guests-field">
-                                            <label>Số người</label>
-                                            <div class="input-wrapper">
-                                                <i class="fas fa-users"></i>
-                                                <input type="number" class="form-input" min="1" value="2" placeholder="Nhập số người">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="form-field">
-                                    <button class="search-btn">
-                                        <i class="fas fa-search"></i>
-                                        Tìm nhà hàng
+                                        <span>Tất cả</span>
                                     </button>
+                                    <button class="form-tab">
+                                        <span>Hải sản</span>
+                                    </button>
+                                    <button class="form-tab">
+                                        <span>Món Việt</span>
+                                    </button>
+                                    <button class="form-tab">
+                                        <span>BBQ</span>
+                                    </button>
+                                </div>
+
+                                <div class="form-grid">
+                                    <div class="form-field">
+                                        <label>Loại hình</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-utensils"></i>
+                                            <select name="restaurantType" class="form-select">
+                                                <option value="">Chọn loại nhà hàng</option>
+                                                <c:forEach var="type" items="${restaurantTypes}">
+                                                    <option value="${type}">${type}</option>
+                                                </c:forEach>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-field">
+                                        <label>Khu vực tại Cát Bà</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <select name="areaId" class="form-select">
+                                                <option value="">Chọn khu vực</option>
+                                                <c:forEach var="area" items="${areaList}">
+                                                    <option value="${area.areaId}">${area.name}</option>
+                                                </c:forEach>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-field">
+                                        <label>Ngày đặt bàn</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-calendar"></i>
+                                            <input type="date" name="date" class="form-input" 
+                                                   min="<fmt:formatDate value="<%= new java.util.Date() %>" pattern="yyyy-MM-dd" />">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-field">
+                                        <div class="time-guests">
+                                            <div class="time-field">
+                                                <label>Giờ</label>
+                                                <div class="input-wrapper">
+                                                    <i class="fas fa-clock"></i>
+                                                    <input type="time" name="time" class="form-input">
+                                                </div>
+                                            </div>
+                                            <div class="guests-field">
+                                                <label>Số người</label>
+                                                <div class="input-wrapper">
+                                                    <i class="fas fa-users"></i>
+                                                    <input type="number" name="numGuests" class="form-input" min="1" value="2" placeholder="Nhập số người">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-field">
+                                        <button type="submit" class="search-btn">
+                                            <i class="fas fa-search"></i>
+                                            Tìm nhà hàng
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </section>
@@ -243,62 +247,12 @@
                                 <h3>Bộ lọc</h3>
                             </div>
 
-                            <!-- Cuisine Type -->
-                            <div class="filter-group">
-                                <h4>Loại món ăn</h4>
-                                <div class="filter-options">
-                                    <label class="filter-option">
-                                        <input type="checkbox">
-                                        <span>Hải sản</span>
-                                    </label>
-                                    <label class="filter-option">
-                                        <input type="checkbox">
-                                        <span>Món Việt</span>
-                                    </label>
-                                    <label class="filter-option">
-                                        <input type="checkbox">
-                                        <span>BBQ/Nướng</span>
-                                    </label>
-                                    <label class="filter-option">
-                                        <input type="checkbox">
-                                        <span>Cà phê</span>
-                                    </label>
-                                    <label class="filter-option">
-                                        <input type="checkbox">
-                                        <span>Lẩu</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <!-- Price Range -->
-                            <div class="filter-group">
-                                <h4>Khoảng giá</h4>
-                                <div class="filter-options">
-                                    <label class="filter-option">
-                                        <input type="checkbox">
-                                        <span>Dưới 100k</span>
-                                    </label>
-                                    <label class="filter-option">
-                                        <input type="checkbox">
-                                        <span>100k - 200k</span>
-                                    </label>
-                                    <label class="filter-option">
-                                        <input type="checkbox">
-                                        <span>200k - 500k</span>
-                                    </label>
-                                    <label class="filter-option">
-                                        <input type="checkbox">
-                                        <span>Trên 500k</span>
-                                    </label>
-                                </div>
-                            </div>
-
                             <!-- Rating -->
                             <div class="filter-group">
                                 <h4>Đánh giá</h4>
                                 <div class="filter-options">
                                     <label class="filter-option">
-                                        <input type="checkbox">
+                                        <input type="checkbox" name="rating5" value="5" form="restaurant-search-form">
                                         <div class="rating-option">
                                             <div class="stars">
                                                 <i class="fas fa-star"></i>
@@ -311,7 +265,7 @@
                                         </div>
                                     </label>
                                     <label class="filter-option">
-                                        <input type="checkbox">
+                                        <input type="checkbox" name="rating4" value="4" form="restaurant-search-form">
                                         <div class="rating-option">
                                             <div class="stars">
                                                 <i class="fas fa-star"></i>
@@ -324,7 +278,7 @@
                                         </div>
                                     </label>
                                     <label class="filter-option">
-                                        <input type="checkbox">
+                                        <input type="checkbox" name="rating3" value="3" form="restaurant-search-form">
                                         <div class="rating-option">
                                             <div class="stars">
                                                 <i class="fas fa-star"></i>
@@ -336,33 +290,36 @@
                                             <span>3+ sao</span>
                                         </div>
                                     </label>
+                                    <label class="filter-option">
+                                        <input type="checkbox" name="rating2" value="2" form="restaurant-search-form">
+                                        <div class="rating-option">
+                                            <div class="stars">
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                            </div>
+                                            <span>2+ sao</span>
+                                        </div>
+                                    </label>
+                                    <label class="filter-option">
+                                        <input type="checkbox" name="rating1" value="1" form="restaurant-search-form">
+                                        <div class="rating-option">
+                                            <div class="stars">
+                                                <i class="fas fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                            </div>
+                                            <span>1+ sao</span>
+                                        </div>
+                                    </label>
                                 </div>
                             </div>
 
-                            <!-- Location -->
-                            <div class="filter-group">
-                                <h4>Khu vực</h4>
-                                <div class="filter-options">
-                                    <label class="filter-option">
-                                        <input type="checkbox">
-                                        <span>Trung tâm</span>
-                                    </label>
-                                    <label class="filter-option">
-                                        <input type="checkbox">
-                                        <span>Bãi Cát Cò 1</span>
-                                    </label>
-                                    <label class="filter-option">
-                                        <input type="checkbox">
-                                        <span>Bãi Cát Cò 2</span>
-                                    </label>
-                                    <label class="filter-option">
-                                        <input type="checkbox">
-                                        <span>Bến Bèo</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <button class="apply-filter-btn">Áp dụng bộ lọc</button>
+                            <button type="submit" form="restaurant-search-form" class="apply-filter-btn">Áp dụng bộ lọc</button>
                         </div>
                     </div>
 
@@ -372,7 +329,7 @@
                         <div class="results-header">
                             <div class="results-info">
                                 <h2>Nhà hàng tại Cát Bà</h2>
-                                <p>Tìm thấy <span id="restaurant-count">${restaurants.size()}</span> nhà hàng</p>
+                                <p>Tìm thấy <span id="restaurant-count">${resultCount}</span> nhà hàng</p>
                             </div>
                             <div class="results-controls">
                                 <div class="sort-control">
@@ -426,7 +383,6 @@
                                                 </div>
                                                 <span class="reviews">(${restaurant.reviewCount})</span>
                                             </div>
-                                            <span class="price-range">200k - 500k</span>
                                         </div>
                                         <h3>${restaurant.name}</h3>
                                         <div class="cuisines">

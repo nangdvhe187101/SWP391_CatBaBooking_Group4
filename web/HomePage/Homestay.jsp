@@ -18,8 +18,6 @@
 
         <style>
             /* ================= HOMESTAY GRID LAYOUT ================= */
-
-            /* Container chính cho lưới homestay */
             .homestay-grid {
                 display: grid;
                 grid-template-columns: repeat(3, 1fr);
@@ -27,7 +25,6 @@
                 margin-top: 20px;
             }
 
-            /* Thẻ thông tin của mỗi homestay */
             .homestay-card {
                 background-color: #fff;
                 border-radius: 12px;
@@ -44,7 +41,6 @@
                 box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
             }
 
-            /* Phần hình ảnh */
             .homestay-card .card-image {
                 position: relative;
                 height: 200px;
@@ -56,7 +52,6 @@
                 object-fit: cover;
             }
 
-            /* Phần nội dung text bên dưới ảnh */
             .homestay-card .card-content {
                 padding: 16px;
                 display: flex;
@@ -64,7 +59,6 @@
                 flex-grow: 1;
             }
 
-            /* Container cho rating và giá tiền */
             .homestay-card .rating-price {
                 display: flex;
                 justify-content: space-between;
@@ -88,14 +82,12 @@
                 font-size: 1.1rem;
             }
 
-            /* Tên homestay */
             .homestay-card h3 {
                 font-size: 1.2rem;
                 margin: 8px 0;
                 color: #343a40;
             }
 
-            /* Vị trí */
             .homestay-card .location {
                 font-size: 0.9rem;
                 color: #6c757d;
@@ -124,7 +116,6 @@
                 color: #ffffff;
             }
 
-            /* Thông báo lỗi hoặc không tìm thấy */
             .alert {
                 background-color: #f8d7da;
                 color: #721c24;
@@ -134,7 +125,6 @@
                 text-align: center;
             }
 
-            /* Responsive cho màn hình nhỏ hơn */
             @media (max-width: 992px) {
                 .homestay-grid {
                     grid-template-columns: repeat(2, 1fr);
@@ -145,6 +135,53 @@
                 .homestay-grid {
                     grid-template-columns: 1fr;
                 }
+            }
+
+            /* ================= PHÂN TRANG - GIỐNG HÌNH BẠN GỬI ================= */
+            .pagination {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 8px;
+                margin: 30px 0;
+                flex-wrap: wrap;
+            }
+
+            .page-btn {
+                min-width: 40px;
+                height: 40px;
+                padding: 0 12px;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                background: #fff;
+                color: #6c757d;
+                font-size: 14px;
+                font-weight: 500;
+                text-decoration: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+                cursor: pointer;
+            }
+
+            .page-btn:hover:not(.active):not([disabled]) {
+                border-color: #aaa;
+                color: #333;
+            }
+
+            .page-btn.active {
+                background-color: #28a745;
+                color: white;
+                border-color: #28a745;
+                font-weight: 600;
+            }
+
+            .page-btn[disabled] {
+                color: #aaa;
+                background-color: #f8f9fa;
+                cursor: not-allowed;
+                border-color: #eee;
             }
         </style>
     </head>
@@ -181,9 +218,9 @@
                                 </button>
                             </div>
 
-                            <form action="homestays" method="GET">
-                                <div class="form-grid">
-                                    <div class="form-field">
+                            <form action="homestays-list" method="GET">
+                                <div class="form-grid" style="display: flex; flex-wrap: wrap; gap: 15px; align-items: end;">
+                                    <div class="form-field" style="flex: 0 0 200px;">
                                         <label for="area">Khu vực</label>
                                         <div class="input-wrapper">
                                             <i class="fas fa-map-marker-alt"></i>
@@ -197,36 +234,41 @@
                                             </select>
                                         </div>
                                     </div>
-
-                                    <div class="form-field">
+                                    <div class="form-field" style="flex: 0 0 220px;">
                                         <label for="checkIn">Ngày nhận</label>
                                         <div class="input-wrapper">
                                             <i class="fas fa-calendar"></i>
                                             <input type="date" id="checkin" name="checkIn" class="form-input" 
-                       min="<fmt:formatDate value="<%= new java.util.Date() %>" pattern="yyyy-MM-dd" />" 
-                       value="${param.checkIn}">
+                                                   min="<fmt:formatDate value="<%= new java.util.Date() %>" pattern="yyyy-MM-dd" />" 
+                                                   value="${param.checkIn}">
                                         </div>
                                     </div>
-
-                                    <div class="form-field">
+                                    <div class="form-field" style="flex: 0 0 220px;">
                                         <label for="checkOut">Ngày trả</label>
                                         <div class="input-wrapper">
                                             <i class="fas fa-calendar"></i>
                                             <input type="date" id="checkout" name="checkOut" class="form-input" 
-                       min="<fmt:formatDate value="<%= new java.util.Date() %>" pattern="yyyy-MM-dd" />" 
-                       value="${param.checkOut}">
+                                                   min="<fmt:formatDate value="<%= new java.util.Date() %>" pattern="yyyy-MM-dd" />" 
+                                                   value="${param.checkOut}">
                                         </div>
                                     </div>
-
-                                    <div class="form-field">
-                                        <label for="guests">Số người</label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-users"></i>
-                                            <input type="number" id="guests" name="guests" class="form-input" min="1" value="${empty param.guests ? '1' : param.guests}" placeholder="Nhập số người">
+                                    <div class="form-field-group" style="flex: 0 0 220px; display: flex; gap: 10px;">
+                                        <div class="form-field" style="flex: 1;">
+                                            <label>Số người</label>
+                                            <div class="input-wrapper">
+                                                <i class="fas fa-users"></i>
+                                                <input id="numGuests" name="guests" type="number" class="form-input" min="1" value="${empty param.guests ? '1' : param.guests}" placeholder="Nhập số khách">
+                                            </div>
+                                        </div>
+                                        <div class="form-field" style="flex: 1;">
+                                            <label>Số phòng</label>
+                                            <div class="input-wrapper">
+                                                <i class="fas fa-door-open"></i>
+                                                <input id="numRooms" name="numRooms" type="number" class="form-input" min="1" value="${empty param.numRooms ? '1' : param.numRooms}" placeholder="Nhập số phòng">
+                                            </div>
                                         </div>
                                     </div>
-
-                                    <div class="form-field">
+                                    <div class="form-field" style="flex: 0 0 200px;">
                                         <button type="submit" class="search-btn">
                                             <i class="fas fa-search"></i>
                                             Tìm homestay
@@ -318,10 +360,52 @@
                                             <span>3+ sao</span>
                                         </div>
                                     </label>
+                                    <label class="filter-option">
+                                        <input type="checkbox">
+                                        <div class="rating-option">
+                                            <div class="stars">
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                            </div>
+                                            <span>2+ sao</span>
+                                        </div>
+                                    </label>
+                                    <label class="filter-option">
+                                        <input type="checkbox">
+                                        <div class="rating-option">
+                                            <div class="stars">
+                                                <i class="fas fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                            </div>
+                                            <span>1+ sao</span>
+                                        </div>
+                                    </label>
                                 </div>
                             </div>
 
-                            
+                            <div class="filter-group">
+                                <h4>Tiện ích</h4>
+                                <div class="filter-options">
+                                    <label class="filter-option">
+                                        <input type="checkbox">
+                                        <span>View biển</span>
+                                    </label>
+                                    <label class="filter-option">
+                                        <input type="checkbox">
+                                        <span>WiFi miễn phí</span>
+                                    </label>
+                                    <label class="filter-option">
+                                        <input type="checkbox">
+                                        <span>Chỗ đậu xe</span>
+                                    </label>
+                                </div>
+                            </div>
 
                             <button class="apply-filter-btn">Áp dụng bộ lọc</button>
                         </div>
@@ -373,7 +457,7 @@
                             <span class="filter-tag">Giá rẻ</span>
                         </div>
 
-                        <!-- Danh sách Homestay -->
+
                         <c:choose>
                             <c:when test="${empty homestays}">
                                 <div class="alert">
@@ -381,8 +465,16 @@
                                 </div>
                             </c:when>
                             <c:otherwise>
+                                <!-- phân trang -->
+                                <c:set var="page" value="${param.page != null && param.page > 0 ? param.page : 1}" />
+                                <c:set var="itemsPerPage" value="2" />
+                                <c:set var="totalItems" value="${homestays.size()}" />
+                                <c:set var="totalPages" value="${(totalItems + itemsPerPage - 1) / itemsPerPage}" />
+                                <c:set var="start" value="${(page - 1) * itemsPerPage}" />
+                                <c:set var="end" value="${start + itemsPerPage - 1}" />
+
                                 <div class="homestay-grid">
-                                    <c:forEach var="homestay" items="${homestays}">
+                                    <c:forEach var="homestay" items="${homestays}" begin="${start}" end="${end}">
                                         <div class="homestay-card">
                                             <div class="card-image">
                                                 <img src="${homestay.image}" alt="${homestay.name}">
@@ -405,37 +497,68 @@
                                                         <fmt:formatNumber value="${homestay.pricePerNight}" pattern="#,###"/> VND
                                                     </span>
                                                 </div>
-
                                                 <h3>${homestay.name}</h3>
-
                                                 <div class="location">
                                                     <i class="fas fa-map-marker-alt"></i>
                                                     ${homestay.area.name}
                                                 </div>
                                             </div>
-
-                                            <a class="btn btn-outline-primary btn-sm detail-btn"
-                                               href="homestay-detail?id=${homestay.businessId}">
+                                            <a class="detail-btn" href="homestay-detail?id=${homestay.businessId}">
                                                 Chi tiết
                                             </a>
                                         </div>
                                     </c:forEach>
                                 </div>
+
+                                <!--PHÂN TRANG-->
+                                <div class="pagination">
+                                    <!-- Trước -->
+                                    <c:if test="${page > 1}">
+                                        <a href="?areaId=${param.areaId}&checkIn=${param.checkIn}&checkOut=${param.checkOut}&guests=${param.guests}&numRooms=${param.numRooms}&page=${page - 1}" class="page-btn">Trước</a>
+                                    </c:if>
+                                    <c:if test="${page <= 1}">
+                                        <button class="page-btn" disabled>Trước</button>
+                                    </c:if>
+
+                                    <!-- Các trang -->
+                                    <c:forEach var="i" begin="1" end="${totalPages}">
+                                        <a href="?areaId=${param.areaId}&checkIn=${param.checkIn}&checkOut=${param.checkOut}&guests=${param.guests}&numRooms=${param.numRooms}&page=${i}"
+                                           class="page-btn ${i == page ? 'active' : ''}">${i}</a>
+                                    </c:forEach>
+
+                                    <!-- Sau -->
+                                    <c:if test="${page < totalPages}">
+                                        <a href="?areaId=${param.areaId}&checkIn=${param.checkIn}&checkOut=${param.checkOut}&guests=${param.guests}&numRooms=${param.numRooms}&page=${page + 1}" class="page-btn">Sau</a>
+                                    </c:if>
+                                    <c:if test="${page >= totalPages}">
+                                        <button class="page-btn" disabled>Sau</button>
+                                    </c:if>
+                                </div>
                             </c:otherwise>
                         </c:choose>
-
-                        <!-- Pagination -->
-                        <div class="pagination">
-                            <button class="page-btn" disabled>Trước</button>
-                            <button class="page-btn active">1</button>
-                            <button class="page-btn">2</button>
-                            <button class="page-btn">3</button>
-                            <button class="page-btn">Sau</button>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- JavaScript Validate Số phòng ≤ Số khách -->
+        <script>
+            const guestsInput = document.getElementById('numGuests');
+            const roomsInput = document.getElementById('numRooms');
+
+            function validateRoomGuest() {
+                const guests = parseInt(guestsInput.value) || 1;
+                const rooms = parseInt(roomsInput.value) || 1;
+
+                if (rooms > guests) {
+                    alert('Số lượng phòng không được nhiều hơn số lượng khách!');
+                    roomsInput.value = guests;
+                }
+            }
+
+            guestsInput.addEventListener('input', validateRoomGuest);
+            roomsInput.addEventListener('input', validateRoomGuest);
+        </script>
 
         <!-- Footer -->
         <%@ include file="Footer.jsp" %>
