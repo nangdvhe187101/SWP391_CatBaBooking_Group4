@@ -28,6 +28,8 @@ public class Businesses {
     private Integer numBedrooms;
     private BigDecimal pricePerNight;
     private String status; //('active','pending','rejected')
+    private LocalTime openingHour;
+    private LocalTime closingHour; 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalTime openingHour;
@@ -37,7 +39,9 @@ public class Businesses {
     public Businesses() {
     }
 
-    public Businesses(int businessId, Users owner, String name, String type, String address, String description, String image, Areas area, BigDecimal avgRating, int reviewCount, Integer capacity, Integer numBedrooms, BigDecimal pricePerNight, String status, LocalDateTime createdAt, LocalDateTime updatedAt, LocalTime openingHour, LocalTime closingHour, List<Amenities> amenities) {
+
+    public Businesses(int businessId, Users owner, String name, String type, String address, String description, String image, Areas area, BigDecimal avgRating, int reviewCount, Integer capacity, Integer numBedrooms, BigDecimal pricePerNight, String status, LocalTime openingHour, LocalTime closingHour, LocalDateTime createdAt, LocalDateTime updatedAt, List<Amenities> amenities) {
+
         this.businessId = businessId;
         this.owner = owner;
         this.name = name;
@@ -52,6 +56,8 @@ public class Businesses {
         this.numBedrooms = numBedrooms;
         this.pricePerNight = pricePerNight;
         this.status = status;
+        this.openingHour = openingHour;
+        this.closingHour = closingHour;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.openingHour = openingHour;
@@ -171,6 +177,22 @@ public class Businesses {
         this.status = status;
     }
 
+    public LocalTime getOpeningHour() {
+        return openingHour;
+    }
+
+    public void setOpeningHour(LocalTime openingHour) {
+        this.openingHour = openingHour;
+    }
+
+    public LocalTime getClosingHour() {
+        return closingHour;
+    }
+
+    public void setClosingHour(LocalTime closingHour) {
+        this.closingHour = closingHour;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -213,7 +235,8 @@ public class Businesses {
 
     @Override
     public String toString() {
-        return "Businesses{" + "businessId=" + businessId + ", owner=" + owner + ", name=" + name + ", type=" + type + ", address=" + address + ", description=" + description + ", image=" + image + ", area=" + area + ", avgRating=" + avgRating + ", reviewCount=" + reviewCount + ", capacity=" + capacity + ", numBedrooms=" + numBedrooms + ", pricePerNight=" + pricePerNight + ", status=" + status + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + ", openingHour=" + openingHour + ", closingHour=" + closingHour + ", amenities=" + amenities + '}';
+
+        return "Businesses{" + "businessId=" + businessId + ", owner=" + owner + ", name=" + name + ", type=" + type + ", address=" + address + ", description=" + description + ", image=" + image + ", area=" + area + ", avgRating=" + avgRating + ", reviewCount=" + reviewCount + ", capacity=" + capacity + ", numBedrooms=" + numBedrooms + ", pricePerNight=" + pricePerNight + ", status=" + status + ", openingHour=" + openingHour + ", closingHour=" + closingHour + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + ", amenities=" + amenities + '}';
     }
 
     
