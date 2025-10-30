@@ -36,11 +36,7 @@ public class HomestayDAO {
                 + "FROM businesses b "
                 + "JOIN areas a ON b.area_id = a.area_id "
                 + "JOIN users u ON b.owner_id = u.user_id "
-                + "WHERE EXISTS ( "
-                + "    SELECT 1 "
-                + "    FROM rooms r "
-                + "    WHERE r.business_id = b.business_id "
-                + ") AND b.status = 'active' ";
+                + "WHERE b.type = 'homestay' AND b.status = 'active' ";
 
         try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
 
@@ -158,7 +154,7 @@ public class HomestayDAO {
             for (Integer amenityId : amenityIds) {
                 params.add(amenityId);
             }
-            
+
             params.add(amenityIds.size());
         }
 
@@ -186,7 +182,7 @@ public class HomestayDAO {
             sql.append(") >= ? ");
             params.add(numRooms);
         } else {
-            sql.append(") >= 1 ");  
+            sql.append(") >= 1 ");
         }
         sql.append(" AND EXISTS (SELECT 1 FROM rooms r WHERE r.business_id = b.business_id AND r.is_active = 1) ");
         sql.append(" ORDER BY b.name ASC");
@@ -239,4 +235,118 @@ public class HomestayDAO {
         }
         return homestays;
     }
+
+    public List<Businesses> getTopHomestays() {
+        List<Businesses> homestays = new ArrayList<>();
+        String sql = """
+        SELECT b.business_id, b.name, b.address, b.description, b.image, b.avg_rating, b.review_count,
+               b.capacity, b.num_bedrooms, b.price_per_night, b.status, b.created_at, b.updated_at,
+               b.opening_hour, b.closing_hour,
+               a.area_id, a.name AS area_name, u.user_id, u.full_name AS owner_name
+        FROM businesses b
+        JOIN areas a ON b.area_id = a.area_id
+        JOIN users u ON b.owner_id = u.user_id
+        WHERE b.type = 'homestay' 
+          AND b.status = 'active'
+          AND EXISTS (SELECT 1 FROM rooms r WHERE r.business_id = b.business_id AND r.is_active = 1)
+        ORDER BY b.avg_rating DESC, b.review_count DESC
+        LIMIT 5
+        """;
+
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                Businesses homestay = new Businesses();
+                homestay.setBusinessId(rs.getInt("business_id"));
+                homestay.setName(rs.getString("name"));
+                homestay.setAddress(rs.getString("address"));
+                homestay.setDescription(rs.getString("description"));
+                homestay.setImage(rs.getString("image"));
+                homestay.setAvgRating(rs.getBigDecimal("avg_rating"));
+                homestay.setReviewCount(rs.getInt("review_count"));
+                homestay.setCapacity(rs.getInt("capacity"));
+                homestay.setNumBedrooms(rs.getInt("num_bedrooms"));
+                homestay.setPricePerNight(rs.getBigDecimal("price_per_night"));
+                homestay.setStatus(rs.getString("status"));
+                homestay.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
+                homestay.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
+                homestay.setOpeningHour(rs.getObject("opening_hour", LocalTime.class));
+                homestay.setClosingHour(rs.getObject("closing_hour", LocalTime.class));
+
+                Areas area = new Areas();
+                area.setAreaId(rs.getInt("area_id"));
+                area.setName(rs.getString("area_name"));
+                homestay.setArea(area);
+
+                Users owner = new Users();
+                owner.setUserId(rs.getInt("user_id"));
+                owner.setFullName(rs.getString("owner_name"));
+                homestay.setOwner(owner);
+
+                // Lấy tiện nghi
+                List<Amenities> amenities = getAmenitiesForHomestay(homestay.getBusinessId());
+                homestay.setAmenities(amenities);
+
+                homestays.add(homestay);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return homestays;
+    }
+    
+    public List<Businesses> getTopRestaurants() {
+    List<Businesses> restaurants = new ArrayList<>();
+    String sql = """
+        SELECT b.business_id, b.name, b.address, b.description, b.image, b.avg_rating, b.review_count,
+               b.price_per_night, b.status, b.opening_hour, b.closing_hour,
+               a.area_id, a.name AS area_name, u.user_id, u.full_name AS owner_name
+        FROM businesses b
+        JOIN areas a ON b.area_id = a.area_id
+        JOIN users u ON b.owner_id = u.user_id
+        WHERE b.type = 'restaurant' 
+          AND b.status = 'active'
+        ORDER BY b.avg_rating DESC, b.review_count DESC
+        LIMIT 3
+        """;
+
+    try (Connection conn = DBUtil.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql);
+         ResultSet rs = stmt.executeQuery()) {
+
+        while (rs.next()) {
+            Businesses restaurant = new Businesses();
+            restaurant.setBusinessId(rs.getInt("business_id"));
+            restaurant.setName(rs.getString("name"));
+            restaurant.setAddress(rs.getString("address"));
+            restaurant.setDescription(rs.getString("description"));
+            restaurant.setImage(rs.getString("image"));
+            restaurant.setAvgRating(rs.getBigDecimal("avg_rating"));
+            restaurant.setReviewCount(rs.getInt("review_count"));
+            restaurant.setPricePerNight(rs.getBigDecimal("price_per_night")); // dùng làm giá trung bình
+            restaurant.setStatus(rs.getString("status"));
+            restaurant.setOpeningHour(rs.getObject("opening_hour", LocalTime.class));
+            restaurant.setClosingHour(rs.getObject("closing_hour", LocalTime.class));
+
+            Areas area = new Areas();
+            area.setAreaId(rs.getInt("area_id"));
+            area.setName(rs.getString("area_name"));
+            restaurant.setArea(area);
+
+            Users owner = new Users();
+            owner.setUserId(rs.getInt("user_id"));
+            owner.setFullName(rs.getString("owner_name"));
+            restaurant.setOwner(owner);
+
+            // Lấy tiện nghi (nếu cần)
+            List<Amenities> amenities = getAmenitiesForHomestay(restaurant.getBusinessId());
+            restaurant.setAmenities(amenities);
+
+            restaurants.add(restaurant);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return restaurants;
+}
 }

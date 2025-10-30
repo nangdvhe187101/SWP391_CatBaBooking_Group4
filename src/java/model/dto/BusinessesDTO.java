@@ -28,6 +28,7 @@ public class BusinessesDTO {
     private BigDecimal avgRating;
     private int reviewCount;
     private Integer capacity;
+    private BigDecimal pricePerNight;
     private String status; //('active','pending','rejected')
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -38,7 +39,7 @@ public class BusinessesDTO {
     public BusinessesDTO() {
     }
 
-    public BusinessesDTO(int businessId, Users owner, String name, String type, String address, String description, String image, Areas area, BigDecimal avgRating, int reviewCount, Integer capacity, String status, LocalDateTime createdAt, LocalDateTime updatedAt, LocalTime openingHour, LocalTime closingHour, List<String> cuisines) {
+    public BusinessesDTO(int businessId, Users owner, String name, String type, String address, String description, String image, Areas area, BigDecimal avgRating, int reviewCount, Integer capacity, BigDecimal pricePerNight, String status, LocalDateTime createdAt, LocalDateTime updatedAt, LocalTime openingHour, LocalTime closingHour, List<String> cuisines) {
         this.businessId = businessId;
         this.owner = owner;
         this.name = name;
@@ -50,6 +51,7 @@ public class BusinessesDTO {
         this.avgRating = avgRating;
         this.reviewCount = reviewCount;
         this.capacity = capacity;
+        this.pricePerNight = pricePerNight;
         this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -146,6 +148,14 @@ public class BusinessesDTO {
         this.capacity = capacity;
     }
 
+    public BigDecimal getPricePerNight() {
+        return pricePerNight;
+    }
+
+    public void setPricePerNight(BigDecimal pricePerNight) {
+        this.pricePerNight = pricePerNight;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -193,6 +203,8 @@ public class BusinessesDTO {
     public void setCuisines(List<String> cuisines) {
         this.cuisines = cuisines;
     }
+
+   
 
     
 }

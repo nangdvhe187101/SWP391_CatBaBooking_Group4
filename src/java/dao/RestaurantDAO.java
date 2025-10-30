@@ -28,7 +28,7 @@ public class RestaurantDAO {
     public List<BusinessesDTO> getAllRestaurants() {
         List<BusinessesDTO> restaurants = new ArrayList<>();
         String sql = "SELECT b.business_id, b.owner_id, b.name, b.address, b.description, "
-                + "b.image, b.avg_rating, b.review_count, b.status, b.opening_hour, b.closing_hour,"
+                + "b.image, b.avg_rating, b.review_count,b.price_per_night, b.status, b.opening_hour, b.closing_hour,"
                 + "a.area_id, a.name AS area_name, u.user_id, u.full_name AS owner_name "
                 + "FROM businesses b "
                 + "LEFT JOIN areas a ON b.area_id = a.area_id "
@@ -44,6 +44,7 @@ public class RestaurantDAO {
                 restaurant.setImage(rs.getString("image"));
                 restaurant.setAvgRating(rs.getBigDecimal("avg_rating"));
                 restaurant.setReviewCount(rs.getInt("review_count"));
+                restaurant.setPricePerNight(rs.getBigDecimal("price_per_night"));
                 restaurant.setStatus(rs.getString("status"));
                 restaurant.setOpeningHour(rs.getObject("opening_hour", LocalTime.class));
                 restaurant.setClosingHour(rs.getObject("closing_hour", LocalTime.class));
@@ -114,7 +115,7 @@ public List<BusinessesDTO> searchRestaurants(int typeId, int areaId, LocalDate r
     // Câu SQL cơ bản
     StringBuilder sql = new StringBuilder(
             "SELECT b.business_id, b.owner_id, b.name, b.address, b.description, "
-            + "b.image, b.avg_rating, b.review_count, b.status, b.opening_hour, b.closing_hour, "
+            + "b.image, b.avg_rating, b.review_count,b.price_per_night, b.status, b.opening_hour, b.closing_hour, "
             + "a.area_id, a.name AS area_name, u.user_id, u.full_name AS owner_name "
             + "FROM businesses b "
             + "LEFT JOIN areas a ON b.area_id = a.area_id "
@@ -218,6 +219,7 @@ public List<BusinessesDTO> searchRestaurants(int typeId, int areaId, LocalDate r
                 restaurant.setImage(rs.getString("image"));
                 restaurant.setAvgRating(rs.getBigDecimal("avg_rating"));
                 restaurant.setReviewCount(rs.getInt("review_count"));
+                restaurant.setPricePerNight(rs.getBigDecimal("price_per_night"));
                 restaurant.setStatus(rs.getString("status"));
                 restaurant.setOpeningHour(rs.getObject("opening_hour", LocalTime.class));
                 restaurant.setClosingHour(rs.getObject("closing_hour", LocalTime.class));
