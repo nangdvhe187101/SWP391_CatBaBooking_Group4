@@ -13,8 +13,123 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Nhà hàng tại Cát Bà - Cát Bà Booking</title>
-        <link rel="stylesheet" href="style-home.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/HomePage/style-home.css">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+        <style>
+            /* ================= RESTAURANT GRID LAYOUT ================= */
+            .restaurants-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 24px;
+                margin-top: 20px;
+            }
+
+            .restaurant-card {
+                background-color: #fff;
+                border-radius: 12px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                overflow: hidden;
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                display: flex;
+                flex-direction: column;
+                position: relative; 
+            }
+
+            .restaurant-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            }
+
+            .restaurant-card .card-image {
+                position: relative;
+                height: 200px;
+            }
+
+            .restaurant-card .card-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .restaurant-card .card-content {
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                flex-grow: 1;
+            }
+
+            .restaurant-card .rating-price {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 8px;
+            }
+
+            .restaurant-card .rating .stars {
+                color: #ffc107;
+            }
+
+            .restaurant-card .reviews {
+                font-size: 0.85rem;
+                color: #6c757d;
+                margin-left: 4px;
+            }
+
+            .restaurant-card .price-range {
+                font-weight: 700;
+                color: #007bff;
+                font-size: 1.1rem;
+            }
+
+            .restaurant-card h3 {
+                font-size: 1.2rem;
+                margin: 8px 0;
+                color: #343a40;
+            }
+
+            .restaurant-card .location {
+                font-size: 0.9rem;
+                color: #6c757d;
+                margin-top: auto;
+            }
+
+            .restaurant-card .location i {
+                margin-right: 6px;
+            }
+
+            .restaurant-card .cuisines {
+                font-size: 0.9rem;
+                color: #6c757d;
+                margin-bottom: 8px;
+            }
+
+            .restaurant-card .detail-btn {
+                text-decoration: none;
+                position: absolute;
+                bottom: 16px;
+                right: 16px;
+                background-color: #28a745;
+                color: #ffffff;
+                border-color: #28a745;
+            }
+            .restaurant-card .detail-btn:hover {
+                background-color: #218838; /* Màu xanh lá đậm hơn */
+                border-color: #1e7e34;
+                color: #ffffff; /* Giữ chữ trắng */
+            }
+
+            @media (max-width: 992px) {
+                .restaurants-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+
+            @media (max-width: 768px) {
+                .restaurants-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
     </head>
     <body>
         <!-- Header -->
@@ -257,7 +372,7 @@
                         <div class="results-header">
                             <div class="results-info">
                                 <h2>Nhà hàng tại Cát Bà</h2>
-                                <p>Tìm thấy <span id="restaurant-count">18</span> nhà hàng</p>
+                                <p>Tìm thấy <span id="restaurant-count">${restaurants.size()}</span> nhà hàng</p>
                             </div>
                             <div class="results-controls">
                                 <div class="sort-control">
@@ -290,55 +405,46 @@
                             <span class="filter-tag">Giá rẻ</span>
                         </div>
 
-                        <!-- Restaurant Grid (tĩnh ví dụ) -->
+                        <!-- Restaurant Grid -->
                         <div class="restaurants-grid" id="restaurants-container">
-                            <!-- Restaurant Card 1 -->
-                            <div class="restaurant-card">
-                                <div class="card-image">
-                                    <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80" alt="Nhà hàng Hải Sản Cát Bà">
-                                    <div class="badge cuisine">
-                                        <i class="fas fa-utensils"></i>
-                                        Hải sản
+                            <c:forEach var="restaurant" items="${restaurants}">
+                                <div class="restaurant-card">
+                                    <div class="card-image">
+                                        <img src="${restaurant.image}" alt="${restaurant.name}">
+                                        <div class="badge cuisine">
+                                            <i class="fas fa-utensils"></i>
+                                            Restaurant
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="card-content">
-                                    <div class="rating-price">
-                                        <div class="rating">
-                                            <div class="stars">
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="far fa-star"></i>
+                                    <div class="card-content">
+                                        <div class="rating-price">
+                                            <div class="rating">
+                                                <div class="stars">
+                                                    <c:forEach begin="1" end="5" var="i">
+                                                        <i class="${i <= restaurant.avgRating.intValue() ? 'fas' : 'far'} fa-star"></i>
+                                                    </c:forEach>
+                                                </div>
+                                                <span class="reviews">(${restaurant.reviewCount})</span>
                                             </div>
-                                            <span class="reviews">(156)</span>
+                                            <span class="price-range">200k - 500k</span>
                                         </div>
-                                        <span class="price-range">200k - 500k</span>
-                                    </div>
-                                    <h3>Nhà hàng Hải Sản Cát Bà</h3>
-                                    <div class="location">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                        Bãi Cát Cò 1, Cát Bà
-                                    </div>
-                                    <div class="hours">
-                                        <i class="fas fa-clock"></i>
-                                        11:00 - 22:00
-                                    </div>
-                                    <div class="specialties">
-                                        <span class="specialty">Cua rang me</span>
-                                        <span class="specialty">Tôm nướng</span>
-                                        <span class="specialty">Cá hấp</span>
-                                    </div>
-                                    <div class="bottom-section">
-                                        <div class="phone">
-                                            <i class="fas fa-phone"></i>
-                                            <span>0987 654 321</span>
+                                        <h3>${restaurant.name}</h3>
+                                        <div class="cuisines">
+                                            <c:forEach var="cuisine" items="${restaurant.cuisines}">
+                                                <span class="specialty">${cuisine}</span>
+                                            </c:forEach>
                                         </div>
-                                        <button class="book-btn">Đặt bàn</button>
+                                        <div class="location">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            ${restaurant.area.name}
+                                        </div>
+                                        <a class="btn btn-outline-primary btn-sm detail-btn"
+                                           href="restaurant-detail?id=${restaurant.businessId}">
+                                            Chi tiết
+                                        </a>
                                     </div>
                                 </div>
-                            </div>
-                            <!-- Thêm các card khác tương tự nếu cần -->
+                            </c:forEach>
                         </div>
 
                         <!-- Pagination -->
@@ -356,6 +462,5 @@
 
         <!-- Footer -->
         <%@ include file="Footer.jsp" %>
-
     </body>
 </html>
