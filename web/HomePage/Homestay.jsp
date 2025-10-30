@@ -281,8 +281,7 @@
                                             <div class="input-wrapper">
                                                 <i class="fas fa-users"></i>
 
-                                                <input id="numGuests" name="guests" type="number" class="form-input" min="1" value="${empty param.guests ?
-                                                                                                                                      '1' : param.guests}" placeholder="Nhập số khách">
+                                                <input id="numGuests" name="guests" type="number" class="form-input" min="1" value="${empty param.guests ?'1' : param.guests}" placeholder="Nhập số khách">
                                             </div>
                                         </div>
 
@@ -292,8 +291,7 @@
                                             <div class="input-wrapper">
                                                 <i class="fas fa-door-open"></i>
 
-                                                <input id="numRooms" name="numRooms" type="number" class="form-input" min="1" value="${empty param.numRooms ?
-                                                                                                                                       '1' : param.numRooms}" placeholder="Nhập số phòng">
+                                                <input id="numRooms" name="numRooms" type="number" class="form-input" min="1" value="${empty param.numRooms ?'1' : param.numRooms}" placeholder="Nhập số phòng">
                                             </div>
                                         </div>
 
@@ -475,8 +473,7 @@
 
                             <div class="results-header">
                                 <div class="results-info">
-                                    <h2>Homestay tại Cát 
-                                        Bà</h2>
+                                    <h2>Homestay tại Cát Bà</h2>
                                     <p>Tìm thấy <span id="homestay-count">${homestays.size()}</span> homestay</p>
                                 </div>
                                 <div class="results-controls">
@@ -560,8 +557,7 @@
 
                                                                 <c:forEach begin="1" end="5" var="i">
 
-                                                                    <i class="${i <= homestay.avgRating.intValue() ?
-                                                                                'fas' : 'far'} fa-star"></i>
+                                                                    <i class="${i <= homestay.avgRating.intValue() ? 'fas' : 'far'} fa-star"></i>
                                                                 </c:forEach>
 
                                                             </div>
@@ -570,7 +566,7 @@
                                                         </div>
                                                         <span class="price-range">
 
-                                                            <fmt:formatNumber value="${homestay.pricePerNight}" pattern="#,###"/> VND
+                                                            <fmt:formatNumber value="${homestay.pricePerNight}" pattern="#,###"/> 
                                                         </span>
 
                                                     </div>
@@ -611,8 +607,7 @@
                                         <c:forEach var="i" begin="1" 
                                                    end="${totalPages}">
                                             <a href="?areaId=${param.areaId}&checkIn=${param.checkIn}&checkOut=${param.checkOut}&guests=${param.guests}&numRooms=${param.numRooms}&minRating=${param.minRating}&priceRange=${param.priceRange}${amenityParams}&page=${i}"
-                                               class="page-btn ${i == page ?
-                                                                 'active' : ''}">${i}</a>
+                                               class="page-btn ${i == page ? 'active' : ''}">${i}</a>
                                         </c:forEach>
 
                                         <c:if test="${page < totalPages}">
