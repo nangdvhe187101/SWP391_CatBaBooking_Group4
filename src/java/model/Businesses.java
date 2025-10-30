@@ -6,7 +6,6 @@ package model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 /**
  *
  * @author ADMIN
@@ -29,12 +28,11 @@ public class Businesses {
     private String status; //('active','pending','rejected')
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private List<Amenities> amenities; // Danh sách tiện nghi
 
     public Businesses() {
     }
 
-    public Businesses(int businessId, Users owner, String name, String type, String address, String description, String image, Areas area, BigDecimal avgRating, int reviewCount, Integer capacity, Integer numBedrooms, BigDecimal pricePerNight, String status, LocalDateTime createdAt, LocalDateTime updatedAt, List<Amenities> amenities) {
+    public Businesses(int businessId, Users owner, String name, String type, String address, String description, String image, Areas area, BigDecimal avgRating, int reviewCount, Integer capacity, Integer numBedrooms, BigDecimal pricePerNight, String status, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.businessId = businessId;
         this.owner = owner;
         this.name = name;
@@ -51,7 +49,6 @@ public class Businesses {
         this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-        this.amenities = amenities;
     }
 
     public int getBusinessId() {
@@ -182,17 +179,10 @@ public class Businesses {
         this.updatedAt = updatedAt;
     }
 
-    public List<Amenities> getAmenities() {
-        return amenities;
-    }
-
-    public void setAmenities(List<Amenities> amenities) {
-        this.amenities = amenities;
-    }
-
     @Override
     public String toString() {
-        return "Businesses{" + "businessId=" + businessId + ", owner=" + owner + ", name=" + name + ", type=" + type + ", address=" + address + ", description=" + description + ", image=" + image + ", area=" + area + ", avgRating=" + avgRating + ", reviewCount=" + reviewCount + ", capacity=" + capacity + ", numBedrooms=" + numBedrooms + ", pricePerNight=" + pricePerNight + ", status=" + status + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + ", amenities=" + amenities + '}';
+        return "Businesses{" + "businessId=" + businessId + ", owner=" + owner + ", name=" + name + ", type=" + type + ", address=" + address + ", description=" + description + ", image=" + image + ", area=" + area + ", avgRating=" + avgRating + ", reviewCount=" + reviewCount + ", capacity=" + capacity + ", numBedrooms=" + numBedrooms + ", pricePerNight=" + pricePerNight + ", status=" + status + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + '}';
     }
 
+    
 }
