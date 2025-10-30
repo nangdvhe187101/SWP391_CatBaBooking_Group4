@@ -89,12 +89,15 @@ public class RestaurantDAO {
     }
 
     // Lấy tất cả loại nhà hàng
-    public List<String> getAllRestaurantTypes() {
-        List<String> types = new ArrayList<>();
-        String sql = "SELECT name FROM restaurant_types ORDER BY name";
+    public List<RestaurantTypes> getAllRestaurantTypes() {
+        List<RestaurantTypes> types = new ArrayList<>();
+        String sql = "SELECT * FROM restaurant_types ORDER BY name ASC";
         try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                types.add(rs.getString("name"));
+                RestaurantTypes type = new RestaurantTypes();
+                type.setTypeId(rs.getInt("type_id"));
+                type.setName(rs.getString("name"));
+                types.add(type);
 
             }
         } catch (Exception e) {
@@ -102,98 +105,140 @@ public class RestaurantDAO {
         return types;
     }
 
-    public List<BusinessesDTO> searchRestaurants(String restaurantType, int areaId, LocalDate reservationDate, LocalTime reservationTime, Integer numGuests, Double minRating) throws SQLException {
-        List<BusinessesDTO> list = new ArrayList<>();
-        List<Object> params = new ArrayList<>();
 
-        StringBuilder sql = new StringBuilder("SELECT b.business_id, b.owner_id, b.name, b.address, b.description, "
-                + "b.image, b.avg_rating, b.review_count, b.status, b.opening_hour, b.closing_hour,"
-                + "a.area_id, a.name AS area_name, u.user_id, u.full_name AS owner_name "
-                + "FROM businesses b "
-                + "LEFT JOIN areas a ON b.area_id = a.area_id "
-                + "JOIN users u ON b.owner_id = u.user_id "
-                + "WHERE b.type = 'restaurant' AND b.status = 'active'");
+public List<BusinessesDTO> searchRestaurants(int typeId, int areaId, LocalDate reservationDate,
+        LocalTime reservationTime, Integer numGuests, Double minRating) throws SQLException {
+    List<BusinessesDTO> list = new ArrayList<>();
+    List<Object> params = new ArrayList<>();
 
-        if (restaurantType != null && restaurantType.isEmpty()) {
-            sql.append(" AND EXISTS (SELECT 1 FROM business_restaurant_types brt "
-                    + "JOIN restaurant_types rt ON brt.type_id = rt.type_id "
-                    + "WHERE brt.business_id = b.business_id AND rt.name = ?)");
-            params.add(restaurantType);
-        }
+    // Câu SQL cơ bản
+    StringBuilder sql = new StringBuilder(
+            "SELECT b.business_id, b.owner_id, b.name, b.address, b.description, "
+            + "b.image, b.avg_rating, b.review_count, b.status, b.opening_hour, b.closing_hour, "
+            + "a.area_id, a.name AS area_name, u.user_id, u.full_name AS owner_name "
+            + "FROM businesses b "
+            + "LEFT JOIN areas a ON b.area_id = a.area_id "
+            + "JOIN users u ON b.owner_id = u.user_id "
+            + "WHERE b.type = 'restaurant' AND b.status = 'active'");
 
-        // 2. Khu vực
-        if (areaId > 0) {
-            sql.append(" AND b.area_id = ?");
-            params.add(areaId);
-        }
-        // 3. Đánh giá tối thiểu
-        if (minRating != null) {
-            sql.append(" AND b.avg_rating >= ?");
-            params.add(minRating);
-        }
-        // 4. Kiểm tra bàn trống + giờ mở cửa + sức chứa
-        boolean hasAvailabilityFilter = (reservationDate != null || reservationTime != null || numGuests != null);
-        if (hasAvailabilityFilter) {
-            sql.append(" AND EXISTS (");
-            sql.append("  SELECT 1 FROM restaurant_tables rt ");
-            sql.append("  JOIN table_availability ta ON rt.table_id = ta.table_id ");
-            sql.append("  WHERE rt.business_id = b.business_id AND ta.status = 'available'");
-
-            if (numGuests != null && numGuests > 0) {
-                sql.append(" AND rt.capacity >= ?");
-                params.add(numGuests);
-            }
-            if (reservationDate != null) {
-                sql.append(" AND ta.reservation_date = ?");
-                params.add(java.sql.Date.valueOf(reservationDate));
-            }
-            if (reservationTime != null) {
-                sql.append(" AND ta.reservation_time = ?");
-                params.add(java.sql.Time.valueOf(reservationTime));
-            }
-            if (reservationTime != null) {
-                sql.append(" AND ? BETWEEN b.opening_hour AND b.closing_hour");
-                params.add(java.sql.Time.valueOf(reservationTime));
-            }
-            sql.append(")");
-        }
-
-        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql.toString())) {
-
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    BusinessesDTO dto = new BusinessesDTO();
-                    dto.setBusinessId(rs.getInt("business_id"));
-                    dto.setName(rs.getString("name"));
-                    dto.setAddress(rs.getString("address"));
-                    dto.setDescription(rs.getString("description"));
-                    dto.setImage(rs.getString("image"));
-                    dto.setAvgRating(rs.getBigDecimal("avg_rating"));
-                    dto.setReviewCount(rs.getInt("review_count"));
-                    dto.setOpeningHour(rs.getObject("opening_hour", LocalTime.class));
-                    dto.setClosingHour(rs.getObject("closing_hour", LocalTime.class));
-
-                    Areas area = new Areas();
-                    area.setAreaId(rs.getInt("area_id"));
-                    area.setName(rs.getString("area_name"));
-                    dto.setArea(area);
-
-                    Users owner = new Users();
-                    owner.setUserId(rs.getInt("user_id"));
-                    owner.setFullName(rs.getString("owner_name"));
-                    dto.setOwner(owner);
-
-                    // Lấy danh sách cuisines
-                    dto.setCuisines(getCuisinesForRestaurant(dto.getBusinessId()));
-
-                    list.add(dto);
-                }
-            }
-        }
-        return list;
+    // 1. Lọc theo Loại hình
+    if (typeId > 0) {
+        sql.append(" AND EXISTS (SELECT 1 FROM business_restaurant_types brt "
+                + "WHERE brt.business_id = b.business_id AND brt.type_id = ?)");
+        params.add(typeId);
     }
+
+    // 2. Lọc theo Khu vực
+    if (areaId > 0) {
+        sql.append(" AND b.area_id = ?");
+        params.add(areaId);
+    }
+
+    // 3. Lọc theo Đánh giá
+    if (minRating != null && minRating > 0) {
+        sql.append(" AND b.avg_rating = ?"); 
+        params.add(minRating);
+    }
+
+    // 4. Lọc theo Ngày, Giờ, Số người 
+    boolean hasDate = (reservationDate != null);
+    boolean hasTime = (reservationTime != null);
+    boolean hasCapacityFilter = (numGuests != null && numGuests > 0);
+
+    //Kiểm tra giờ mở cửa (chỉ chạy nếu người dùng nhập 'Giờ')
+    if (hasTime) {
+        sql.append(" AND (");
+        // TH 1: Giờ bình thường 
+        sql.append("   (b.opening_hour <= b.closing_hour AND ? >= b.opening_hour AND ? < b.closing_hour)");
+        // TH 2: Giờ qua đêm 
+        sql.append("   OR (b.opening_hour > b.closing_hour AND (? >= b.opening_hour OR ? < b.closing_hour))");
+        sql.append(" )");
+
+        params.add(java.sql.Time.valueOf(reservationTime));
+        params.add(java.sql.Time.valueOf(reservationTime));
+        params.add(java.sql.Time.valueOf(reservationTime));
+        params.add(java.sql.Time.valueOf(reservationTime));
+    }
+
+    //Kiểm tra bàn trống
+    if (hasDate && hasTime) {
+        // TRƯỜNG HỢP A: Người dùng nhập CẢ NGÀY VÀ GIỜ
+        sql.append(" AND EXISTS (");
+        sql.append("  SELECT 1 FROM restaurant_tables rt ");
+        sql.append("  WHERE rt.business_id = b.business_id");
+
+        // Kiểm tra sức chứa
+        int capacity = (hasCapacityFilter) ? numGuests : 1; 
+        sql.append(" AND rt.capacity >= ?");
+        params.add(capacity);
+
+        sql.append(" AND NOT EXISTS (");
+        sql.append("  SELECT 1 FROM table_availability ta ");
+        sql.append("  WHERE ta.table_id = rt.table_id ");
+        sql.append("  AND ta.reservation_date = ? ");
+        sql.append("  AND ta.reservation_time = ? ");
+        sql.append("  AND (ta.status = 'booked' OR ta.status = 'blocked')");
+        sql.append(" )");
+
+        sql.append(")");
+
+        params.add(java.sql.Date.valueOf(reservationDate));
+        params.add(java.sql.Time.valueOf(reservationTime));
+
+    } else if (hasCapacityFilter) {
+        //  Người dùng CHỈ nhập SỐ NGƯỜI
+        // (hoặc Số người + Giờ / Số người + Ngày)
+        // Chỉ cần tìm nhà hàng có bàn đủ sức chứa.
+        sql.append(" AND EXISTS (");
+        sql.append("  SELECT 1 FROM restaurant_tables rt ");
+        sql.append("  WHERE rt.business_id = b.business_id");
+        sql.append("  AND rt.capacity >= ?");
+        sql.append(")"); // Đóng EXISTS
+        params.add(numGuests);
+    }
+    
+
+    // Thực thi Query
+    try (Connection conn = DBUtil.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+        for (int i = 0; i < params.size(); i++) {
+            ps.setObject(i + 1, params.get(i));
+        }
+
+        
+
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                BusinessesDTO restaurant = new BusinessesDTO();
+                restaurant.setBusinessId(rs.getInt("business_id"));
+                restaurant.setName(rs.getString("name"));
+                restaurant.setAddress(rs.getString("address"));
+                restaurant.setDescription(rs.getString("description"));
+                restaurant.setImage(rs.getString("image"));
+                restaurant.setAvgRating(rs.getBigDecimal("avg_rating"));
+                restaurant.setReviewCount(rs.getInt("review_count"));
+                restaurant.setStatus(rs.getString("status"));
+                restaurant.setOpeningHour(rs.getObject("opening_hour", LocalTime.class));
+                restaurant.setClosingHour(rs.getObject("closing_hour", LocalTime.class));
+
+                Areas area = new Areas();
+                area.setAreaId(rs.getInt("area_id"));
+                area.setName(rs.getString("area_name"));
+                restaurant.setArea(area);
+
+                Users owner = new Users();
+                owner.setUserId(rs.getInt("user_id"));
+                owner.setFullName(rs.getString("owner_name"));
+                restaurant.setOwner(owner);
+
+                // Get cuisines for restaurant
+                restaurant.setCuisines(getCuisinesForRestaurant(restaurant.getBusinessId()));
+
+                list.add(restaurant);
+            }
+        }
+    }
+    return list;
+}
 }

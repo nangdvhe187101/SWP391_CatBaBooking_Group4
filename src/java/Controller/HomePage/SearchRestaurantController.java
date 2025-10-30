@@ -15,8 +15,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import model.Areas;
+import model.RestaurantTypes;
 import model.dto.BusinessesDTO;
 
 /**
@@ -38,51 +40,89 @@ public class SearchRestaurantController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
+        
         RestaurantDAO restaurantDAO = new RestaurantDAO();
         AreaDAO areaDAO = new AreaDAO();
 
         try {
-            List<String> restaurantTypes = restaurantDAO.getAllRestaurantTypes();
+            List<RestaurantTypes> restaurantTypes = restaurantDAO.getAllRestaurantTypes();
             List<Areas> areaList = areaDAO.getAllAreas();
             request.setAttribute("restaurantTypes", restaurantTypes);
             request.setAttribute("areaList", areaList);
 
             // 2. Lấy tham số tìm kiếm
-            String type = request.getParameter("restaurantType");
+            String typeIdStr = request.getParameter("restaurantType");
             String areaIdStr = request.getParameter("areaId");
             String dateStr = request.getParameter("date");
             String timeStr = request.getParameter("time");
             String guestsStr = request.getParameter("numGuests");
+            String minRatingStr = request.getParameter("minRating");
 
-            // Xử lý đánh giá (checkbox)
-            Double minRating = null;
-            if (request.getParameter("rating5") != null) {
-                minRating = 5.0;
-            } else if (request.getParameter("rating4") != null) {
-                minRating = 4.0;
-            } else if (request.getParameter("rating3") != null) {
-                minRating = 3.0;
-            } else if (request.getParameter("rating2") != null) {
-                minRating = 2.0;
-            } else if (request.getParameter("rating1") != null) {
-                minRating = 1.0;
-            }
-
-            Integer areaId = parseIntOrNull(areaIdStr);
-            LocalDate date = parseDateOrNull(dateStr);
-            LocalTime time = parseTimeOrNull(timeStr);
-            Integer numGuests = parseIntOrNull(guestsStr);
-
+          
             List<BusinessesDTO> restaurants;
-            // 3. Nếu có bất kỳ filter nào → tìm kiếm
-            if (type != null || areaId != null || date != null || time != null || numGuests != null || minRating != null) {
-                restaurants = restaurantDAO.searchRestaurants(type, areaId, date, time, numGuests, minRating);
+            if (typeIdStr != null || areaIdStr != null || dateStr != null || timeStr != null || guestsStr != null || minRatingStr != null) {
+                int typeId = 0;
+                int areaId = 0;
+                Integer numGuests = null;
+                Double minRating = null;
+                LocalDate date = null;
+                LocalTime time = null;
+                
+                try {
+                    if (typeIdStr != null && !typeIdStr.isEmpty()) {
+                        typeId = Integer.parseInt(typeIdStr);
+                    }
+                } catch (NumberFormatException e) {
+                    System.err.println("Lỗi parse typeStr:" + typeIdStr);
+                }
+                
+                try {
+                    if (areaIdStr != null && !areaIdStr.isEmpty()) {
+                        areaId = Integer.parseInt(areaIdStr);
+                    }
+                } catch (NumberFormatException e) {
+                    System.err.println("Lỗi parse areaId:" + areaIdStr);
+                }
+                
+                try {
+                    if (guestsStr != null && !guestsStr.isEmpty()) {
+                        numGuests = Integer.parseInt(guestsStr);
+                    }
+                } catch (NumberFormatException e) {
+                    System.err.println("Lỗi parse numGuests:" + guestsStr);
+                }
+                
+                try {
+                    if (dateStr != null && !dateStr.isEmpty()) {
+                        date = LocalDate.parse(dateStr);
+                    }
+                } catch (DateTimeParseException e) {
+                    System.err.println("Lỗi parse ngày: " + dateStr);
+                }
+                
+                try {
+                    if (timeStr != null && !timeStr.isEmpty()) {
+                        time = LocalTime.parse(timeStr);
+                    }
+                } catch (DateTimeParseException e) {
+                    System.err.println("Lỗi parse giờ: " + timeStr);
+                }
+                
+                try {
+                    if (minRatingStr != null && !minRatingStr.trim().isEmpty()) {
+                        minRating = Double.valueOf(minRatingStr);
+                    }
+                } catch (NumberFormatException e) {
+                    System.err.println("Lỗi parsr rating" + minRatingStr);
+                }
+                
+                restaurants = restaurantDAO.searchRestaurants(typeId, areaId, date, time, numGuests, minRating);
+                
             } else {
-                restaurants = restaurantDAO.getAllRestaurants(); // Method cũ của bạn
+                restaurants = restaurantDAO.getAllRestaurants();
             }
 
             request.setAttribute("restaurants", restaurants);
-            request.setAttribute("resultCount", restaurants.size());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -92,30 +132,6 @@ public class SearchRestaurantController extends HttpServlet {
         request.getRequestDispatcher("/HomePage/Restaurant.jsp").forward(request, response);
     }
 
-    // Helper methods
-    private Integer parseIntOrNull(String str) {
-        try {
-            return str != null && !str.trim().isEmpty() ? Integer.parseInt(str) : null;
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    private LocalDate parseDateOrNull(String str) {
-        try {
-            return str != null && !str.trim().isEmpty() ? LocalDate.parse(str) : null;
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private LocalTime parseTimeOrNull(String str) {
-        try {
-            return str != null && !str.trim().isEmpty() ? LocalTime.parse(str) : null;
-        } catch (Exception e) {
-            return null;
-        }
-    }
 
 
 

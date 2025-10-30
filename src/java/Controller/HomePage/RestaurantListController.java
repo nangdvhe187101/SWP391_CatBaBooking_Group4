@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import model.Areas;
+import model.RestaurantTypes;
 import model.dto.BusinessesDTO;
 
 /**
@@ -33,12 +34,14 @@ public class RestaurantListController extends HttpServlet {
         AreaDAO areaDAO = new AreaDAO();
         try {
         List<BusinessesDTO> restaurants = dao.getAllRestaurants();
-        List<String> types = dao.getAllRestaurantTypes();
+        List<RestaurantTypes> restaurantTypes = dao.getAllRestaurantTypes();
+        request.setAttribute("restaurantTypes", restaurantTypes);
         List<Areas> areaList = areaDAO.getAllAreas();
+        request.setAttribute("areaList", areaList);
         System.out.println("Số lượng nhà hàng lấy được: " + restaurants.size()); // Ghi log kích thước
         request.setAttribute("restaurants", restaurants);
-        request.setAttribute("types", types);
-        request.setAttribute("areaList", areaList);
+        
+        
         request.getRequestDispatcher("/HomePage/Restaurant.jsp").forward(request, response);
     } catch (Exception e) {
         e.printStackTrace();

@@ -4,6 +4,7 @@
  */
 package dao;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.sql.Date;
 import java.sql.Connection;
@@ -103,7 +104,7 @@ public class HomestayDAO {
         return amenities;
     }
 
-    public List<Businesses> searchHomestays(int areaId, LocalDate checkIn, LocalDate checkOut, int guests, int numRooms) {
+    public List<Businesses> searchHomestays(int areaId, LocalDate checkIn, LocalDate checkOut, int guests, int numRooms, Double minRating, BigDecimal minPrice, BigDecimal maxPrice, List<Integer> amenityIds) {
         List<Businesses> homestays = new ArrayList<>();
         List<Object> params = new ArrayList<>();
 
@@ -121,6 +122,46 @@ public class HomestayDAO {
             sql.append(" AND b.area_id = ?");
             params.add(areaId);
         }
+
+        if (minRating != null && minRating > 0) {
+            sql.append(" AND b.avg_rating = ?");
+            params.add(minRating);
+        }
+
+        if (minPrice != null) {
+            sql.append(" AND b.price_per_night >= ?");
+            params.add(minPrice);
+        }
+
+        if (maxPrice != null && maxPrice.compareTo(BigDecimal.ZERO) > 0) {
+            sql.append(" AND b.price_per_night <= ?");
+            params.add(maxPrice);
+        }
+
+        if (amenityIds != null && !amenityIds.isEmpty()) {
+            sql.append(" AND b.business_id IN ( ");
+            sql.append("    SELECT ba.business_id FROM business_amenities ba ");
+            sql.append("    WHERE ba.amenity_id IN (");
+
+            for (int i = 0; i < amenityIds.size(); i++) {
+                sql.append("?");
+                if (i < amenityIds.size() - 1) {
+                    sql.append(",");
+                }
+            }
+
+            sql.append(") ");
+            sql.append("    GROUP BY ba.business_id ");
+            sql.append("    HAVING COUNT(DISTINCT ba.amenity_id) = ? ");
+            sql.append(") ");
+
+            for (Integer amenityId : amenityIds) {
+                params.add(amenityId);
+            }
+            
+            params.add(amenityIds.size());
+        }
+
         sql.append(" AND (SELECT COUNT(*) FROM rooms r WHERE r.business_id = b.business_id AND r.is_active = 1");
         if (guests > 0) {
             sql.append(" AND r.capacity >= ?");
@@ -145,7 +186,7 @@ public class HomestayDAO {
             sql.append(") >= ? ");
             params.add(numRooms);
         } else {
-            sql.append(") >= 1 ");  // Ít nhất 1 phòng nếu không chỉ định numRooms
+            sql.append(") >= 1 ");  
         }
         sql.append(" AND EXISTS (SELECT 1 FROM rooms r WHERE r.business_id = b.business_id AND r.is_active = 1) ");
         sql.append(" ORDER BY b.name ASC");

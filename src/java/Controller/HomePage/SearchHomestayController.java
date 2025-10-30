@@ -4,6 +4,7 @@
  */
 package controller.HomePage;
 
+import dao.AmenityDAO;
 import dao.AreaDAO;
 import dao.HomestayDAO;
 import java.io.IOException;
@@ -13,11 +14,14 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
+import model.Amenities;
 import model.Areas;
 import model.Businesses;
 
@@ -42,74 +46,115 @@ public class SearchHomestayController extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
 
         HomestayDAO homestayDAO = new HomestayDAO();
+        AmenityDAO amenityDAO = new AmenityDAO();
         AreaDAO areaDAO = new AreaDAO();
 
-try {
-    // 1. Luôn lấy danh sách khu vực 
-    List<Areas> areaList = areaDAO.getAllAreas();
-    request.setAttribute("areaList", areaList);
-    
-    // 2. Lấy các tham số tìm kiếm
-    String areaIdStr = request.getParameter("areaId");
-    String checkInStr = request.getParameter("checkIn");
-    String checkOutStr = request.getParameter("checkOut");
-    String guestsStr = request.getParameter("guests");
-    String numRoomsStr = request.getParameter("numRooms");  // Thêm dòng này
-
-    List<Businesses> homestay;
-
-    if (areaIdStr != null || checkInStr != null || guestsStr != null || numRoomsStr != null) {
-        int areaId = 0;
-        int guests = 0;
-        int numRooms = 0;  // Thêm biến này
-        LocalDate checkIn = null;
-        LocalDate checkOut = null;
-
         try {
-            if (areaIdStr != null && !areaIdStr.isEmpty()) {
-                areaId = Integer.parseInt(areaIdStr);
-            }
-        } catch (NumberFormatException e) {
-            System.err.println("Lỗi parse areaId: " + areaIdStr);
-        }
+            // 1. Luôn lấy danh sách khu vực 
+            List<Areas> areaList = areaDAO.getAllAreas();
+            request.setAttribute("areaList", areaList);
+            List<Amenities> amenityList = amenityDAO.getAllAmenities();
+            request.setAttribute("amenityList", amenityList);
 
-        try {
-            if (guestsStr != null && !guestsStr.isEmpty()) {
-                guests = Integer.parseInt(guestsStr);
-            }
-        } catch (NumberFormatException e) {
-            System.err.println("Lỗi parse guests: " + guestsStr);
-        }
+            // 2. Lấy các tham số tìm kiếm
+            String areaIdStr = request.getParameter("areaId");
+            String checkInStr = request.getParameter("checkIn");
+            String checkOutStr = request.getParameter("checkOut");
+            String guestsStr = request.getParameter("guests");
+            String numRoomsStr = request.getParameter("numRooms");
+            String minRatingStr = request.getParameter("minRating");
+            String priceRangeStr = request.getParameter("priceRange");
+            String[] amenityIdsStr = request.getParameterValues("amenityIds");
 
-        try {
-            if (numRoomsStr != null && !numRoomsStr.isEmpty()) {
-                numRooms = Integer.parseInt(numRoomsStr);
-            }
-        } catch (NumberFormatException e) {
-            System.err.println("Lỗi parse numRooms: " + numRoomsStr);
-        }
+            List<Businesses> homestay;
 
-        try {
-            if (checkInStr != null && !checkInStr.isEmpty()) {
-                checkIn = LocalDate.parse(checkInStr);
-            }
-            if (checkOutStr != null && !checkOutStr.isEmpty()) {
-                checkOut = LocalDate.parse(checkOutStr);
-            }
-        } catch (DateTimeParseException e) {
-            System.err.println("Lỗi parse ngày: " + e.getMessage());
-        }
+            if (areaIdStr != null || checkInStr != null || guestsStr != null || numRoomsStr != null || minRatingStr != null || priceRangeStr != null) {
+                int areaId = 0;
+                int guests = 0;
+                int numRooms = 0;
+                Double minRating = null;
+                LocalDate checkIn = null;
+                LocalDate checkOut = null;
+                BigDecimal minPrice = null;
+                BigDecimal maxPrice = null;
+                List<Integer> amenityIds = null;
 
-        // Truyền thêm numRooms vào DAO
-        homestay = homestayDAO.searchHomestays(areaId, checkIn, checkOut, guests, numRooms);
-    } else {
-        homestay = homestayDAO.getAllHomestay();
-    }
-    request.setAttribute("homestays", homestay);
-} catch (Exception e) {
-    e.printStackTrace();
-    request.setAttribute("error", "Có lỗi xảy ra khi tìm kiếm homestay. Vui lòng thử lại.");
-}
+                try {
+                    if (areaIdStr != null && !areaIdStr.isEmpty()) {
+                        areaId = Integer.parseInt(areaIdStr);
+                    }
+                } catch (NumberFormatException e) {
+                    System.err.println("Lỗi parse areaId: " + areaIdStr);
+                }
+
+                try {
+                    if (guestsStr != null && !guestsStr.isEmpty()) {
+                        guests = Integer.parseInt(guestsStr);
+                    }
+                } catch (NumberFormatException e) {
+                    System.err.println("Lỗi parse guests: " + guestsStr);
+                }
+
+                try {
+                    if (numRoomsStr != null && !numRoomsStr.isEmpty()) {
+                        numRooms = Integer.parseInt(numRoomsStr);
+                    }
+                } catch (NumberFormatException e) {
+                    System.err.println("Lỗi parse numRooms: " + numRoomsStr);
+                }
+
+                try {
+                    if (checkInStr != null && !checkInStr.isEmpty()) {
+                        checkIn = LocalDate.parse(checkInStr);
+                    }
+                    if (checkOutStr != null && !checkOutStr.isEmpty()) {
+                        checkOut = LocalDate.parse(checkOutStr);
+                    }
+                } catch (DateTimeParseException e) {
+                    System.err.println("Lỗi parse ngày: " + e.getMessage());
+                }
+
+                try {
+                    if (minRatingStr != null && !minRatingStr.trim().isEmpty()) {
+                        minRating = Double.valueOf(minRatingStr);
+                    }
+                } catch (NumberFormatException e) {
+                    System.err.println("Lỗi parsr rating" + minRatingStr);
+                }
+
+                try {
+                    if (priceRangeStr != null && !priceRangeStr.isEmpty()) {
+                        String[] parts = priceRangeStr.split("-");
+                        if (parts.length == 2) {
+                            minPrice = new BigDecimal(parts[0]);
+                            maxPrice = new BigDecimal(parts[1]);
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("Lỗi parse khoảng giá: " + priceRangeStr);
+                    e.printStackTrace();
+                }
+
+                try {
+                    if (amenityIdsStr != null && amenityIdsStr.length > 0) {
+                        amenityIds = new ArrayList<>();
+                        for (String id : amenityIdsStr) {
+                            amenityIds.add(Integer.valueOf(id));
+                        }
+                    }
+                } catch (Exception e) {
+                }
+
+                
+                homestay = homestayDAO.searchHomestays(areaId, checkIn, checkOut, guests, numRooms, minRating, minPrice, maxPrice, amenityIds);
+            } else {
+                homestay = homestayDAO.getAllHomestay();
+            }
+            request.setAttribute("homestays", homestay);
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Có lỗi xảy ra khi tìm kiếm homestay. Vui lòng thử lại.");
+        }
         request.getRequestDispatcher("/HomePage/Homestay.jsp").forward(request, response);
     }
 

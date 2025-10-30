@@ -37,8 +37,8 @@ public class HomestayListController extends HttpServlet {
         try {
             List<Areas> areaList = areaDAO.getAllAreas();
             request.setAttribute("areaList", areaList);
-            List<Amenities> amenitiesList = amenityDAO.getAllAmenities();
-            request.setAttribute("amenitiesList", amenitiesList);
+            List<Amenities> amenityList = amenityDAO.getAllAmenities();
+            request.setAttribute("amenityList", amenityList);
             List<Businesses> homestays = homestayDAO.getAllHomestay();
             request.setAttribute("homestays", homestays);
             request.getRequestDispatcher("/HomePage/Homestay.jsp").forward(request, response);
