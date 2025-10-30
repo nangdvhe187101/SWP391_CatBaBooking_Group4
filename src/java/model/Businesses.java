@@ -32,12 +32,16 @@ public class Businesses {
     private LocalTime closingHour; 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private List<Amenities> amenities; // Danh sách tiện nghi
+    private LocalTime openingHour;
+    private LocalTime closingHour;
+    private List<Amenities> amenities; 
 
     public Businesses() {
     }
 
+
     public Businesses(int businessId, Users owner, String name, String type, String address, String description, String image, Areas area, BigDecimal avgRating, int reviewCount, Integer capacity, Integer numBedrooms, BigDecimal pricePerNight, String status, LocalTime openingHour, LocalTime closingHour, LocalDateTime createdAt, LocalDateTime updatedAt, List<Amenities> amenities) {
+
         this.businessId = businessId;
         this.owner = owner;
         this.name = name;
@@ -56,6 +60,8 @@ public class Businesses {
         this.closingHour = closingHour;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.openingHour = openingHour;
+        this.closingHour = closingHour;
         this.amenities = amenities;
     }
 
@@ -203,6 +209,22 @@ public class Businesses {
         this.updatedAt = updatedAt;
     }
 
+    public LocalTime getOpeningHour() {
+        return openingHour;
+    }
+
+    public void setOpeningHour(LocalTime openingHour) {
+        this.openingHour = openingHour;
+    }
+
+    public LocalTime getClosingHour() {
+        return closingHour;
+    }
+
+    public void setClosingHour(LocalTime closingHour) {
+        this.closingHour = closingHour;
+    }
+
     public List<Amenities> getAmenities() {
         return amenities;
     }
@@ -213,6 +235,7 @@ public class Businesses {
 
     @Override
     public String toString() {
+
         return "Businesses{" + "businessId=" + businessId + ", owner=" + owner + ", name=" + name + ", type=" + type + ", address=" + address + ", description=" + description + ", image=" + image + ", area=" + area + ", avgRating=" + avgRating + ", reviewCount=" + reviewCount + ", capacity=" + capacity + ", numBedrooms=" + numBedrooms + ", pricePerNight=" + pricePerNight + ", status=" + status + ", openingHour=" + openingHour + ", closingHour=" + closingHour + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + ", amenities=" + amenities + '}';
     }
 

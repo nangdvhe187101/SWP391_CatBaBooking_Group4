@@ -5,7 +5,8 @@
 
 package controller.HomePage;
 
-import dao.BusinessDAO;
+import dao.AreaDAO;
+import dao.RestaurantDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -14,6 +15,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
+import model.Areas;
+import model.RestaurantTypes;
 import model.dto.BusinessesDTO;
 
 /**
@@ -27,11 +30,18 @@ public class RestaurantListController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        BusinessDAO dao = new BusinessDAO();
+        RestaurantDAO dao = new RestaurantDAO();
+        AreaDAO areaDAO = new AreaDAO();
         try {
         List<BusinessesDTO> restaurants = dao.getAllRestaurants();
+        List<RestaurantTypes> restaurantTypes = dao.getAllRestaurantTypes();
+        request.setAttribute("restaurantTypes", restaurantTypes);
+        List<Areas> areaList = areaDAO.getAllAreas();
+        request.setAttribute("areaList", areaList);
         System.out.println("Số lượng nhà hàng lấy được: " + restaurants.size()); // Ghi log kích thước
         request.setAttribute("restaurants", restaurants);
+        
+        
         request.getRequestDispatcher("/HomePage/Restaurant.jsp").forward(request, response);
     } catch (Exception e) {
         e.printStackTrace();

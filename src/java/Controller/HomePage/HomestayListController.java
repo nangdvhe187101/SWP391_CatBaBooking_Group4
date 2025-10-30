@@ -5,6 +5,7 @@
 
 package controller.HomePage;
 
+import dao.AmenityDAO;
 import dao.AreaDAO;
 import dao.HomestayDAO;
 import java.io.IOException;
@@ -15,6 +16,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
+import model.Amenities;
 import model.Areas;
 import model.Businesses;
 
@@ -31,9 +33,12 @@ public class HomestayListController extends HttpServlet {
     throws ServletException, IOException {
         HomestayDAO homestayDAO = new HomestayDAO();
         AreaDAO areaDAO = new AreaDAO();
+        AmenityDAO amenityDAO = new AmenityDAO();
         try {
             List<Areas> areaList = areaDAO.getAllAreas();
             request.setAttribute("areaList", areaList);
+            List<Amenities> amenityList = amenityDAO.getAllAmenities();
+            request.setAttribute("amenityList", amenityList);
             List<Businesses> homestays = homestayDAO.getAllHomestay();
             request.setAttribute("homestays", homestays);
             request.getRequestDispatcher("/HomePage/Homestay.jsp").forward(request, response);

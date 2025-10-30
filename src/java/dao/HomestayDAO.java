@@ -4,6 +4,7 @@
  */
 package dao;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.sql.Date;
 import java.sql.Connection;
@@ -12,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import model.Amenities;
@@ -28,18 +30,17 @@ public class HomestayDAO {
 
     public List<Businesses> getAllHomestay() {
         List<Businesses> homestays = new ArrayList<>();
-         String sql = "SELECT b.business_id, b.name, b.address, b.description, b.image, b.avg_rating, b.review_count, "
-                + "b.capacity, b.num_bedrooms, b.price_per_night, b.status, b.created_at, b.updated_at, "
+        String sql = "SELECT b.business_id, b.name, b.address, b.description, b.image, b.avg_rating, b.review_count, "
+                + "b.capacity, b.num_bedrooms, b.price_per_night, b.status, b.created_at, b.updated_at,b.opening_hour, b.closing_hour, "
                 + "a.area_id, a.name AS area_name, u.user_id, u.full_name AS owner_name "
                 + "FROM businesses b "
                 + "JOIN areas a ON b.area_id = a.area_id "
-                + "JOIN users u ON b.owner_id = u.user_id " 
-                + "WHERE EXISTS ( " 
+                + "JOIN users u ON b.owner_id = u.user_id "
+                + "WHERE EXISTS ( "
                 + "    SELECT 1 "
                 + "    FROM rooms r "
                 + "    WHERE r.business_id = b.business_id "
-                + ") AND b.status = 'active' "; 
-
+                + ") AND b.status = 'active' ";
 
         try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
 
@@ -58,6 +59,8 @@ public class HomestayDAO {
                 homestay.setStatus(rs.getString("status"));
                 homestay.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
                 homestay.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
+                homestay.setOpeningHour(rs.getObject("opening_hour", LocalTime.class));
+                homestay.setClosingHour(rs.getObject("closing_hour", LocalTime.class));
 
                 Areas area = new Areas();
                 area.setAreaId(rs.getInt("area_id"));
@@ -101,13 +104,13 @@ public class HomestayDAO {
         return amenities;
     }
 
-    public List<Businesses> searchHomestays(int areaId, LocalDate checkIn, LocalDate checkOut, int guests) {
+    public List<Businesses> searchHomestays(int areaId, LocalDate checkIn, LocalDate checkOut, int guests, int numRooms, Double minRating, BigDecimal minPrice, BigDecimal maxPrice, List<Integer> amenityIds) {
         List<Businesses> homestays = new ArrayList<>();
         List<Object> params = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder(
                 "SELECT b.business_id, b.name, b.address, b.description, b.image, b.avg_rating, b.review_count, "
-                + "b.capacity, b.num_bedrooms, b.price_per_night, b.status, b.created_at, b.updated_at, "
+                + "b.capacity, b.num_bedrooms, b.price_per_night, b.status, b.created_at, b.updated_at,b.opening_hour, b.closing_hour, "
                 + "a.area_id, a.name AS area_name, u.user_id, u.full_name AS owner_name "
                 + "FROM businesses b "
                 + "JOIN areas a ON b.area_id = a.area_id "
@@ -120,8 +123,48 @@ public class HomestayDAO {
             params.add(areaId);
         }
 
+        if (minRating != null && minRating > 0) {
+            sql.append(" AND b.avg_rating = ?");
+            params.add(minRating);
+        }
+
+        if (minPrice != null) {
+            sql.append(" AND b.price_per_night >= ?");
+            params.add(minPrice);
+        }
+
+        if (maxPrice != null && maxPrice.compareTo(BigDecimal.ZERO) > 0) {
+            sql.append(" AND b.price_per_night <= ?");
+            params.add(maxPrice);
+        }
+
+        if (amenityIds != null && !amenityIds.isEmpty()) {
+            sql.append(" AND b.business_id IN ( ");
+            sql.append("    SELECT ba.business_id FROM business_amenities ba ");
+            sql.append("    WHERE ba.amenity_id IN (");
+
+            for (int i = 0; i < amenityIds.size(); i++) {
+                sql.append("?");
+                if (i < amenityIds.size() - 1) {
+                    sql.append(",");
+                }
+            }
+
+            sql.append(") ");
+            sql.append("    GROUP BY ba.business_id ");
+            sql.append("    HAVING COUNT(DISTINCT ba.amenity_id) = ? ");
+            sql.append(") ");
+
+            for (Integer amenityId : amenityIds) {
+                params.add(amenityId);
+            }
+            
+            params.add(amenityIds.size());
+        }
+
+        sql.append(" AND (SELECT COUNT(*) FROM rooms r WHERE r.business_id = b.business_id AND r.is_active = 1");
         if (guests > 0) {
-            sql.append(" AND EXISTS (SELECT 1 FROM rooms r WHERE r.business_id = b.business_id AND r.is_active = 1 AND r.capacity >= ?)");
+            sql.append(" AND r.capacity >= ?");
             params.add(guests);
         }
 
@@ -139,7 +182,12 @@ public class HomestayDAO {
             params.add(Date.valueOf(checkIn));
             params.add(Date.valueOf(checkOut));
         }
-
+        if (numRooms > 0) {
+            sql.append(") >= ? ");
+            params.add(numRooms);
+        } else {
+            sql.append(") >= 1 ");  
+        }
         sql.append(" AND EXISTS (SELECT 1 FROM rooms r WHERE r.business_id = b.business_id AND r.is_active = 1) ");
         sql.append(" ORDER BY b.name ASC");
 
@@ -162,6 +210,8 @@ public class HomestayDAO {
                     homestay.setNumBedrooms(rs.getInt("num_bedrooms"));
                     homestay.setPricePerNight(rs.getBigDecimal("price_per_night"));
                     homestay.setStatus(rs.getString("status"));
+                    homestay.setOpeningHour(rs.getObject("opening_hour", LocalTime.class));
+                    homestay.setClosingHour(rs.getObject("closing_hour", LocalTime.class));
                     homestay.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
                     homestay.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
 
