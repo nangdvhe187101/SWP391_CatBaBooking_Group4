@@ -50,11 +50,11 @@ public class RegisterOwnerController extends HttpServlet {
         String phone = request.getParameter("phone");
         String password = request.getParameter("password");
         String confirmPassword = request.getParameter("confirm-password");
-        String personalAddress = request.getParameter("personal-address");  // Thêm nếu form có
+        String personalAddress = request.getParameter("personal-address"); 
         String businessName = request.getParameter("business-name");
         String businessType = request.getParameter("business-type");
         String businessAddress = request.getParameter("business-address");
-        String description = request.getParameter("description");
+        String description = request.getParameter("description");        
 
         // Kiểm tra null hoặc rỗng
         if (fullName == null || citizenId == null || email == null || phone == null || password == null || confirmPassword == null
