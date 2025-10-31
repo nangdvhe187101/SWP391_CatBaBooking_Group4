@@ -32,8 +32,6 @@ public class Businesses {
     private LocalTime closingHour; 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private LocalTime openingHour;
-    private LocalTime closingHour;
     private List<Amenities> amenities; 
 
     public Businesses() {
@@ -208,23 +206,6 @@ public class Businesses {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
-
-    public LocalTime getOpeningHour() {
-        return openingHour;
-    }
-
-    public void setOpeningHour(LocalTime openingHour) {
-        this.openingHour = openingHour;
-    }
-
-    public LocalTime getClosingHour() {
-        return closingHour;
-    }
-
-    public void setClosingHour(LocalTime closingHour) {
-        this.closingHour = closingHour;
-    }
-
     public List<Amenities> getAmenities() {
         return amenities;
     }

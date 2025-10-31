@@ -33,19 +33,34 @@
         </style>
     </head>
     <body>
-
         <%@ include file="Sidebar.jsp" %>
         <div class="main-content">
             <h2 class="mb-3">Quản lý Món ăn</h2>
 
+            <!-- Hiển thị thông báo -->
+            <c:if test="${not empty success}">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    ${success}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <c:remove var="success" />
+            </c:if>
+            <c:if test="${not empty error}">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ${error}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <c:remove var="error" />
+            </c:if>
+
+            <!-- Form thêm món ăn mới -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">Thêm món ăn mới</h5>
                 </div>
                 <div class="card-body">
-                    <form method="post" action="manage-dish-servlet?action=add" enctype="multipart/form-data">
+                    <form method="post" action="${pageContext.request.contextPath}/add-dish" enctype="multipart/form-data">
                         <div class="row g-3">
-
                             <div class="col-md-6">
                                 <label class="form-label">Tên món</label>
                                 <input name="name" class="form-control" required />
@@ -54,27 +69,23 @@
                                 <label class="form-label">Giá (đ)</label>
                                 <input name="price" type="number" min="0" step="1000" class="form-control" required />
                             </div>
-
                             <div class="col-md-3">
                                 <label class="form-label">Danh mục</label>
                                 <select name="category_id" class="form-select" required>
-                                    <option value="1">Khai vị</option>
-                                    <option value="2">Món chính</option>
-                                    <option value="3">Tráng miệng</option>
-                                    <option value="4">Đồ uống</option>
+                                    <c:forEach var="cat" items="${categories}">
+                                        <option value="${cat.categoryId}">${cat.name}</option>
+                                    </c:forEach>
                                 </select>
                             </div>
-
                             <div class="col-12">
                                 <label class="form-label">Mô tả</label>
                                 <textarea name="description" class="form-control" rows="2"></textarea>
                             </div>
-
                             <div class="col-md-9">
                                 <label class="form-label">Ảnh minh họa</label>
                                 <input name="dish_image_file" type="file" class="form-control" accept="image/*" />
+                                <img id="previewImage" src="#" alt="Xem trước ảnh" style="display:none; width:150px; margin-top:10px;">
                             </div>
-
                             <div class="col-md-3">
                                 <label class="form-label">Trạng thái</label>
                                 <select name="is_active" class="form-select">
@@ -82,7 +93,6 @@
                                     <option value="false">Ngừng bán</option>
                                 </select>
                             </div>
-
                             <div class="col-md-12 d-flex justify-content-end gap-2">
                                 <button class="btn btn-primary" type="submit">Lưu món</button>
                             </div>
@@ -90,12 +100,14 @@
                     </form>
                 </div>
             </div>
+
+            <!-- Danh sách món ăn -->
             <div class="card shadow-sm">
                 <div class="card-header">
                     <h5 class="mb-0">Danh sách món ăn</h5>
                 </div>
                 <div class="card-body">
-                    <table class="table table-hover align-middle">
+                    <table class="table table-hover align-middle" id="dishTable">
                         <thead class="table-light">
                             <tr>
                                 <th scope="col">ID</th>
@@ -107,90 +119,67 @@
                             </tr>
                         </thead>
                         <tbody>
-
-                            <tr>
-                                <td>101</td>
-                                <td>
-                                    <img src="https://i.imgur.com/LNUj1m6.jpeg" alt="Phở Bò" class="dish-thumbnail">
-                                    <strong>Phở Bò Hà Nội</strong>
-                                </td>
-                                <td><fmt:formatNumber value="50000" type="currency" currencySymbol="₫" /></td>
-                                <td>Món chính</td>
-                                <td><span class="badge bg-success">Đang bán</span></td>
-                                <td class="text-end">
-                                    <button type="button" class="btn btn-warning btn-sm me-1 edit-btn"
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#editDishModal"
-                                            data-id="101"
-                                            data-name="Phở Bò Hà Nội"
-                                            data-price="50000"
-                                            data-category-id="2" 
-                                            data-description="Phở bò tái chín đặc biệt, nước dùng thanh ngọt."
-                                            data-image-url="https://i.imgur.com/LNUj1m6.jpeg"
-                                            data-active="true">
-                                        <i class="bi bi-pencil-square"></i> Sửa
-                                    </button>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>102</td>
-                                <td>
-                                    <img src="https://i.imgur.com/sYnQYQW.jpeg" alt="Nem Rán" class="dish-thumbnail">
-                                    <strong>Nem Rán Truyền Thống</strong>
-                                </td>
-                                <td><fmt:formatNumber value="35000" type="currency" currencySymbol="₫" /></td>
-                                <td>Khai vị</td>
-                                <td><span class="badge bg-secondary">Ngừng bán</span></td>
-                                <td class="text-end">
-                                    <button type="button" class="btn btn-warning btn-sm me-1 edit-btn"
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#editDishModal"
-                                            data-id="102"
-                                            data-name="Nem Rán Truyền Thống"
-                                            data-price="35000"
-                                            data-category-id="1" 
-                                            data-description="Nem rán giòn rụm, nhân đầy đặn, chấm nước mắm chua ngọt."
-                                            data-image-url="https://i.imgur.com/sYnQYQW.jpeg"
-                                            data-active="false">
-                                        <i class="bi bi-pencil-square"></i> Sửa
-                                    </button>
-                                </td>
-                            </tr>
+                            <c:forEach var="dish" items="${dishes}">
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        <c:if test="${not empty dish.imageUrl}">
+                                            <img src="${dish.imageUrl}" alt="${dish.name}" class="dish-thumbnail">
+                                        </c:if>
+                                        <strong>${dish.name}</strong>
+                                    </td>
+                                    <td><fmt:formatNumber value="${dish.price}" type="currency" currencySymbol="₫" /></td>
+                                    <td>${dish.category.name}</td>
+                                    <td><span class="badge ${dish.isAvailable ? 'bg-success' : 'bg-secondary'}">${dish.isAvailable ? 'Đang bán' : 'Ngừng bán'}</span></td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-warning btn-sm me-1 edit-btn"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#editDishModal"
+                                                data-id="${dish.dishId}"
+                                                data-name="${dish.name}"
+                                                data-price="${dish.price}"
+                                                data-category-id="${dish.category.categoryId}" 
+                                                data-description="${dish.description}"
+                                                data-image-url="${dish.imageUrl}"
+                                                data-active="${dish.isAvailable}">
+                                            <i class="bi bi-pencil-square"></i> Sửa
+                                        </button>
+                                    </td>
+                                </tr>
+                            </c:forEach>
                         </tbody>
                     </table>
                 </div>
             </div>
+
+            <!-- Danh mục -->
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span>Danh mục</span>
-                    <form method="post" action="RestaurantManageDishes.jsp?action=addCategory" class="d-flex gap-2">
+                    <form method="post" action="${pageContext.request.contextPath}/add-category" class="d-flex gap-2">
                         <input name="name" class="form-control form-control-sm" placeholder="Thêm danh mục..." required />
                         <button class="btn btn-sm btn-outline-primary" type="submit">Thêm</button>
                     </form>
                 </div>
                 <div class="card-body">
-                    <span class="badge rounded-pill bg-light text-dark border me-1">Khai vị</span>
-                    <span class="badge rounded-pill bg-light text-dark border me-1">Món chính</span>
-                    <span class="badge rounded-pill bg-light text-dark border me-1">Tráng miệng</span>
-                    <span class="badge rounded-pill bg-light text-dark border me-1">Đồ uống</span>
+                    <c:forEach var="cat" items="${categories}">
+                        <span class="badge rounded-pill bg-light text-dark border me-1">${cat.name}</span>
+                    </c:forEach>
                 </div>
             </div>
         </div>
+
+        <!-- Modal chỉnh sửa -->
         <div class="modal fade" id="editDishModal" tabindex="-1" aria-labelledby="editDishModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
-
-                    <form method="post" action="manage-dish-servlet?action=update" enctype="multipart/form-data">
-
+                    <form method="post" action="${pageContext.request.contextPath}/update-dish" enctype="multipart/form-data">
                         <div class="modal-header">
                             <h5 class="modal-title" id="editDishModalLabel">Chỉnh sửa món ăn</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-
                             <input type="hidden" name="dish_id" id="editDishId">
-
                             <input type="hidden" name="existing_image_url" id="editExistingImageUrl">
 
                             <div class="row g-3">
@@ -202,27 +191,22 @@
                                     <label for="editPrice" class="form-label">Giá (đ)</label>
                                     <input type="number" class="form-control" id="editPrice" name="price" min="0" step="1000" required>
                                 </div>
-
                                 <div class="col-12">
                                     <label for="editDescription" class="form-label">Mô tả</label>
                                     <textarea class="form-control" id="editDescription" name="description" rows="2"></textarea>
                                 </div>
-
                                 <div class="col-12">
-                                    <label for="editDishImageFile" class="form-label">Tải lên ảnh mới (Bỏ trống nếu không muốn đổi)</label>
+                                    <label for="editDishImageFile" class="form-label">Tải lên ảnh mới</label>
                                     <input type="file" class="form-control" id="editDishImageFile" name="dish_image_file" accept="image/*">
                                 </div>
-
                                 <div class="col-md-6">
                                     <label for="editCategoryId" class="form-label">Danh mục</label>
                                     <select id="editCategoryId" name="category_id" class="form-select" required>
-                                        <option value="1">Khai vị</option>
-                                        <option value="2">Món chính</option>
-                                        <option value="3">Tráng miệng</option>
-                                        <option value="4">Đồ uống</option>
+                                        <c:forEach var="cat" items="${categories}">
+                                            <option value="${cat.categoryId}">${cat.name}</option>
+                                        </c:forEach>
                                     </select>
                                 </div>
-
                                 <div class="col-md-6">
                                     <label for="editIsActive" class="form-label">Trạng thái</label>
                                     <select id="editIsActive" name="is_active" class="form-select" required>
@@ -231,7 +215,6 @@
                                     </select>
                                 </div>
                             </div>
-
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
@@ -242,12 +225,10 @@
             </div>           
         </div>
 
+        <!-- Script giữ nguyên như cũ -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-
-                // === PHẦN 1: LOGIC CHO SIDEBAR (Từ file gốc của bạn) ===
                 const sidebar = document.querySelector('.sidebar');
                 const toggle = document.getElementById('sidebar-toggle');
                 const overlay = document.getElementById('sidebar-overlay');
@@ -264,12 +245,10 @@
                     });
                 }
 
-                // === PHẦN 2: LOGIC ĐIỀN DỮ LIỆU VÀO MODAL SỬA (Tối giản) ===
+                // Modal điền dữ liệu
                 const editButtons = document.querySelectorAll('.edit-btn');
-
                 editButtons.forEach(btn => {
                     btn.addEventListener('click', function () {
-                        // 1. Lấy dữ liệu từ các thuộc tính data-* của nút
                         const id = this.getAttribute('data-id');
                         const name = this.getAttribute('data-name');
                         const price = this.getAttribute('data-price');
@@ -277,23 +256,25 @@
                         const description = this.getAttribute('data-description');
                         const imageUrl = this.getAttribute('data-image-url');
                         const active = this.getAttribute('data-active');
-
-                        // 2. Điền dữ liệu vào các trường trong modal
                         document.getElementById('editDishId').value = id;
                         document.getElementById('editName').value = name;
                         document.getElementById('editPrice').value = price;
                         document.getElementById('editCategoryId').value = categoryId;
                         document.getElementById('editDescription').value = description;
                         document.getElementById('editIsActive').value = active;
-
-                        // 3. Xử lý phần ảnh (chỉ lưu link cũ và reset ô file)
                         document.getElementById('editExistingImageUrl').value = imageUrl;
-                        document.getElementById('editDishImageFile').value = ""; // Reset ô chọn file
+                        document.getElementById('editDishImageFile').value = "";
                     });
                 });
-
+                const rows = document.querySelectorAll("#dishTable tbody tr");
+                rows.forEach((row, index) => {
+                    // gán số thứ tự cho cột đầu tiên
+                    const firstCell = row.querySelector("td:first-child");
+                    if (firstCell) {
+                        firstCell.textContent = index + 1;
+                    }
+                });
             });
         </script>
-
     </body>
 </html>

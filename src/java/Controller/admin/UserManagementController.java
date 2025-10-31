@@ -44,7 +44,7 @@ public class UserManagementController extends HttpServlet {
             String statusParam = request.getParameter("status");
             String keyword = request.getParameter("keyword");
             String pageIndexRaw = request.getParameter("page");
-            int pageSize = 2;
+            int pageSize = 4;
             int pageIndex = 1;
             if (pageIndexRaw != null && !pageIndexRaw.trim().isEmpty()) {
                 try {
