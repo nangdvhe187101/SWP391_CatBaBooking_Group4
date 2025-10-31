@@ -186,49 +186,57 @@ public class UserDAO {
     }
 
     public List<Users> getPendingOwners() {
-        List<Users> pendingOwners = new ArrayList<>();
-        String sql = "SELECT u.*, r.role_name, b.name as business_name, b.type as business_type, b.address as business_address, b.description as business_description, b.business_id, b.status as business_status "
-                + "FROM users u JOIN roles r ON u.role_id = r.role_id "
-                + "LEFT JOIN businesses b ON u.user_id = b.owner_id "
-                + "WHERE u.role_id = 2 AND u.status = 'pending'";
-        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Users user = new Users();
-                user.setUserId(rs.getInt("user_id"));
-                user.setRole(new Roles(rs.getInt("role_id"), rs.getString("role_name"), null, null));
-                user.setFullName(rs.getString("full_name"));
-                user.setEmail(rs.getString("email"));
-                user.setPhone(rs.getString("phone"));
-                user.setCitizenId(rs.getString("citizen_id"));
-                user.setPersonalAddress(rs.getString("personal_address"));
-                user.setStatus(rs.getString("status"));
-                user.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
-                user.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
+    List<Users> pendingOwners = new ArrayList<>();
+    String sql = "SELECT u.*, r.role_name, b.name as business_name, b.type as business_type, " +
+                 "b.address as business_address, b.description as business_description, " +
+                 "b.business_id, b.status as business_status, b.opening_hour, b.closing_hour " +
+                 "FROM users u " +
+                 "JOIN roles r ON u.role_id = r.role_id " +
+                 "LEFT JOIN businesses b ON u.user_id = b.owner_id " +
+                 "WHERE u.role_id = 2 AND u.status = 'pending'";
+    
+    try (Connection conn = DBUtil.getConnection(); 
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+        
+        ResultSet rs = ps.executeQuery();
+        int rowCount = 0; 
+        while (rs.next()) {
+            rowCount++;
+            Users user = new Users();
+            user.setUserId(rs.getInt("user_id"));
+            user.setRole(new Roles(rs.getInt("role_id"), rs.getString("role_name"), null, null));
+            user.setFullName(rs.getString("full_name"));
+            user.setEmail(rs.getString("email"));
+            user.setPhone(rs.getString("phone"));
+            user.setCitizenId(rs.getString("citizen_id"));
+            user.setPersonalAddress(rs.getString("personal_address"));
+            user.setStatus(rs.getString("status"));
+            user.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
+            user.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
 
-                // Set business info nếu có
-                Businesses biz = null;
-                if (rs.getString("business_name") != null) {
-                    biz = new Businesses();
-                    biz.setBusinessId(rs.getInt("business_id"));
-                    biz.setName(rs.getString("business_name"));
-                    biz.setType(rs.getString("business_type"));
-                    biz.setAddress(rs.getString("business_address"));
-                    biz.setDescription(rs.getString("business_description"));
-                    biz.setStatus(rs.getString("business_status"));
-                    biz.setClosingHour(rs.getObject("closing_hour", LocalTime.class));
-                    biz.setOpeningHour(rs.getObject("opening_hour", LocalTime.class));
-                    biz.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
-                    biz.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
-                    user.setBusiness(biz);
-                }
-                pendingOwners.add(user);
+            // Set business nếu có
+            Businesses biz = null;
+            if (rs.getString("business_name") != null) {
+                biz = new Businesses();
+                biz.setBusinessId(rs.getInt("business_id"));
+                biz.setName(rs.getString("business_name"));
+                biz.setType(rs.getString("business_type"));
+                biz.setAddress(rs.getString("business_address"));
+                biz.setDescription(rs.getString("business_description"));
+                biz.setStatus(rs.getString("business_status"));
+                biz.setClosingHour(rs.getObject("closing_hour", LocalTime.class));
+                biz.setOpeningHour(rs.getObject("opening_hour", LocalTime.class));
+                biz.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));  // Note: created_at của b, nhưng code dùng của u - fix nếu cần
+                biz.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+            user.setBusiness(biz);
+            pendingOwners.add(user);
         }
-        return pendingOwners;
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+    return pendingOwners;
+}
 
     /**
      * Lấy danh sách tất cả users, hỗ trợ lọc

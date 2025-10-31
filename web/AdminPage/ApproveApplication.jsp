@@ -160,7 +160,7 @@
                     flex-direction: column;
                     width: 100%;
                 }
-                
+
                 .btn-group .btn {
                     width: 100%;
                     max-width: 200px;
@@ -238,8 +238,8 @@
                                             <td>${loop.count}</td>
                                             <td>${user.fullName}</td>
                                             <td>${user.email}</td>
-                                            <td>${user.business.name}</td> 
-                                            <td>${user.business.type}</td>  
+                                            <td>${user.business != null ? user.business.name : 'Chưa có'}</td>
+                                            <td>${user.business != null ? user.business.type : 'Chưa có'}</td>  
                                             <td>${user.status}</td>
                                             <td><a href="${pageContext.request.contextPath}/approve-application?action=detail&userId=${user.userId}" class="btn btn-approve">Xem chi tiết</a></td>
                                         </tr>
@@ -271,13 +271,17 @@
             const detailView = document.getElementById('detailView');
 
             function showDetailView() {
-                if (listView) listView.style.display = 'none';
-                if (detailView) detailView.style.display = 'block';
+                if (listView)
+                    listView.style.display = 'none';
+                if (detailView)
+                    detailView.style.display = 'block';
             }
 
             function showListView() {
-                if (detailView) detailView.style.display = 'none';
-                if (listView) listView.style.display = 'block';
+                if (detailView)
+                    detailView.style.display = 'none';
+                if (listView)
+                    listView.style.display = 'block';
             }
 
             // Tự động show detail view nếu có user (action=detail)
@@ -285,7 +289,7 @@
             showDetailView();
             </c:if>
             // Xử lý nút từ chối
-            document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function () {
                 const rejectBtn = document.getElementById('rejectBtn');
                 const defaultActions = document.getElementById('defaultActions');
                 const rejectSection = document.getElementById('rejectSection');
@@ -293,22 +297,24 @@
                 const backBtnReject = document.getElementById('backBtnReject');
 
                 if (rejectBtn) {
-                    rejectBtn.addEventListener('click', function() {
+                    rejectBtn.addEventListener('click', function () {
                         // Ẩn phần phê duyệt và từ chối
                         defaultActions.style.display = 'none';
                         // Hiển thị phần từ chối
                         rejectSection.style.display = 'block';
                         // Focus vào textarea
-                        if (reasonText) reasonText.focus();
+                        if (reasonText)
+                            reasonText.focus();
                     });
                 }
 
                 if (backBtnReject) {
-                    backBtnReject.addEventListener('click', function(e) {
+                    backBtnReject.addEventListener('click', function (e) {
                         e.preventDefault();
                         rejectSection.style.display = 'none';
                         defaultActions.style.display = 'block';
-                        if (reasonText) reasonText.value = ''; 
+                        if (reasonText)
+                            reasonText.value = '';
                     });
                 }
             });
