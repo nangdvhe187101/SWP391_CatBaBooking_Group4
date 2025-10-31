@@ -25,12 +25,6 @@ public class DishCategories {
         this.displayOrder = displayOrder;
     }
 
-    public DishCategories(int categoryId, String name) {
-        this.categoryId = categoryId;
-        this.name = name;
-        this.displayOrder = 0;
-    }
-
     public DishCategories(Businesses business, String name, Integer displayOrder) {
         this.business = business;
         this.name = name;
