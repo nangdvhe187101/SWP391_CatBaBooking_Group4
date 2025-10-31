@@ -15,7 +15,6 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.time.LocalTime;
 import java.util.List; // THÊM MỚI
 import model.Areas; // THÊM MỚI
 import model.Businesses;
@@ -72,8 +71,7 @@ public class RestaurantSettingsController extends HttpServlet {
         String description = request.getParameter("description");
         String image = request.getParameter("image");
         String areaIdRaw = request.getParameter("areaId"); 
-        String openingHourRaw = request.getParameter("openingHour");
-        String closingHourRaw = request.getParameter("closingHour");
+        
         var vr = RestaurantBusinessSettingsValidator.validate(name, address, description, image, areaIdRaw);
         if(!vr.valid){
             request.setAttribute("errors", vr.errors); 
@@ -86,7 +84,7 @@ public class RestaurantSettingsController extends HttpServlet {
         Integer areaId = (areaIdRaw == null || areaIdRaw.isBlank()) ? null : Integer.parseInt(areaIdRaw.trim());
         
         try{
-            int row = businessDAO.updateBusinessSettingsByOwnerId(currentUser.getUserId(), name, address, description, image, areaId, LocalTime.MIDNIGHT, LocalTime.MIDNIGHT);
+            int row = businessDAO.updateBusinessSettingsByOwnerId(currentUser.getUserId(), name, address, description, image, areaId);
             request.setAttribute("message", row > 0 ? "Cập nhật thành công" : "Không có thay đổi nào được áp dụng" );
         }catch(SQLException e){
             request.setAttribute("errors", List.of("có lỗi khi cập nhật: " + e.getMessage())); 

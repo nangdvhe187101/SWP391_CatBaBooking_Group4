@@ -38,18 +38,23 @@ public class ApproveApplicationController extends HttpServlet {
             throws ServletException, IOException {
         String action = request.getParameter("action");
         if (action == null || action.equals("list")) {
-            List<Users> pendingOwners = userDAO.getPendingOwners();  
+            List<Users> pendingOwners = userDAO.getPendingOwners();  // JOIN đã load business vào user
             request.setAttribute("pendingOwners", pendingOwners);
             request.getRequestDispatcher("/AdminPage/ApproveApplication.jsp").forward(request, response);
         } else if (action.equals("detail")) {
             int userId;
             try {
                 userId = Integer.parseInt(request.getParameter("userId"));
+                System.out.println("Fetching detail for userId: " + userId);
             } catch (NumberFormatException e) {
+                System.out.println("Invalid userId: " + request.getParameter("userId"));
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid userId");
                 return;
             }
             Users user = userDAO.getUserById(userId);
             Businesses biz = businessDAO.getBusinessByOwnerId(userId);
+            System.out.println("User fetched: " + (user != null ? user.getFullName() : "null"));
+            System.out.println("Business fetched: " + (biz != null ? biz.getName() : "null"));
             request.setAttribute("user", user);
             request.setAttribute("business", biz);
             System.out.println("Khanh hello");

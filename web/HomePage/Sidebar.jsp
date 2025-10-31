@@ -86,7 +86,7 @@
     <div class="main-nav">
         <div class="container">
             <div class="nav-content">
-                <a href="${pageContext.request.contextPath}/Home" class="logo">
+                <a href="Home.jsp" class="logo">
                     <span class="logo-main">Cát Bà</span>
                     <span class="logo-sub">Booking</span>
                 </a>
@@ -100,7 +100,7 @@
                         <i class="fas fa-utensils"></i>
                         <span>Nhà hàng</span>
                     </a>
-                    <a href="${pageContext.request.contextPath}/Home" class="nav-link">
+                    <a href="Home.jsp" class="nav-link">
                         <i class="fas fa-home"></i>
                         <span>Trang chủ</span>
                     </a>

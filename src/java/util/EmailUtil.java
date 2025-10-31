@@ -86,6 +86,7 @@ public class EmailUtil {
         }
     }
 
+    // (Các hàm send... khác giữ nguyên logic, chỉ cần gọi session đã có)
     public static void sendPendingConfirmation(String toEmail, String recipientName) {
         try {
             MimeMessage message = new MimeMessage(session);
@@ -142,6 +143,7 @@ public class EmailUtil {
         }
     }
 
+    // --- CÁC PHƯƠNG THỨC TẠO NỘI DUNG HTML (GIỮ NGUYÊN TỪ FILE CŨ CỦA BẠN) ---
     private static String createRegistrationContent(String recipientName) {
         return """
         <!DOCTYPE html>

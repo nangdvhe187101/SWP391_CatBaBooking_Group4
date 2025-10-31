@@ -70,7 +70,6 @@
                                         <div class="detail-item"><strong>Loại hình:</strong> ${user.business.type}</div>
                                         <div class="detail-item"><strong>Địa chỉ kinh doanh:</strong> ${user.business.address}</div>
                                         <div class="detail-item"><strong>Mô tả:</strong> ${user.business.description}</div>
-                                        <div class="detail-item"><strong>Thời gian:</strong> ${user.business.openingHour} - ${user.business.closingHour}</div>
                                         <div class="detail-item"><strong>Trạng thái kinh doanh:</strong> ${user.business.status}</div>
                                     </div>
                                 </c:if>

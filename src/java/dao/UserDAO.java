@@ -11,7 +11,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import util.PassWordUtil;
@@ -213,8 +212,6 @@ public class UserDAO {
                     biz.setAddress(rs.getString("business_address"));
                     biz.setDescription(rs.getString("business_description"));
                     biz.setStatus(rs.getString("business_status"));
-                    biz.setClosingHour(rs.getObject("closing_hour", LocalTime.class));
-                    biz.setOpeningHour(rs.getObject("opening_hour", LocalTime.class));
                     biz.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
                     biz.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
                     user.setBusiness(biz);
@@ -238,11 +235,11 @@ public class UserDAO {
     public List<Users> getAllUsers(Integer roleId, String status, String keyword, int pageIndex, int pageSize) {
         List<Users> users = new ArrayList<>();
         String sql = "SELECT u.*, r.role_name, b.name as business_name, b.type as business_type, "
-            + "b.address as business_address, b.description as business_description, "
-            + "b.business_id, b.status as business_status, b.opening_hour, b.closing_hour " 
-            + "FROM users u JOIN roles r ON u.role_id = r.role_id "
-            + "LEFT JOIN businesses b ON u.user_id = b.owner_id "
-            + "WHERE u.role_id <> 3 AND u.status <> 'pending'";
+                + "b.address as business_address, b.description as business_description, "
+                + "b.business_id, b.status as business_status "
+                + "FROM users u JOIN roles r ON u.role_id = r.role_id "
+                + "LEFT JOIN businesses b ON u.user_id = b.owner_id "
+                + "WHERE u.role_id <> 3 AND u.status <> 'pending'";
 
         List<Object> params = new ArrayList<>();
         if (roleId != null) {
@@ -291,8 +288,6 @@ public class UserDAO {
                     biz.setAddress(rs.getString("business_address"));
                     biz.setDescription(rs.getString("business_description"));
                     biz.setStatus(rs.getString("business_status"));
-                    biz.setClosingHour(rs.getObject("closing_hour", LocalTime.class));
-                    biz.setOpeningHour(rs.getObject("opening_hour", LocalTime.class));
                     user.setBusiness(biz);
                 }
                 users.add(user);

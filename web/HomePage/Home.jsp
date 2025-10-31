@@ -14,41 +14,8 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Cát Bà Booking - Đặt phòng homestay và nhà hàng tại Cát Bà</title>
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/HomePage/style-home.css">
+        <link rel="stylesheet" href="style-home.css">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-
-        <style>
-            /* Nút Chi tiết - giống hệt Homestay.jsp */
-            .detail-btn {
-                text-decoration: none;
-                position: absolute;
-                bottom: 16px;
-                right: 16px;
-                background-color: #28a745;
-                color: #ffffff;
-                border: 1px solid #28a745;
-                padding: 6px 12px;
-                border-radius: 4px;
-                font-size: 0.9rem;
-                transition: all 0.3s ease;
-                z-index: 10;
-            }
-
-            .detail-btn:hover {
-                background-color: #218838;
-                border-color: #1e7e34;
-                color: #ffffff;
-                transform: translateY(-1px);
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            }
-
-            /* Đảm bảo card-content có position relative */
-            .homestay-card {
-                position: relative;
-                display: flex;
-                flex-direction: column;
-            }
-        </style>
     </head>
 
     <body>
@@ -98,94 +65,59 @@
                                 </button>
                             </div>
 
-                            <form action="homestays-list" method="GET">
-                                <div class="form-grid" style="display: flex;
-                                     flex-wrap: wrap; gap: 15px; align-items: end;">
-                                    <div class="form-field" style="flex: 0 0 200px;">
-                                        <label for="area">Khu vực</label>
-
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-map-marker-alt"></i>
-
-                                            <select id="area" name="areaId" class="form-select">
-                                                <option value="0">Tất cả khu vực</option>
-
-                                                <c:forEach var="area" items="${areaList}">
-                                                    <option value="${area.areaId}" ${param.areaId == area.areaId ? 'selected' : ''}>
-
-                                                        ${area.name}
-                                                    </option>
-
-                                                </c:forEach>
-                                            </select>
-
-                                        </div>
+                            <div class="form-grid">
+                                <div class="form-field">
+                                    <label>Khu vực tại Cát Bà</label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <select class="form-select">
+                                            <option>Chọn khu vực</option>
+                                            <option>Trung tâm thị trấn</option>
+                                            <option>Bãi Cát Cò 1</option>
+                                            <option>Bãi Cát Cò 2</option>
+                                            <option>Bãi Cát Cò 3</option>
+                                            <option>Bến Bèo</option>
+                                            <option>Pháo đài Cát Bà</option>
+                                        </select>
                                     </div>
-                                    <div class="form-field" style="flex: 0
-                                         0 220px;">
-                                        <label for="checkIn">Ngày nhận</label>
-                                        <div class="input-wrapper">
-
-                                            <i class="fas fa-calendar"></i>
-                                            <input type="date" id="checkin" name="checkIn" class="form-input" 
-
-                                                   min="<fmt:formatDate value="<%= new java.util.Date() %>" pattern="yyyy-MM-dd" />" 
-                                                   value="${param.checkIn}">
-
-                                        </div>
-                                    </div>
-
-                                    <div class="form-field" style="flex: 0 0 220px;">
-                                        <label for="checkOut">Ngày trả</label>
-                                        <div class="input-wrapper">
-
-                                            <i class="fas fa-calendar"></i>
-                                            <input type="date" id="checkout" name="checkOut" class="form-input" 
-
-                                                   min="<fmt:formatDate value="<%= new java.util.Date() %>" pattern="yyyy-MM-dd" />" 
-                                                   value="${param.checkOut}">
-
-                                        </div>
-                                    </div>
-
-                                    <div class="form-field-group" style="flex: 0 0 220px; display: flex;
-                                         gap: 10px;">
-                                        <div class="form-field" style="flex: 1;">
-                                            <label>Số người</label>
-
-                                            <div class="input-wrapper">
-                                                <i class="fas fa-users"></i>
-
-                                                <input id="numGuests" name="guests" type="number" class="form-input" min="1" value="${empty param.guests ?'1' : param.guests}" placeholder="Nhập số khách">
-                                            </div>
-                                        </div>
-
-                                        <div class="form-field" style="flex: 1;">
-                                            <label>Số phòng</label>
-
-                                            <div class="input-wrapper">
-                                                <i class="fas fa-door-open"></i>
-
-                                                <input id="numRooms" name="numRooms" type="number" class="form-input" min="1" value="${empty param.numRooms ?'1' : param.numRooms}" placeholder="Nhập số phòng">
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                    <div class="form-field" style="flex: 0 0 200px;">
-
-                                        <button type="submit" class="search-btn">
-                                            <i class="fas fa-search"></i>
-                                            Tìm homestay
-
-                                        </button>
-                                    </div>
-
                                 </div>
-                            </form>
+
+                                <div class="form-field">
+                                    <label>Ngày nhận</label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-calendar"></i>
+                                        <input type="date" class="form-input" 
+                                               min="<fmt:formatDate value="<%= new java.util.Date() %>" pattern="yyyy-MM-dd" />">
+                                    </div>
+                                </div>
+
+                                <div class="form-field">
+                                    <label>Ngày trả</label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-calendar"></i>
+                                        <input type="date" class="form-input" 
+                                               min="<fmt:formatDate value="<%= new java.util.Date() %>" pattern="yyyy-MM-dd" />">
+                                    </div>
+                                </div>
+
+                                <div class="form-field">
+                                    <label>Số người</label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-users"></i>
+                                        <input type="number" class="form-input" min="1" value="1" placeholder="Nhập số khách">
+                                    </div>
+                                </div>
+
+                                <div class="form-field">
+                                    <button class="search-btn">
+                                        <i class="fas fa-search"></i>
+                                        Tìm homestay
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Restaurant Search Form -->
-                        <form action="${pageContext.request.contextPath}/restaurants" method="GET">
                         <div class="search-form" id="restaurant-form">
                             <div class="form-tabs">
                                 <button class="form-tab active">
@@ -203,73 +135,66 @@
                                 </button>
                             </div>
 
-                            <div class="form-grid" style="display: flex;
-                                     flex-wrap: wrap; gap: 15px; align-items: end;">
-                                    <div class="form-field" style="flex: 0 0 200px;">
-                                        <label>Loại hình</label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-utensils"></i>
-                                            <select name="restaurantType" class="form-select">
-                                                <option value="">Loại nhà hàng</option>
-                                                <c:forEach var="type" items="${restaurantTypes}">
-                                                    <option value="${type.typeId}" ${param.restaurantType == type.typeId ? 'selected' : ''}>
-                                                        ${type.name}
-                                                    </option>
-                                                </c:forEach>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="form-field" style="flex: 0 0 220px;">
-                                        <label>Khu vực tại Cát Bà</label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-map-marker-alt"></i>
-                                            <select name="areaId" class="form-select">
-                                                <option value="0">Chọn khu vực</option>
-                                                <c:forEach var="area" items="${areaList}">
-                                                    <option value="${area.areaId}" ${param.areaId == area.areaId ? 'selected' : ''}>
-                                                        ${area.name}
-                                                    </option>
-                                                </c:forEach>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-field" style="flex: 0
-                                         0 180px;">
-                                        <label>Ngày đặt bàn</label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-calendar"></i>
-                                            <input type="date" name="date" class="form-input" 
-                                                   min="<fmt:formatDate value="<%= new java.util.Date() %>" pattern="yyyy-MM-dd" />"
-                                                   value="${param.date}">
-                                        </div>
-                                    </div>
-
-                                    <div class="form-field" style="flex: 0 0 150px;">
-                                        <label>Giờ</label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-clock"></i>
-                                            <input type="time" name="time" class="form-input" value="${param.time}">
-                                        </div>
-                                    </div>
-
-                                    <div class="form-field" style="flex: 0 0 100px;">
-                                        <label>Số người</label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-users"></i>
-                                            <input type="number" name="numGuests" class="form-input" min="1" 
-                                                   value="${empty param.numGuests ? '' : param.numGuests}" >
-                                        </div>
-                                    </div>
-
-                                    <div class="form-field" style="flex: 0 0 150px;display: flex; gap: 10px">
-                                        <button type="submit" class="search-btn">
-                                            <i class="fas fa-search"></i>
-                                            Tìm nhà hàng
-                                        </button>
+                            <div class="form-grid">
+                                <div class="form-field">
+                                    <label>Loại hình</label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-utensils"></i>
+                                        <select class="form-select">
+                                            <option>Chọn loại nhà hàng</option>
+                                            <option>Nhà hàng hải sản</option>
+                                            <option>Quán ăn địa phương</option>
+                                            <option>Nướng BBQ</option>
+                                            <option>Quán cà phê</option>
+                                            <option>Bar/Pub</option>
+                                        </select>
                                     </div>
                                 </div>
-                        </div></form>
+
+                                <div class="form-field">
+                                    <label>Ngày đặt bàn</label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-calendar"></i>
+                                        <input type="date" class="form-input" 
+                                               min="<fmt:formatDate value="<%= new java.util.Date() %>" pattern="yyyy-MM-dd" />">
+                                    </div>
+                                </div>
+
+                                <div class="form-field">
+                                    <div class="time-guests">
+                                        <div class="time-field">
+                                            <label>Giờ</label>
+                                            <div class="input-wrapper">
+                                                <i class="fas fa-clock"></i>
+                                                <select class="form-select">
+                                                    <option>Giờ</option>
+                                                    <option>11:00</option>
+                                                    <option>12:00</option>
+                                                    <option>13:00</option>
+                                                    <option>18:00</option>
+                                                    <option>19:00</option>
+                                                    <option>20:00</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="guests-field">
+                                            <label>Số người</label>
+                                            <div class="input-wrapper">
+                                                <i class="fas fa-users"></i>
+                                                <input type="number" class="form-input" min="1" value="2" placeholder="Nhập số người">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-field">
+                                    <button class="search-btn">
+                                        <i class="fas fa-search"></i>
+                                        Tìm nhà hàng
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
 
                         <!-- Cruise Search Form -->
                         <div class="search-form" id="cruise-form">
@@ -350,73 +275,197 @@
                         <h2>Homestay nổi bật</h2>
                         <p>Những homestay được yêu thích nhất tại Cát Bà</p>
                     </div>
-                    <a href="${pageContext.request.contextPath}/homestay-list" class="view-all-btn">
+                    <button class="view-all-btn">
                         <span>Xem tất cả</span>
                         <i class="fas fa-chevron-right"></i>
-                    </a>
+                    </button>
                 </div>
 
                 <div class="homestays-grid">
-                    <c:forEach var="homestay" items="${topHomestays}">
-                        <div class="homestay-card">
-                            <div class="card-image">
-                                <img src="${homestay.image != null && !homestay.image.isEmpty() ? homestay.image : 'https://via.placeholder.com/400x300/4a6cf7/ffffff?text=No+Image'}"
-                                     alt="${homestay.name}">
-                                <div class="badge type">
-                                    <i class="fas fa-home"></i>
-                                    Homestay
-                                </div>
+                    <!-- Homestay Card 1 -->
+                    <div class="homestay-card">
+                        <div class="card-image">
+                            <!-- Ảnh Homestay 1 -->
+                            <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80"
+                                 alt="Homestay view biển Cát Bà">
+                            <div class="badge promotion">Giá rẻ</div>
+                            <div class="badge discount">18% OFF</div>
+                            <div class="badge type">
+                                <i class="fas fa-home"></i>
+                                Homestay
                             </div>
-                            <div class="card-content">
-                                <div class="rating">
-                                    <div class="stars">
-                                        <c:forEach begin="1" end="5" var="i">
-                                            <c:choose>
-                                                <c:when test="${homestay.avgRating >= i}">
-                                                    <i class="fas fa-star"></i>
-                                                </c:when>
-                                                <c:when test="${homestay.avgRating >= i - 0.5}">
-                                                    <i class="fas fa-star-half-alt"></i>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <i class="far fa-star"></i>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </c:forEach>
-                                    </div>
-                                    <span class="reviews">(${homestay.reviewCount})</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="rating">
+                                <div class="stars">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
                                 </div>
-                                <h3>
-                                    <a href="${pageContext.request.contextPath}/homestay-detail?id=${homestay.businessId}"
-                                       style="color: inherit; text-decoration: none;">
-                                        ${homestay.name}
-                                    </a>
-                                </h3>
-                                <div class="location">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    ${homestay.area.name}, Cát Bà
-                                </div>
-                                <a class="detail-btn" href="${pageContext.request.contextPath}/homestay-detail?id=${homestay.businessId}">
-                                    Chi tiết
-                                </a>
-                                <div class="price-section">
-                                    <div class="price">
-                                        <span class="current-price">
-                                            <fmt:formatNumber value="${homestay.pricePerNight}" type="number" maxFractionDigits="0"/>₫
-                                        </span>
-                                        <div class="per-night">mỗi đêm</div>
-                                    </div>
+                                <span class="reviews">(127)</span>
+                            </div>
+                            <h3>Homestay Cát Cò View Biển</h3>
+                            <div class="location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Bãi Cát Cò 1, Cát Bà
+                            </div>
+                            <div class="host">
+                                Chủ nhà: <span>Chị Lan</span>
+                            </div>
+                            <div class="features">
+                                <i class="fas fa-wifi"></i>
+                                <i class="fas fa-car"></i>
+                                <i class="fas fa-coffee"></i>
+                                <i class="fas fa-water"></i>
+                            </div>
+                            <div class="price-section">
+                                <div class="price">
+                                    <span class="current-price">450.000₫</span>
+                                    <span class="original-price">550.000₫</span>
+                                    <div class="per-night">mỗi đêm</div>
                                 </div>
                             </div>
                         </div>
-                    </c:forEach>
+                    </div>
 
-                    <!-- Nếu không có dữ liệu -->
-                    <c:if test="${empty topHomestays}">
-                        <p style="grid-column: 1 / -1; text-align: center; color: #666; font-style: italic; padding: 40px 0;">
-                            Chưa có homestay nào được đánh giá. Hãy quay lại sau!
-                        </p>
-                    </c:if>
+                    <!-- Homestay Card 2 -->
+                    <div class="homestay-card">
+                        <div class="card-image">
+                            <!-- Ảnh Homestay 2 -->
+                            <img src="https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&w=800&q=80"
+                                 alt="Phòng nghỉ Homestay Cát Bà">
+                            <div class="badge discount">20% OFF</div>
+                            <div class="badge type">
+                                <i class="fas fa-home"></i>
+                                Villa
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="rating">
+                                <div class="stars">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <span class="reviews">(89)</span>
+                            </div>
+                            <h3>Villa Sunset Cát Bà</h3>
+                            <div class="location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Bãi Cát Cò 3, Cát Bà
+                            </div>
+                            <div class="host">
+                                Chủ nhà: <span>Anh Minh</span>
+                            </div>
+                            <div class="features">
+                                <i class="fas fa-wifi"></i>
+                                <i class="fas fa-car"></i>
+                                <i class="fas fa-coffee"></i>
+                                <i class="fas fa-water"></i>
+                            </div>
+                            <div class="price-section">
+                                <div class="price">
+                                    <span class="current-price">1.200.000₫</span>
+                                    <span class="original-price">1.500.000₫</span>
+                                    <div class="per-night">mỗi đêm</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Homestay Card 3 -->
+                    <div class="homestay-card">
+                        <div class="card-image">
+                            <img src="https://images.unsplash.com/photo-1507089947368-19c1da9775ae?auto=format&fit=crop&w=800&q=80"
+                                 alt="Nhà Gỗ Truyền Thống">
+                            <div class="badge type">
+                                <i class="fas fa-home"></i>
+                                Homestay
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="rating">
+                                <div class="stars">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                </div>
+                                <span class="reviews">(156)</span>
+                            </div>
+                            <h3>Nhà Gỗ Truyền Thống</h3>
+                            <div class="location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Trung tâm, Cát Bà
+                            </div>
+                            <div class="host">
+                                Chủ nhà: <span>Bác Hùng</span>
+                            </div>
+                            <div class="features">
+                                <i class="fas fa-wifi"></i>
+                                <i class="fas fa-car"></i>
+                                <i class="fas fa-coffee"></i>
+                            </div>
+                            <div class="price-section">
+                                <div class="price">
+                                    <span class="current-price">350.000₫</span>
+                                    <div class="per-night">mỗi đêm</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Homestay Card 4 -->
+                    <div class="homestay-card">
+                        <div class="card-image">
+                            <img src="https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=800&q=80"
+                                 alt="Homestay Gia Đình Bến Bèo">
+                            <div class="badge promotion">Ưu đãi</div>
+                            <div class="badge discount">13% OFF</div>
+                            <div class="badge type">
+                                <i class="fas fa-home"></i>
+                                Homestay
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="rating">
+                                <div class="stars">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                </div>
+                                <span class="reviews">(203)</span>
+                            </div>
+                            <h3>Homestay Gia Đình Bến Bèo</h3>
+                            <div class="location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Bến Bèo, Cát Bà
+                            </div>
+                            <div class="host">
+                                Chủ nhà: <span>Cô Hoa</span>
+                            </div>
+                            <div class="features">
+                                <i class="fas fa-wifi"></i>
+                                <i class="fas fa-car"></i>
+                                <i class="fas fa-coffee"></i>
+                                <i class="fas fa-water"></i>
+                            </div>
+                            <div class="price-section">
+                                <div class="price">
+                                    <span class="current-price">280.000₫</span>
+                                    <span class="original-price">320.000₫</span>
+                                    <div class="per-night">mỗi đêm</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -460,75 +509,269 @@
                         <h2>Nhà hàng đặc sắc</h2>
                         <p>Thưởng thức hải sản tươi ngon và đặc sản địa phương</p>
                     </div>
-                    <a href="${pageContext.request.contextPath}/restaurant" class="view-all-btn">
+                    <button class="view-all-btn">
                         <span>Xem tất cả</span>
                         <i class="fas fa-chevron-right"></i>
-                    </a>
+                    </button>
                 </div>
 
                 <div class="restaurants-grid">
-                    <c:forEach var="res" items="${topRestaurants}">
-                        <div class="restaurant-card">
-                            <div class="card-image">
-                                <img src="${res.image != null && !res.image.isEmpty() ? res.image : 'https://via.placeholder.com/400x300?text=No+Image'}"
-                                     alt="${res.name}">
-                                <div class="badge cuisine">
-                                    <i class="fas fa-utensils"></i>
-                                    Nhà hàng
-                                </div>
-                            </div>
-                            <div class="card-content">
-                                <div class="rating-price">
-                                    <div class="rating">
-                                        <div class="stars">
-                                            <c:forEach begin="1" end="5" var="i">
-                                                <c:choose>
-                                                    <c:when test="${res.avgRating >= i}"><i class="fas fa-star"></i></c:when>
-                                                    <c:when test="${res.avgRating >= i - 0.5}"><i class="fas fa-star-half-alt"></i></c:when>
-                                                    <c:otherwise><i class="far fa-star"></i></c:otherwise>
-                                                </c:choose>
-                                            </c:forEach>
-                                        </div>
-                                        <span class="reviews">(${res.reviewCount})</span>
-                                    </div>
-
-                                </div>
-                                <h3>
-                                    <a href="${pageContext.request.contextPath}/restaurant-detail?id=${res.businessId}"
-                                       style="color: inherit; text-decoration: none;">
-                                        ${res.name}
-                                    </a>
-                                </h3>
-                                <div class="location">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    ${res.area.name}, Cát Bà
-                                </div>
-                                <div class="hours">
-                                    <i class="fas fa-clock"></i>
-                                    ${res.openingHour} - ${res.closingHour}
-                                </div>
-                                <div class="bottom-section">
-                                    <div class="phone">
-                                        <i class="fas fa-phone"></i>
-                                        <span>0${res.owner.userId}123456</span> <!-- Có thể thêm cột phone sau -->
-                                    </div>
-                                    <button class="book-btn">Đặt bàn</button>
-                                </div>
+                    <!-- Restaurant Card 1 -->
+                    <div class="restaurant-card">
+                        <div class="card-image">
+                            <!-- Ảnh Nhà hàng 1 -->
+                            <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80"
+                                 alt="Nhà hàng hải sản Cát Bà">
+                            <div class="badge promotion">Giảm 20%</div>
+                            <div class="badge cuisine">
+                                <i class="fas fa-utensils"></i>
+                                Hải sản
                             </div>
                         </div>
-                    </c:forEach>
+                        <div class="card-content">
+                            <div class="rating-price">
+                                <div class="rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                    <span class="reviews">(234)</span>
+                                </div>
+                                <span class="price-range">200k - 500k</span>
+                            </div>
+                            <h3>Nhà Hàng Hải Sản Cát Cò</h3>
+                            <div class="location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Bãi Cát Cò 1, Cát Bà
+                            </div>
+                            <div class="hours">
+                                <i class="fas fa-clock"></i>
+                                11:00 - 22:00
+                            </div>
+                            <div class="specialties">
+                                <span class="specialty">Cua rang me</span>
+                                <span class="specialty">Tôm nướng</span>
+                                <span class="specialty">Cá hấp</span>
+                            </div>
+                            <div class="bottom-section">
+                                <div class="phone">
+                                    <i class="fas fa-phone"></i>
+                                    <span>0987 654 321</span>
+                                </div>
+                                <button class="book-btn">Đặt bàn</button>
+                            </div>
+                        </div>
+                    </div>
 
-                    <!-- Nếu không có dữ liệu -->
-                    <c:if test="${empty topRestaurants}">
-                        <p style="grid-column: 1 / -1; text-align: center; color: #666; font-style: italic; padding: 40px 0;">
-                            Chưa có nhà hàng nào được đánh giá. Hãy quay lại sau!
-                        </p>
-                    </c:if>
+                    <!-- Restaurant Card 2 -->
+                    <div class="restaurant-card">
+                        <div class="card-image">
+                            <!-- Ảnh Nhà hàng 2 -->
+                            <img src="https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=800&q=80"
+                                 alt="Không gian nhà hàng Cát Bà">
+                            <div class="badge cuisine">
+                                <i class="fas fa-utensils"></i>
+                                Món Việt
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="rating-price">
+                                <div class="rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                    <span class="reviews">(189)</span>
+                                </div>
+                                <span class="price-range">50k - 150k</span>
+                            </div>
+                            <h3>Quán Ăn Bà Tám</h3>
+                            <div class="location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Trung tâm, Cát Bà
+                            </div>
+                            <div class="hours">
+                                <i class="fas fa-clock"></i>
+                                06:00 - 21:00
+                            </div>
+                            <div class="specialties">
+                                <span class="specialty">Bún cá</span>
+                                <span class="specialty">Chả cá</span>
+                                <span class="specialty">Bánh mì</span>
+                            </div>
+                            <div class="bottom-section">
+                                <div class="phone">
+                                    <i class="fas fa-phone"></i>
+                                    <span>0912 345 678</span>
+                                </div>
+                                <button class="book-btn">Đặt bàn</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Restaurant Card 3 -->
+                    <div class="restaurant-card">
+                        <div class="card-image">
+                            <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80"
+                                 alt="BBQ Sunset Cát Bà">
+                            <div class="badge cuisine">
+                                <i class="fas fa-utensils"></i>
+                                BBQ
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="rating-price">
+                                <div class="rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                    </div>
+                                    <span class="reviews">(145)</span>
+                                </div>
+                                <span class="price-range">150k - 300k</span>
+                            </div>
+                            <h3>BBQ Sunset Cát Bà</h3>
+                            <div class="location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Bãi Cát Cò 2, Cát Bà
+                            </div>
+                            <div class="hours">
+                                <i class="fas fa-clock"></i>
+                                17:00 - 23:00
+                            </div>
+                            <div class="specialties">
+                                <span class="specialty">Thịt nướng</span>
+                                <span class="specialty">Hải sản nướng</span>
+                                <span class="specialty">Bia tươi</span>
+                            </div>
+                            <div class="bottom-section">
+                                <div class="phone">
+                                    <i class="fas fa-phone"></i>
+                                    <span>0934 567 890</span>
+                                </div>
+                                <button class="book-btn">Đặt bàn</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Restaurant Card 4 -->
+                    <div class="restaurant-card">
+                        <div class="card-image">
+                            <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80"
+                                 alt="Café View Đảo">
+                            <div class="badge cuisine">
+                                <i class="fas fa-coffee"></i>
+                                Cà phê
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="rating-price">
+                                <div class="rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                    </div>
+                                    <span class="reviews">(98)</span>
+                                </div>
+                                <span class="price-range">30k - 80k</span>
+                            </div>
+                            <h3>Café View Đảo</h3>
+                            <div class="location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Pháo đài, Cát Bà
+                            </div>
+                            <div class="hours">
+                                <i class="fas fa-clock"></i>
+                                07:00 - 20:00
+                            </div>
+                            <div class="specialties">
+                                <span class="specialty">Cà phê phin</span>
+                                <span class="specialty">Sinh tố</span>
+                                <span class="specialty">Bánh ngọt</span>
+                            </div>
+                            <div class="bottom-section">
+                                <div class="phone">
+                                    <i class="fas fa-phone"></i>
+                                    <span>0956 789 012</span>
+                                </div>
+                                <button class="book-btn">Đặt bàn</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
+        <!-- Destinations Section -->
+        <section class="destinations">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Điểm đến nổi bật</h2>
+                    <button class="view-all-btn">
+                        <span>Xem tất cả</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
 
+                <div class="destinations-grid">
+                    <div class="destination-card">
+                        <div class="destination-image">
+                            <img src="https://images.unsplash.com/photo-1571232167868-ba3d3667cd77?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYXQlMjBiYSUyMGlzbGFuZCUyMHZpZXRuYW18ZW58MXx8fHwxNzU3Njg2OTg5fDA&ixlib=rb-4.1.0&q=80&w=1080"
+                                 alt="Bãi Cát Cò 1">
+                        </div>
+                        <div class="destination-content">
+                            <h3>Bãi Cát Cò 1</h3>
+                            <p>Bãi biển đẹp nhất</p>
+                        </div>
+                    </div>
+
+                    <div class="destination-card">
+                        <div class="destination-image">
+                            <img src="https://images.unsplash.com/photo-1710702418104-6bf5419ab03d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aWV0bmFtZXNlJTIwaG9tZXN0YXl8ZW58MXx8fHwxNzU3Njg2OTkyfDA&ixlib=rb-4.1.0&q=80&w=1080"
+                                 alt="Pháo đài Cát Bà">
+                        </div>
+                        <div class="destination-content">
+                            <h3>Pháo đài Cát Bà</h3>
+                            <p>Di tích lịch sử</p>
+                        </div>
+                    </div>
+
+                    <div class="destination-card">
+                        <div class="destination-image">
+                            <img src="https://images.unsplash.com/photo-1571232167868-ba3d3667cd77?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYXQlMjBiYSUyMGlzbGFuZCUyMHZpZXRuYW18ZW58MXx8fHwxNzU3Njg2OTg5fDA&ixlib=rb-4.1.0&q=80&w=1080"
+                                 alt="Vườn Quốc gia">
+                        </div>
+                        <div class="destination-content">
+                            <h3>Vườn Quốc gia</h3>
+                            <p>Thiên nhiên hoang dã</p>
+                        </div>
+                    </div>
+
+                    <div class="destination-card">
+                        <div class="destination-image">
+                            <img src="https://images.unsplash.com/photo-1710702418104-6bf5419ab03d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aWV0bmFtZXNlJTIwaG9tZXN0YXl8ZW58MXx8fHwxNzU3Njg2OTkyfDA&ixlib=rb-4.1.0&q=80&w=1080"
+                                 alt="Bến Bèo">
+                        </div>
+                        <div class="destination-content">
+                            <h3>Bến Bèo</h3>
+                            <p>Cảng du thuyền</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- Footer -->
         <%@ include file="Footer.jsp" %>
