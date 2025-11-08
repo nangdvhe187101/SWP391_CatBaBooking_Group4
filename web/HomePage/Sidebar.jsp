@@ -52,7 +52,7 @@
                                 <li><a href="${pageContext.request.contextPath}/edit-profile"><i class="fas fa-user-edit"></i> Edit Profile</a></li>
                                 <li><i class="fas fa-credit-card"></i> My Cards</li>
                                 <li><i class="fas fa-shopping-cart"></i> Purchase List</li>
-                                <li><a href="${pageContext.request.contextPath}/EditProfilePage/MyBooking.jsp"><i class="fas fa-calendar-check"></i> My Booking</a></li>
+                                <li><a href="${pageContext.request.contextPath}/ProfilePage/MyBooking.jsp"><i class="fas fa-calendar-check"></i> My Booking</a></li>
                                 <li class="logout-item">
                                     <form action="${pageContext.request.contextPath}/Logout" method="post" style="margin: 0; width: 100%;">
                                         <input type="submit" class="logout-submit" value="Logout" 

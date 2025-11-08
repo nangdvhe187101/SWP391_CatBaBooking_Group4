@@ -31,7 +31,7 @@ public class EditProfileController extends HttpServlet {
 
         Users refreshedUser = userDAO.getUserById(currentUser.getUserId());
         request.setAttribute("user", refreshedUser);
-        request.getRequestDispatcher("/EditProfilePage/EditProfile.jsp").forward(request, response);
+        request.getRequestDispatcher("/ProfilePage/EditProfile.jsp").forward(request, response);
     }
 
     @Override
@@ -50,6 +50,7 @@ public class EditProfileController extends HttpServlet {
         String phone = request.getParameter("phone");
         String gender = request.getParameter("gender");
         String city = request.getParameter("city");
+        String personalAddress = request.getParameter("personalAddress");
 
         Integer birthDay = parseIntOrNull(request.getParameter("birthDay"));
         Integer birthMonth = parseIntOrNull(request.getParameter("birthMonth"));
@@ -88,7 +89,7 @@ public class EditProfileController extends HttpServlet {
             request.setAttribute("user", currentUser);
         }
 
-        request.getRequestDispatcher("/EditProfile.jsp").forward(request, response);
+        request.getRequestDispatcher("/ProfilePage/EditProfile.jsp").forward(request, response);
     }
 
     private Integer parseIntOrNull(String value) {
