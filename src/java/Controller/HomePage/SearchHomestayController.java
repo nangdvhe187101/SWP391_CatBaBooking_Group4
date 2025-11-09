@@ -145,7 +145,6 @@ public class SearchHomestayController extends HttpServlet {
                 } catch (Exception e) {
                 }
 
-                
                 homestay = homestayDAO.searchHomestays(areaId, checkIn, checkOut, guests, numRooms, minRating, minPrice, maxPrice, amenityIds);
             } else {
                 homestay = homestayDAO.getAllHomestay();
