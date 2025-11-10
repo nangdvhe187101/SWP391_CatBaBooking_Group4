@@ -6,6 +6,7 @@ package model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
 /**
  *
  * @author ADMIN
@@ -13,10 +14,10 @@ import java.time.LocalDateTime;
 public class Payments {
 
     private int paymentId;
-    private Bookings booking;
+    private int bookingId;
     private BigDecimal amount;
     private String paymentMethod;
-    private String status; //('pending','completed','failed','refunded')
+    private String status;
     private String transactionCode;
     private String gatewayResponse;
     private LocalDateTime paidAt;
@@ -25,9 +26,10 @@ public class Payments {
     public Payments() {
     }
 
-    public Payments(int paymentId, Bookings booking, BigDecimal amount, String paymentMethod, String status, String transactionCode, String gatewayResponse, LocalDateTime paidAt, LocalDateTime createdAt) {
+    public Payments(int paymentId, int bookingId, BigDecimal amount, String paymentMethod, String status,
+            String transactionCode, String gatewayResponse, LocalDateTime paidAt, LocalDateTime createdAt) {
         this.paymentId = paymentId;
-        this.booking = booking;
+        this.bookingId = bookingId;
         this.amount = amount;
         this.paymentMethod = paymentMethod;
         this.status = status;
@@ -37,6 +39,13 @@ public class Payments {
         this.createdAt = createdAt;
     }
 
+    public Payments(int bookingId, BigDecimal amount, String paymentMethod, String status) {
+        this.bookingId = bookingId;
+        this.amount = amount;
+        this.paymentMethod = paymentMethod;
+        this.status = status;
+        this.createdAt = LocalDateTime.now();
+    }
     // Getters and Setters
     public int getPaymentId() {
         return paymentId;
@@ -46,14 +55,15 @@ public class Payments {
         this.paymentId = paymentId;
     }
 
-    public Bookings getBooking() {
-        return booking;
+    public int getBookingId() {
+        return bookingId;
     }
 
-    public void setBooking(Bookings booking) {
-        this.booking = booking;
+    public void setBookingId(int bookingId) {
+        this.bookingId = bookingId;
     }
 
+   
     public BigDecimal getAmount() {
         return amount;
     }
@@ -112,6 +122,6 @@ public class Payments {
 
     @Override
     public String toString() {
-        return "Payments{" + "paymentId=" + paymentId + ", booking=" + booking + ", amount=" + amount + ", paymentMethod=" + paymentMethod + ", status=" + status + ", transactionCode=" + transactionCode + ", gatewayResponse=" + gatewayResponse + ", paidAt=" + paidAt + ", createdAt=" + createdAt + '}';
+        return "Payments{" + "paymentId=" + paymentId + ", booking=" + bookingId + ", amount=" + amount + ", paymentMethod=" + paymentMethod + ", status=" + status + ", transactionCode=" + transactionCode + ", gatewayResponse=" + gatewayResponse + ", paidAt=" + paidAt + ", createdAt=" + createdAt + '}';
     }
 }
