@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -374,68 +375,83 @@ public class UserDAO {
     /**
      * Cập nhật thông tin profile của user
      */
-       /**
-     * Validate thông tin user profile trước khi cập nhật
-     */
-    public String validateUserProfile(String fullName, String email, String currentEmail) {
-        if (fullName == null || fullName.trim().isEmpty()) {
-            return "Tên đầy đủ không được để trống";
-        }
-        if (email == null || email.trim().isEmpty()) {
-            return "Email không được để trống";
-        }
-        if (!email.equals(currentEmail) && checkEmailExists(email)) {
-            return "Email này đã được sử dụng bởi tài khoản khác";
-        }
-        return null;
-    }
-
-    /**
-     * Gom toàn bộ validation + update vào DAO, chỉ trả về lỗi nếu có
-     * Trả về null nếu thành công, hoặc chuỗi lỗi nếu thất bại
-     */
-    public String processUserProfileUpdate(int userId, String fullName, String email, String phone,
-                                           String gender, Integer birthDay, Integer birthMonth,
-                                           Integer birthYear, String city, String currentEmail) {
-        // Bước 1: validation dữ liệu
-        String validationMessage = validateUserProfile(fullName, email, currentEmail);
-        if (validationMessage != null) {
-            return validationMessage;
-        }
-
-        // Bước 2: gọi hàm updateUserProfile (đã có sẵn)
-        boolean success = updateUserProfile(userId, fullName, email, phone, gender, birthDay, birthMonth, birthYear, city);
-
-        if (!success) {
-            return "Không thể cập nhật thông tin người dùng.";
-        }
-
-        return null; // thành công
-    }
-
-    /**
-     * Cập nhật thông tin profile của user
-     */
-    public boolean updateUserProfile(int userId, String fullName, String email, String phone,
+    public boolean updateUserProfile(int userId, String fullName, String email, String phone, 
                                    String gender, Integer birthDay, Integer birthMonth, Integer birthYear, String city) {
-        String sql = "UPDATE users SET full_name = ?, email = ?, phone = ?, gender = ?, birth_day = ?, birth_month = ?, birth_year = ?, city = ?, updated_at = ? WHERE user_id = ?";
+        // Chỉ cập nhật các trường cơ bản trước, các trường mới sẽ được thêm sau khi chạy script database
+        String sql = "UPDATE users SET full_name = ?, email = ?, phone = ?, updated_at = ? WHERE user_id = ?";
         try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, fullName);
             ps.setString(2, email);
             ps.setString(3, phone);
-            ps.setString(4, gender);
-            ps.setObject(5, birthDay);
-            ps.setObject(6, birthMonth);
-            ps.setObject(7, birthYear);
-            ps.setString(8, city);
-            ps.setObject(9, LocalDateTime.now());
-            ps.setInt(10, userId);
-
+            ps.setObject(4, LocalDateTime.now());
+            ps.setInt(5, userId);
+            
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
+    }
+
+    /**
+     * Lấy thông tin user với đầy đủ thông tin profile
+     */
+    public Users getUserProfileById(int userId) {
+        String sql = "SELECT u.*, r.role_name FROM users u JOIN roles r ON u.role_id = r.role_id WHERE u.user_id = ?";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Users user = new Users();
+                user.setUserId(rs.getInt("user_id"));
+                user.setRole(new Roles(rs.getInt("role_id"), rs.getString("role_name"), null, null));
+                user.setFullName(rs.getString("full_name"));
+                user.setEmail(rs.getString("email"));
+                user.setPasswordHash(rs.getString("password_hash"));
+                user.setPhone(rs.getString("phone"));
+                user.setCitizenId(rs.getString("citizen_id"));
+                user.setPersonalAddress(rs.getString("personal_address"));
+                
+                // Kiểm tra và set các trường mới (có thể null nếu chưa có trong DB)
+                try {
+                    user.setGender(rs.getString("gender"));
+                } catch (SQLException e) {
+                    user.setGender(null);
+                }
+                
+                try {
+                    user.setBirthDay(rs.getInt("birth_day"));
+                } catch (SQLException e) {
+                    user.setBirthDay(0);
+                }
+                
+                try {
+                    user.setBirthMonth(rs.getInt("birth_month"));
+                } catch (SQLException e) {
+                    user.setBirthMonth(0);
+                }
+                
+                try {
+                    user.setBirthYear(rs.getInt("birth_year"));
+                } catch (SQLException e) {
+                    user.setBirthYear(0);
+                }
+                
+                try {
+                    user.setCity(rs.getString("city"));
+                } catch (SQLException e) {
+                    user.setCity(null);
+                }
+                
+                user.setStatus(rs.getString("status"));
+                user.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
+                user.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
+                return user;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
