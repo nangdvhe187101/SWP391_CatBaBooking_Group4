@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package controller.auth;
 
 import dao.UserDAO;
@@ -11,13 +7,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import java.io.PrintWriter;
 import model.Users;
 
-/**
- *
- * @author ADMIN
- */
 public class EditProfileController extends HttpServlet {
 
     private UserDAO userDAO;
@@ -32,21 +23,15 @@ public class EditProfileController extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         Users currentUser = (Users) session.getAttribute("currentUser");
-        
+
         if (currentUser == null) {
             response.sendRedirect(request.getContextPath() + "/Login");
             return;
         }
-        
-        // Lấy thông tin user đầy đủ từ database
-        Users userProfile = userDAO.getUserProfileById(currentUser.getUserId());
-        if (userProfile != null) {
-            request.setAttribute("user", userProfile);
-        } else {
-            request.setAttribute("user", currentUser);
-        }
-        
-        request.getRequestDispatcher("/EditProfile.jsp").forward(request, response);
+
+        Users refreshedUser = userDAO.getUserById(currentUser.getUserId());
+        request.setAttribute("user", refreshedUser);
+        request.getRequestDispatcher("/ProfilePage/EditProfile.jsp").forward(request, response);
     }
 
     @Override
@@ -54,97 +39,64 @@ public class EditProfileController extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         Users currentUser = (Users) session.getAttribute("currentUser");
-        
+
         if (currentUser == null) {
             response.sendRedirect(request.getContextPath() + "/Login");
             return;
         }
-        
+
+        String fullName = request.getParameter("fullName");
+        String email = request.getParameter("email");
+        String phone = request.getParameter("phone");
+        String gender = request.getParameter("gender");
+        String city = request.getParameter("city");
+        String personalAddress = request.getParameter("personalAddress");
+
+        Integer birthDay = parseIntOrNull(request.getParameter("birthDay"));
+        Integer birthMonth = parseIntOrNull(request.getParameter("birthMonth"));
+        Integer birthYear = parseIntOrNull(request.getParameter("birthYear"));
+
         try {
-            // Lấy dữ liệu từ form
-            String fullName = request.getParameter("fullName");
-            String email = request.getParameter("email");
-            String phone = request.getParameter("phone");
-            String gender = request.getParameter("gender");
-            String city = request.getParameter("city");
-            
-            // Xử lý ngày sinh
-            Integer birthDay = null;
-            Integer birthMonth = null;
-            Integer birthYear = null;
-            
-            String birthDayStr = request.getParameter("birthDay");
-            String birthMonthStr = request.getParameter("birthMonth");
-            String birthYearStr = request.getParameter("birthYear");
-            
-            if (birthDayStr != null && !birthDayStr.isEmpty()) {
-                birthDay = Integer.parseInt(birthDayStr);
-            }
-            if (birthMonthStr != null && !birthMonthStr.isEmpty()) {
-                birthMonth = Integer.parseInt(birthMonthStr);
-            }
-            if (birthYearStr != null && !birthYearStr.isEmpty()) {
-                birthYear = Integer.parseInt(birthYearStr);
-            }
-            
-            // Validation
-            if (fullName == null || fullName.trim().isEmpty()) {
-                request.setAttribute("error", "Tên đầy đủ không được để trống");
-                request.getRequestDispatcher("/EditProfile.jsp").forward(request, response);
-                return;
-            }
-            
-            if (email == null || email.trim().isEmpty()) {
-                request.setAttribute("error", "Email không được để trống");
-                request.getRequestDispatcher("/EditProfile.jsp").forward(request, response);
-                return;
-            }
-            
-            // Kiểm tra email có thay đổi không và có bị trùng không
-            if (!email.equals(currentUser.getEmail())) {
-                if (userDAO.checkEmailExists(email)) {
-                    request.setAttribute("error", "Email này đã được sử dụng bởi tài khoản khác");
-                    request.getRequestDispatcher("/EditProfile.jsp").forward(request, response);
-                    return;
-                }
-            }
-            
-            // Cập nhật thông tin profile
-            boolean success = userDAO.updateUserProfile(
-                currentUser.getUserId(),
-                fullName.trim(),
-                email.trim(),
-                phone != null ? phone.trim() : null,
-                gender,
-                birthDay,
-                birthMonth,
-                birthYear,
-                city != null ? city.trim() : null
+            // Gọi xử lý trong DAO (bao gồm cả validate và update)
+            String result = userDAO.processUserProfileUpdate(
+                    currentUser.getUserId(),
+                    fullName,
+                    email,
+                    phone,
+                    gender,
+                    birthDay,
+                    birthMonth,
+                    birthYear,
+                    city,
+                    currentUser.getEmail()
             );
-            
-            if (success) {
-                // Cập nhật session với thông tin mới
-                Users updatedUser = userDAO.getUserProfileById(currentUser.getUserId());
-                if (updatedUser != null) {
-                    session.setAttribute("currentUser", updatedUser);
-                }
-                
+
+            if (result == null) {
+                // Cập nhật thành công
+                Users updated = userDAO.getUserById(currentUser.getUserId());
+                session.setAttribute("currentUser", updated);
+                request.setAttribute("user", updated);
                 request.setAttribute("success", "Cập nhật thông tin thành công!");
-                request.setAttribute("user", updatedUser);
             } else {
-                request.setAttribute("error", "Có lỗi xảy ra khi cập nhật thông tin. Vui lòng thử lại.");
+                // Có lỗi validate
+                request.setAttribute("error", result);
                 request.setAttribute("user", currentUser);
             }
-            
-        } catch (NumberFormatException e) {
-            request.setAttribute("error", "Dữ liệu ngày sinh không hợp lệ");
-            request.setAttribute("user", currentUser);
+
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "Có lỗi xảy ra khi xử lý yêu cầu. Vui lòng thử lại.");
+            request.setAttribute("error", "Đã xảy ra lỗi khi cập nhật thông tin!");
             request.setAttribute("user", currentUser);
         }
-        
-        request.getRequestDispatcher("/EditProfile.jsp").forward(request, response);
+
+        request.getRequestDispatcher("/ProfilePage/EditProfile.jsp").forward(request, response);
+    }
+
+    private Integer parseIntOrNull(String value) {
+        try {
+            return (value != null && !value.isEmpty()) ? Integer.parseInt(value) : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }
