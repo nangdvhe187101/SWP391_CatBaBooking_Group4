@@ -2,7 +2,6 @@
     Document   : CheckoutHomestay
     Created on : Oct 30, 2025, 2:15:00 AM
     Author     : ADMIN
-    Purpose    : Trang xác thực thông tin (Đã có sẵn số khách).
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>

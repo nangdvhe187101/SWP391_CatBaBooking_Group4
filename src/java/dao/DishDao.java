@@ -20,39 +20,40 @@ import util.DBUtil;
 public class DishDao {
     
     //lay tat ca mon an cua 1 nha hang
-     public List<Dishes> getAllDishesByBusinessId(int businessId){
-         List<Dishes> dishes = new ArrayList<>();
-         String sql ="SELECT d.dish_id, d.business_id, d.category_id, d.name, d.description, d.price, d.image_url, d.is_available, " +
-                     "dc.name as category_name " +
-                     "FROM dishes d " +
-                     "JOIN dish_categories dc ON d.category_id = dc.category_id " +
-                     "WHERE d.business_id = ?";
-         try (Connection conn = DBUtil.getConnection();
-                 PreparedStatement ps = conn.prepareStatement(sql)){
-             ps.setInt(1, businessId);
-             try(ResultSet rs = ps.executeQuery()){
-                 while (rs.next()) {                     
-                    Dishes dish = new Dishes();
-                    dish.setDishId(rs.getInt("dish_id"));
-                    Businesses business = new Businesses();
-                    dish.setBusiness(business);
-                    DishCategories category = new DishCategories();
-                    category.setCategoryId(rs.getInt("category_id"));
-                    category.setName(rs.getString("category_name"));
-                    dish.setCategory(category);
-                    dish.setName(rs.getString("name"));
-                    dish.setDescription(rs.getString("description"));
-                    dish.setPrice(rs.getBigDecimal("price"));
-                    dish.setImageUrl(rs.getString("image_url"));
-                    dish.setIsAvailable(rs.getBoolean("is_available"));
-                    dishes.add(dish);
-                 }
-             }
-         } catch (Exception e) {
-             e.printStackTrace();
-         }
-         return dishes;
-     }
+    public List<Dishes> getAllDishesByBusinessId(int businessId){
+    List<Dishes> dishes = new ArrayList<>();
+    String sql ="SELECT d.dish_id, d.business_id, d.category_id, d.name, d.description, d.price, d.image_url, d.is_available, " +
+                "dc.name as category_name " +
+                "FROM dishes d " +
+                "JOIN dish_categories dc ON d.category_id = dc.category_id " +
+                "WHERE d.business_id = ?";
+    try (Connection conn = DBUtil.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)){
+        ps.setInt(1, businessId);
+        try(ResultSet rs = ps.executeQuery()){
+            while (rs.next()) {                     
+                Dishes dish = new Dishes();
+                dish.setDishId(rs.getInt("dish_id"));
+                Businesses business = new Businesses();
+                business.setBusinessId(businessId);
+                dish.setBusiness(business);
+                DishCategories category = new DishCategories();
+                category.setCategoryId(rs.getInt("category_id"));
+                category.setName(rs.getString("category_name"));
+                dish.setCategory(category);
+                dish.setName(rs.getString("name"));
+                dish.setDescription(rs.getString("description"));
+                dish.setPrice(rs.getBigDecimal("price"));
+                dish.setImageUrl(rs.getString("image_url"));
+                dish.setIsAvailable(rs.getBoolean("is_available"));
+                dishes.add(dish);
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return dishes;
+}
      
      //lay mon an theo id
      public Dishes getDishById(int dishId) {
@@ -168,5 +169,5 @@ public class DishDao {
             e.printStackTrace();
         }
         return false; 
-    }
+    }   
 }

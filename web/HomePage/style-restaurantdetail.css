@@ -166,13 +166,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
 }
 .dish-image {
     width: 100%;
-    height: 140px;
+    height: 250px; /* tăng từ 140px lên 180px hoặc tùy ý */
     background: #f3f4f6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
+
 .dish-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: cover; /* Hiển thị đầy đủ ảnh */
+
 }
 .dish-content {
     padding: 1rem;
@@ -443,4 +448,456 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
         font-weight: 500;
         padding: .75rem 1rem;
     }
+}
+
+/* --- CSS Modal Tùy Chỉnh (Thay thế Bootstrap) --- */
+
+/* Lớp phủ nền */
+.custom-modal-overlay {
+    display: none; /* Ẩn theo mặc định */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5); /* Nền mờ */
+
+    /* Dùng flex để căn giữa */
+    align-items: center;
+    justify-content: center;
+}
+
+/* Lớp 'active' sẽ được JS thêm vào để hiển thị modal */
+.custom-modal-overlay.active {
+    display: flex;
+}
+
+/* Hộp nội dung Modal */
+.custom-modal-content {
+    background-color: #ffffff;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 800px; /* Tương đương modal-lg */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    animation: animatetop 0.4s;
+    position: relative;
+}
+
+/* Hiệu ứng trượt xuống */
+@keyframes animatetop {
+    from {
+        top: -100px;
+        opacity: 0
+    }
+    to {
+        top: 0;
+        opacity: 1
+    }
+}
+
+/* Tiêu đề Modal */
+.custom-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.custom-modal-title {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+/* Nút đóng (X) */
+.custom-modal-close {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    background: none;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+}
+.custom-modal-close:hover,
+.custom-modal-close:focus {
+    color: black;
+    text-decoration: none;
+}
+
+/* Thân Modal */
+.custom-modal-body {
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+.form-label-bold {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.modal-body-layout {
+    display: flex;
+    flex-wrap: wrap; /* Tự xuống hàng trên màn hình nhỏ */
+    gap: 1.5rem; /* Khoảng cách giữa các cột */
+}
+.modal-body-left, .modal-body-right {
+    flex: 1; /* Mỗi cột chiếm 1 nửa */
+    min-width: 300px; /* Độ rộng tối thiểu trước khi xuống hàng */
+}
+
+.modal-dish-image {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 5px;
+    border: 1px solid #eee;
+}
+
+.modal-body-full-width {
+    width: 100%;
+    margin-top: 15px;
+}
+
+.modal-dish-description {
+    border: 1px solid #e5e5e5;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    min-height: 100px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Tạo kiểu cho thông tin món ăn (JS populate) */
+#viewDishInfo p {
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+}
+#viewDishInfo .badge { /* Tạo lại lớp badge của Bootstrap */
+    display: inline-block;
+    padding: 0.35em 0.65em;
+    font-size: .8em;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.375rem;
+}
+#viewDishInfo .bg-success {
+    background-color: #198754;
+}
+#viewDishInfo .bg-danger {
+    background-color: #dc3545;
+}
+
+
+/* Chân Modal */
+.custom-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 15px;
+    border-top: 1px solid #e5e5e5;
+}
+
+/* Nút đóng ở chân modal */
+.custom-modal-footer-close {
+    background-color: #6c757d; /* Tương đương btn-secondary */
+    color: white;
+    border: 1px solid #6c757d;
+    padding: 0.5rem 0.9rem;
+    font-size: 1rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+}
+.custom-modal-footer-close:hover {
+    background-color: #5c636a;
+}
+/* Cart item styles */
+.order-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    gap: 10px;
+}
+.order-item-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.item-image {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+.item-name {
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+.item-note {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+    margin: 6px 0;
+    box-sizing: border-box;
+}
+.item-note:focus {
+    outline: none;
+    border-color: #007bff;
+}
+.item-qty-control {
+    display: flex;
+    align-items: center;
+    margin-top: 6px;
+}
+.btn-item-minus, .btn-item-plus {
+    width: 28px;
+    height: 28px;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-item-minus:hover, .btn-item-plus:hover {
+    background: #f8f9fa;
+}
+.item-qty {
+    margin: 0 12px;
+    font-weight: bold;
+    min-width: 20px;
+    text-align: center;
+}
+.order-item-right {
+    text-align: right;
+    min-width: 100px;
+}
+.item-price {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 4px;
+}
+.item-subtotal {
+    font-weight: bold;
+    font-size: 14px;
+}
+.subtotal-price {
+    color: #28a745;
+}
+.empty-cart-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+}
+.empty-cart-message i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    display: block;
+    opacity: 0.3;
+}
+.btn-remove-item {
+    background: transparent;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 12px;
+    margin-top: 4px;
+}
+.btn-remove-item:hover {
+    color: #a71d2a;
+    text-decoration: underline;
+}
+/* Add to cart modal */
+.add-to-cart-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+.add-to-cart-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.add-to-cart-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+}
+.add-to-cart-content h3 {
+    margin-bottom: 1rem;
+}
+.add-to-cart-form .form-group {
+    margin-bottom: 1rem;
+}
+.add-to-cart-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+.add-to-cart-form input,
+.add-to-cart-form textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+.add-to-cart-form textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+.qty-control {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.qty-control button {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 18px;
+}
+.qty-control .qty-display {
+    font-size: 18px;
+    font-weight: bold;
+    min-width: 40px;
+    text-align: center;
+}
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+.modal-actions button {
+    flex: 1;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+.btn-cancel {
+    background: #6c757d;
+    color: white;
+}
+.btn-confirm {
+    background: #28a745;
+    color: white;
+}
+/* Add to cart modal */
+.add-to-cart-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+.add-to-cart-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.add-to-cart-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+}
+.add-to-cart-content h3 {
+    margin-bottom: 1rem;
+}
+.add-to-cart-form .form-group {
+    margin-bottom: 1rem;
+}
+.add-to-cart-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+.add-to-cart-form input,
+.add-to-cart-form textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+.add-to-cart-form textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+.qty-control {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.qty-control button {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 18px;
+}
+.qty-control .qty-display {
+    font-size: 18px;
+    font-weight: bold;
+    min-width: 40px;
+    text-align: center;
+}
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+.modal-actions button {
+    flex: 1;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+.btn-cancel {
+    background: #6c757d;
+    color: white;
+}
+.btn-confirm {
+    background: #28a745;
+    color: white;
 }
