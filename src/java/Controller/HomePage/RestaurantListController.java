@@ -38,7 +38,6 @@ public class RestaurantListController extends HttpServlet {
         request.setAttribute("restaurantTypes", restaurantTypes);
         List<Areas> areaList = areaDAO.getAllAreas();
         request.setAttribute("areaList", areaList);
-        System.out.println("Số lượng nhà hàng lấy được: " + restaurants.size()); // Ghi log kích thước
         request.setAttribute("restaurants", restaurants);
         
         

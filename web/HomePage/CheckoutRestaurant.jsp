@@ -2,7 +2,6 @@
     Document   : CheckoutRestaurant
     Created on : Oct 30, 2025, 2:00:00 AM
     Author     : ADMIN
-    Purpose    : Trang xác thực thông tin và thanh toán cho nhà hàng (CÓ THÊM NGÀY/GIỜ).
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
