@@ -188,6 +188,9 @@ public class RestaurantDAO {
             params.add(java.sql.Time.valueOf(reservationTime));
 
         } else if (hasCapacityFilter) {
+            //  Người dùng CHỈ nhập SỐ NGƯỜI
+            // (hoặc Số người + Giờ / Số người + Ngày)
+            // Chỉ cần tìm nhà hàng có bàn đủ sức chứa.
             sql.append(" AND EXISTS (");
             sql.append("  SELECT 1 FROM restaurant_tables rt ");
             sql.append("  WHERE rt.business_id = b.business_id");
@@ -312,7 +315,7 @@ public class RestaurantDAO {
         if (dto == null) {
             return null;
         }
-        Businesses biz = new Businesses();  
+        Businesses biz = new Businesses();  // Giả sử model Businesses có setters tương ứng
         biz.setBusinessId(dto.getBusinessId());
         biz.setName(dto.getName());
         biz.setAddress(dto.getAddress());
@@ -322,10 +325,10 @@ public class RestaurantDAO {
         biz.setReviewCount(dto.getReviewCount());
         biz.setPricePerNight(dto.getPricePerNight());
         biz.setStatus(dto.getStatus());
-        biz.setOpeningHour(dto.getOpeningHour() != null ? dto.getOpeningHour() : LocalTime.of(8, 0));  
+        biz.setOpeningHour(dto.getOpeningHour() != null ? dto.getOpeningHour() : LocalTime.of(8, 0));  // Default nếu null
         biz.setClosingHour(dto.getClosingHour() != null ? dto.getClosingHour() : LocalTime.of(22, 0));
-        biz.setArea(dto.getArea());  
-        biz.setOwner(dto.getOwner());  
+        biz.setArea(dto.getArea());  // Giả sử Area copy OK
+        biz.setOwner(dto.getOwner());  // Copy Users
         
         return biz;
     }

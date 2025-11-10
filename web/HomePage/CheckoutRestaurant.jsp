@@ -1,303 +1,551 @@
 <%-- 
     Document   : CheckoutRestaurant
-    Created on : Oct 30, 2025, 2:00:00 AM
-    Author     : ADMIN
+    Created on : Nov 06, 2025
+    Author     : FIXED VERSION - Server-side cart with error handling
+    Purpose    : Checkout page with form data persistence on errors
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+
 <!DOCTYPE html>
 <html lang="vi">
-    <head>
-        <meta charset="UTF-8" />
-        <title>Xác nhận Thanh toán - Nhà Hàng Secret Garden</title>
+<head>
+    <meta charset="UTF-8" />
+    <title>Xác nhận Thanh toán - ${restaurant != null ? restaurant.name : 'Nhà Hàng'}</title>
 
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/HomePage/style-home.css" />
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/HomePage/style-restaurantdetail.css" />
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-        <script src="https://kit.fontawesome.com/a2e0e6ad4e.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/HomePage/style-home.css" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/HomePage/style-restaurantdetail.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-        <style>
-            .checkout-page {
-                padding: 2rem 0;
-                background-color: #f9fafb;
-                min-height: 80vh;
-            }
+    <style>
+        .checkout-page {
+            padding: 2rem 0;
+            background-color: #f9fafb;
+            min-height: 80vh;
+        }
+        .checkout-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        .form-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        .form-card h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 1rem;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        .form-label .required {
+            color: #dc2626;
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            transition: border-color 0.15s ease-in-out;
+            box-sizing: border-box;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+        }
+        .btn-primary {
+            background: #059669;
+            color: #fff;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.15s ease-in-out;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            background: #047857;
+        }
+        .btn-primary:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        .summary-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            align-self: start;
+            position: sticky;
+            top: 2rem;
+        }
+        .summary-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 1rem;
+        }
+        .summary-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            gap: 0.75rem;
+        }
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        .summary-item-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 0.375rem;
+            flex-shrink: 0;
+        }
+        .summary-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .summary-item-name {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            color: #111827;
+        }
+        .summary-item-meta {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.125rem;
+        }
+        .summary-item-notes {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            font-style: italic;
+            margin-top: 0.25rem;
+        }
+        .summary-item-price {
+            font-weight: 600;
+            color: #059669;
+            text-align: right;
+            white-space: nowrap;
+        }
+        .total-row {
+            border-top: 2px solid #e5e7eb;
+            padding-top: 1rem;
+            margin-top: 1rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            color: #111827;
+        }
+        .total-row .total-amount {
+            color: #059669;
+        }
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #fecaca;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .error-message i {
+            flex-shrink: 0;
+        }
+        .table-info {
+            background: #dbeafe;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            font-size: 0.875rem;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+        .table-info strong {
+            color: #1e3a8a;
+        }
+        .restaurant-info {
+            background: #f3f4f6;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .restaurant-info h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+        .restaurant-info p {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin: 0.25rem 0;
+        }
+        .empty-cart-warning {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            border: 1px solid #fde68a;
+        }
+        .empty-cart-warning i {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 1rem;
+            opacity: 0.6;
+        }
+        @media (max-width: 768px) {
             .checkout-layout {
-                display: grid;
-                grid-template-columns: 2fr 1fr;
-                gap: 2rem;
-            }
-            .form-card {
-                background: white;
-                border: 1px solid #e5e7eb;
-                border-radius: 0.5rem;
-                padding: 2rem;
-                box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-            }
-            .form-card h2 {
-                font-size: 1.5rem;
-                font-weight: 600;
-                color: #111827;
-                margin-bottom: 1.5rem;
-                border-bottom: 1px solid #e5e7eb;
-                padding-bottom: 1rem;
-            }
-            .form-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 1.25rem;
-            }
-            .form-group {
-                margin-bottom: 1.25rem;
-            }
-            .form-group.full-width {
-                grid-column: 1 / -1;
-            }
-            .form-label {
-                display: block;
-                font-size: 0.875rem;
-                font-weight: 500;
-                color: #374151;
-                margin-bottom: 0.5rem;
-            }
-            .form-input {
-                width: 100%;
-                padding: 0.75rem 1rem;
-                font-size: 0.9rem;
-                border: 1px solid #d1d5db;
-                border-radius: 0.375rem;
-                box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
-            }
-            .form-input:focus {
-                outline: 2px solid transparent;
-                outline-offset: 2px;
-                border-color: #059669;
-                box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.3);
-            }
-            textarea.form-input {
-                min-height: 100px;
-                resize: vertical;
+                grid-template-columns: 1fr;
             }
             .summary-card {
-                background: white;
-                border: 1px solid #e5e7eb;
-                border-radius: 0.5rem;
-                box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-                position: sticky;
-                top: 1rem;
-                max-height: calc(100vh - 4rem);
+                position: relative;
+                top: 0;
             }
-            .summary-card h3 {
-                font-size: 1.25rem;
-                font-weight: 600;
-                color: #111827;
-                padding: 1.5rem;
-                border-bottom: 1px solid #e5e7eb;
-            }
-            .summary-card h4 {
-                font-size: 1rem;
-                font-weight: 500;
-                color: #111827;
-                padding: 0 1.5rem;
-                margin-top: 1rem;
-                margin-bottom: 0.5rem;
-            }
-            .summary-item-list {
-                padding: 1rem 1.5rem;
-                max-height: 300px;
-                overflow-y: auto;
-                border-bottom: 1px solid #e5e7eb;
-            }
-            .summary-item {
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-start;
-                padding: 0.75rem 0;
-                border-bottom: 1px dashed #e5e7eb;
-            }
-            .summary-item:last-child {
-                border-bottom: none;
-            }
-            .summary-item-name {
-                font-size: 0.9rem;
-                font-weight: 500;
-                color: #374151;
-            }
-            .summary-item-meta {
-                font-size: 0.8rem;
-                color: #6b7280;
-            }
-            .summary-item-price {
-                font-size: 0.9rem;
-                font-weight: 500;
-                color: #111827;
-                white-space: nowrap;
-            }
-            .summary-details {
-                padding: 1rem 1.5rem;
-                border-bottom: 1px solid #e5e7eb;
-            }
-            .detail-row {
-                display: flex;
-                justify-content: space-between;
-                font-size: 0.875rem;
-                color: #374151;
-                margin-bottom: 0.5rem;
-            }
-            .detail-row .label {
-                color: #6b7280;
-            }
-            .summary-total {
-                padding: 1.5rem;
-                background-color: #f9fafb;
-                border-top: 1px solid #e5e7eb;
-            }
-            .total-row {
-                display: flex;
-                justify-content: space-between;
-                align-items: baseline;
-                font-size: 1.25rem;
-                font-weight: 600;
-                color: #111827;
-                margin-bottom: 0.5rem;
-            }
-            .total-row .label {
-                font-size: 1rem;
-                font-weight: 500;
-            }
-            .confirm-btn {
-                width: 100%;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                gap: 0.5rem;
-                background: #059669;
-                color: white;
-                border: none;
-                border-radius: 0 0 0.5rem 0.5rem;
-                font-size: 1rem;
-                font-weight: 600;
-                padding: 1rem;
-                cursor: pointer;
-                transition: background-color 0.2s;
-            }
-            .confirm-btn:hover {
-                background: #047857;
-            }
-            @media (max-width: 992px) {
-                .checkout-layout {
-                    grid-template-columns: 1fr;
-                }
-                .summary-card {
-                    position: static;
-                    grid-row: 1;
-                }
-                .form-card {
-                    margin-top: 2rem;
-                }
-            }
-            @media (max-width: 768px) {
-                .form-grid {
-                    grid-template-columns: 1fr;
-                }
-            }
-        </style>
-    </head>
-    <body>
+        }
+    </style>
+</head>
+<body>
+    <%@ include file="Sidebar.jsp" %>
 
-        <%@ include file="Sidebar.jsp" %>
-
-        <main class="checkout-page">
-            <div class="container checkout-layout">
-
-                <section class="form-card">
-                    <h2>Thông tin liên hệ & Đặt bàn</h2>
-                    <p style="font-size: 0.9rem; color: #6b7280; margin-bottom: 1.5rem;">
-                        Vui lòng cung cấp thông tin để nhà hàng xác nhận đơn hàng của bạn.
-                    </p>
-
-                    <form action="ProcessRestaurantPaymentServlet" method="POST" id="checkoutForm">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="fullName" class="form-label">Họ và tên *</label>
-                                <input type="text" id="fullName" name="fullName" class="form-input" required placeholder="Nguyễn Văn A">
-                            </div>
-                            <div class="form-group">
-                                <label for="phone" class="form-label">Số điện thoại *</label>
-                                <input type="tel" id="phone" name="phone" class="form-input" required placeholder="09xxxxxxxx">
-                            </div>
-                            <div class="form-group">
-                                <label for="arrivalDate" class="form-label">Ngày đến *</label>
-                                <input type="date" id="arrivalDate" name="arrivalDate" class="form-input" required value="2025-10-31">
-                            </div>
-                            <div class="form-group">
-                                <label for="arrivalTime" class="form-label">Giờ đến *</label>
-                                <input type="time" id="arrivalTime" name="arrivalTime" class="form-input" required value="18:30">
-                            </div>
-
-                        </div>
-
-                        <div class="form-group full-width">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" id="email" name="email" class="form-input" placeholder="nguyenvana@example.com">
-                        </div>
-                        <div class="form-group full-width">
-                            <label for="notes" class="form-label">Ghi chú cho nhà hàng</label>
-                            <textarea id="notes" name="notes" class="form-input" placeholder="Ví dụ: Cho tôi thêm 2 bộ đũa muỗng, không lấy ớt..."></textarea>
-                        </div>
-
-                        <input type="hidden" name="item_201" value="1"> 
-                        <input type="hidden" name="item_202" value="1"> 
-                        <input type="hidden" name="totalAmount" value="434000">
-
-                    </form>
-                </section>
-
-                <aside class="summary-card">
-                    <h3>Đơn hàng của bạn</h3>
-                    <h4>Nhà Hàng Secret Garden Restaurant</h4>
-                    <div class="summary-item-list">
-                        <div class="summary-item">
-                            <div>
-                                <div class="summary-item-name">Số Lượng Khách</div>
-                            </div>
-                            <div class="summary-item-price">4 người</div>
-                        </div>
+    <div class="checkout-page">
+        <div class="checkout-layout">
+            <!-- Form Section -->
+            <div class="form-card">
+                <h2>Thông tin đặt bàn</h2>
+                
+                <!-- ERROR MESSAGE FROM REQUEST ATTRIBUTE (from doPost via doGet) -->
+                <c:if test="${not empty errorMessage}">
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>${errorMessage}</span>
                     </div>
-
-                    <h4>Chi tiết món ăn</h4>
-                    <div class="summary-item-list">
-                        <div class="summary-item">
-                            <div>
-                                <div class="summary-item-name">Sườn Nướng Mật Ong</div>
-                                <div class="summary-item-meta">SL: 1 x 185.000 ₫</div>
-                            </div>
-                            <div class="summary-item-price">185.000 ₫</div>
-                        </div>
-                        <div class="summary-item">
-                            <div>
-                                <div class="summary-item-name">Tôm Sú Sốt Me</div>
-                                <div class="summary-item-meta">SL: 1 x 249.000 ₫</div>
-                            </div>
-                            <div class="summary-item-price">249.000 ₫</div>
-                        </div>
+                </c:if>
+                
+                <!-- ERROR MESSAGE FROM URL PARAMETER (from redirect) -->
+                <c:if test="${not empty param.error}">
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <c:choose>
+                            <c:when test="${param.error == 'customer_invalid'}">Thông tin khách hàng không hợp lệ.</c:when>
+                            <c:when test="${param.error == 'reservation_invalid'}">Ngày/giờ đặt bàn không hợp lệ.</c:when>
+                            <c:when test="${param.error == 'amount_invalid'}">Số tiền không hợp lệ.</c:when>
+                            <c:when test="${param.error == 'empty_cart'}">Giỏ hàng trống. Vui lòng thêm món ăn.</c:when>
+                            <c:when test="${param.error == 'booking_failed'}">Lỗi tạo đặt bàn. Vui lòng thử lại.</c:when>
+                            <c:when test="${param.error == 'dishes_failed'}">Lỗi lưu món ăn.</c:when>
+                            <c:when test="${param.error == 'payment_failed'}">Lỗi tạo thanh toán.</c:when>
+                            <c:when test="${param.error == 'no_table'}">Không có bàn phù hợp. Vui lòng chọn lại.</c:when>
+                            <c:when test="${param.error == 'table_assign_failed'}">Không thể gán bàn.</c:when>
+                            <c:when test="${param.error == 'missing_params'}">Thiếu thông tin bắt buộc.</c:when>
+                            <c:when test="${param.error == 'invalid_datetime'}">Ngày giờ không hợp lệ.</c:when>
+                            <c:otherwise>Lỗi hệ thống. Vui lòng thử lại sau.</c:otherwise>
+                        </c:choose>
                     </div>
+                </c:if>
 
-                    <div class="summary-total">
-                        <div class="total-row">
-                            <span class="label">Tổng cộng</span>
-                            <span>434.000 ₫</span>
+                <c:choose>
+                    <c:when test="${empty orderItems}">
+                        <div class="empty-cart-warning">
+                            <i class="fas fa-shopping-cart"></i>
+                            <h3>Giỏ hàng trống</h3>
+                            <p>Bạn chưa có món ăn nào trong giỏ hàng.</p>
+                            <p style="margin-top: 1rem;">
+                                <a href="${pageContext.request.contextPath}/restaurant-detail?id=${restaurantId}" 
+                                   style="color: #059669; font-weight: 600;">
+                                    ← Quay lại chọn món
+                                </a>
+                            </p>
                         </div>
-                    </div>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="restaurant-info">
+                            <h4><i class="fas fa-utensils"></i> ${restaurant.name}</h4>
+                            <p><i class="fas fa-map-marker-alt"></i> ${restaurant.area.name}, Hải Phòng</p>
+                            <p><i class="fas fa-clock"></i> ${restaurant.openingHour} - ${restaurant.closingHour}</p>
+                        </div>
 
-                    <button type="submit" form="checkoutForm" class="confirm-btn">
-                        <i class="fas fa-lock"></i>
-                        Xác nhận thanh toán
-                    </button>
-                </aside>
+                        <form id="checkoutForm" action="${pageContext.request.contextPath}/checkout-restaurant" method="post">
+                            <input type="hidden" name="restaurantId" value="${restaurantId}" />
+                            
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        Tên khách hàng <span class="required">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           name="bookerName" 
+                                           class="form-input" 
+                                           placeholder="Họ và tên đầy đủ" 
+                                           value="${not empty bookerName ? bookerName : (currentUser != null ? currentUser.fullName : '')}"
+                                           required />
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        Số điện thoại <span class="required">*</span>
+                                    </label>
+                                    <input type="tel" 
+                                           name="bookerPhone" 
+                                           class="form-input" 
+                                           placeholder="0123456789" 
+                                           pattern="[0-9]{10,11}"
+                                           value="${not empty bookerPhone ? bookerPhone : (currentUser != null ? currentUser.phone : '')}"
+                                           required />
+                                </div>
+                                
+                                <div class="form-group full-width">
+                                    <label class="form-label">
+                                        Email <span class="required">*</span>
+                                    </label>
+                                    <input type="email" 
+                                           name="bookerEmail" 
+                                           class="form-input" 
+                                           placeholder="email@example.com" 
+                                           value="${not empty bookerEmail ? bookerEmail : (currentUser != null ? currentUser.email : '')}"
+                                           required />
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        Ngày đặt bàn <span class="required">*</span>
+                                    </label>
+                                    <input type="date" 
+                                           name="reservationDate" 
+                                           id="reservationDate"
+                                           class="form-input" 
+                                           min="${currentDate}"
+                                           value="${not empty reservationDate ? reservationDate : ''}"
+                                           required />
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        Giờ đặt bàn <span class="required">*</span>
+                                    </label>
+                                    <input type="time" 
+                                           name="reservationTime" 
+                                           id="reservationTime"
+                                           class="form-input" 
+                                           value="${not empty reservationTime ? reservationTime : ''}"
+                                           required />
+                                </div>
+                                
+                                <div class="form-group full-width">
+                                    <label class="form-label">
+                                        Số lượng khách <span class="required">*</span>
+                                    </label>
+                                    <input type="number" 
+                                           name="numGuests" 
+                                           id="numGuests" 
+                                           class="form-input" 
+                                           min="1" 
+                                           max="20" 
+                                           value="${not empty numGuests ? numGuests : 2}" 
+                                           required />
+                                    <small style="color: #6b7280; font-size: 0.875rem;">
+                                        Số khách từ 1-20 người
+                                    </small>
+                                </div>
+                            </div>
 
+                            <div id="tableInfo" class="table-info" style="display: none;">
+                                <strong><i class="fas fa-chair"></i> Bàn được gợi ý:</strong> 
+                                <span id="assignedTable"></span>
+                            </div>
+
+                            <button type="submit" id="submitBtn" class="btn-primary">
+                                <i class="fas fa-check-circle"></i> Xác nhận đặt bàn
+                            </button>
+                        </form>
+                    </c:otherwise>
+                </c:choose>
             </div>
-        </main>
-        <%@ include file="Footer.jsp" %>
-    </body>
+
+            <!-- Summary Section -->
+            <div class="summary-card">
+                <h3><i class="fas fa-receipt"></i> Chi tiết đơn hàng</h3>
+                
+                <c:choose>
+                    <c:when test="${not empty orderItems}">
+                        <div id="orderSummary">
+                            <c:set var="grandTotal" value="0" />
+                            <c:forEach var="item" items="${orderItems}">
+                                <c:set var="subtotal" value="${item.priceAtBooking * item.quantity}" />
+                                <c:set var="grandTotal" value="${grandTotal + subtotal}" />
+                                
+                                <div class="summary-item">
+                                    <img src="${item.dishImage}" 
+                                         alt="${item.dishName}" 
+                                         class="summary-item-image" 
+                                         onerror="this.src='https://via.placeholder.com/60x60/28a745/ffffff?text=Món'" />
+                                    
+                                    <div class="summary-item-content">
+                                        <div class="summary-item-name">${item.dishName}</div>
+                                        <div class="summary-item-meta">
+                                            SL: ${item.quantity} × 
+                                            <fmt:formatNumber value="${item.priceAtBooking}" pattern="#,###"/> ₫
+                                        </div>
+                                        <c:if test="${not empty item.notes}">
+                                            <div class="summary-item-notes">
+                                                <i class="fas fa-comment-dots"></i> ${item.notes}
+                                            </div>
+                                        </c:if>
+                                    </div>
+                                    
+                                    <div class="summary-item-price">
+                                        <fmt:formatNumber value="${subtotal}" pattern="#,###"/> ₫
+                                    </div>
+                                </div>
+                            </c:forEach>
+                        </div>
+                        
+                        <div class="total-row">
+                            <span>Tổng cộng:</span>
+                            <span class="total-amount">
+                                <fmt:formatNumber value="${grandTotal}" pattern="#,###"/> ₫
+                            </span>
+                        </div>
+                    </c:when>
+                    <c:otherwise>
+                        <p style="text-align: center; color: #9ca3af; padding: 2rem 0;">
+                            <i class="fas fa-shopping-cart" style="font-size: 3rem; display: block; margin-bottom: 1rem; opacity: 0.3;"></i>
+                            Chưa có món ăn
+                        </p>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+        </div>
+    </div>
+
+    <%@ include file="Footer.jsp" %>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.getElementById('reservationDate');
+            const timeInput = document.getElementById('reservationTime');
+            const numGuestsInput = document.getElementById('numGuests');
+            
+            // Set default date to today if not already set
+            if (dateInput && !dateInput.value) {
+                const today = new Date().toISOString().split('T')[0];
+                dateInput.value = today;
+            }
+            
+            // Set default time to 2 hours from now if not already set
+            if (timeInput && !timeInput.value) {
+                const now = new Date();
+                now.setHours(now.getHours() + 2);
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                timeInput.value = hours + ':' + minutes;
+            }
+            
+            // Validate number of guests
+            if (numGuestsInput) {
+                numGuestsInput.addEventListener('change', function() {
+                    const num = parseInt(this.value);
+                    if (num < 1) {
+                        this.value = 1;
+                        alert('Số khách tối thiểu là 1 người.');
+                    } else if (num > 20) {
+                        this.value = 20;
+                        alert('Số khách tối đa là 20 người.');
+                    }
+                });
+            }
+            
+            // Form submission handling
+            const checkoutForm = document.getElementById('checkoutForm');
+            if (checkoutForm) {
+                checkoutForm.addEventListener('submit', function(e) {
+                    const submitBtn = document.getElementById('submitBtn');
+                    
+                    // Validate date is not in the past
+                    const selectedDate = new Date(dateInput.value);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    if (selectedDate < today) {
+                        e.preventDefault();
+                        alert('Ngày đặt bàn không thể là ngày trong quá khứ!');
+                        return false;
+                    }
+                    
+                    // Disable submit button to prevent double submission
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+                    
+                    console.log('Submitting checkout form:', {
+                        restaurantId: document.querySelector('[name="restaurantId"]').value,
+                        bookerName: document.querySelector('[name="bookerName"]').value,
+                        bookerPhone: document.querySelector('[name="bookerPhone"]').value,
+                        bookerEmail: document.querySelector('[name="bookerEmail"]').value,
+                        reservationDate: dateInput.value,
+                        reservationTime: timeInput.value,
+                        numGuests: numGuestsInput.value
+                    });
+
+                    return true;
+                });
+            }
+
+            // Optional: Check table availability preview (can be implemented later)
+            const checkTableAvailability = () => {
+                const restaurantId = '${restaurantId}';
+                const numGuests = numGuestsInput ? numGuestsInput.value : 2;
+                const date = dateInput ? dateInput.value : '';
+                const time = timeInput ? timeInput.value : '';
+
+                if (date && time && numGuests && restaurantId) {
+                    console.log('Checking table for:', {restaurantId, numGuests, date, time});
+                    // TODO: Implement AJAX call to check-available-table endpoint
+                }
+            };
+
+            // Attach listeners for real-time table checking (optional)
+            if (numGuestsInput) numGuestsInput.addEventListener('change', checkTableAvailability);
+            if (dateInput) dateInput.addEventListener('change', checkTableAvailability);
+            if (timeInput) timeInput.addEventListener('change', checkTableAvailability);
+        });
+    </script>
+</body>
 </html>
