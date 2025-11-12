@@ -11,6 +11,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 import model.Businesses;
@@ -59,6 +60,12 @@ public class ApproveApplicationController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        Users currentUser = (Users) session.getAttribute("currentUser");
+        if (currentUser == null || currentUser.getRole().getRoleId() != 3) {
+            response.sendRedirect(request.getContextPath() + "/Login");
+            return;
+        }
         String action = request.getParameter("action");
         int userId = Integer.parseInt(request.getParameter("userId"));
         Users user = userDAO.getUserById(userId);

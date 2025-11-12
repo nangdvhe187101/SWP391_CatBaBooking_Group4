@@ -204,12 +204,6 @@
             let countdownInterval;
             let isPaid = false;
             let isExpired = false;
-
-            console.log('=== Confirmation Payment Loaded ===');
-            console.log('Booking:', bookingCode);
-            console.log('Expiry Time:', new Date(expiryTime).toISOString());
-            console.log('Time until expiry:', Math.floor((expiryTime - Date.now()) / 1000), 'seconds');
-
             // Đồng hồ đếm ngược
             function updateCountdown() {
                 const now = Date.now();
@@ -280,9 +274,6 @@
                     clearInterval(pollInterval);
                     return;
                 }
-
-                console.log('[Poll] Checking payment status...');
-
                 fetch('${pageContext.request.contextPath}/payment-status?booking=' + encodeURIComponent(bookingCode), {
                     method: 'GET',
                     headers: {
@@ -291,8 +282,6 @@
                 })
                         .then(response => response.json())
                         .then(data => {
-                            console.log('[Poll] Status:', data);
-
                             if (data.status === 'paid' && !isPaid) {
                                 isPaid = true;
                                 clearInterval(pollInterval);
@@ -301,9 +290,7 @@
                                 document.getElementById('statusAlert').className = 'status-alert status-paid';
                                 document.getElementById('statusAlert').innerHTML = '<i class="fas fa-check-circle"></i> Thanh toán thành công! Đặt bàn của bạn đã được xác nhận.';
                                 document.getElementById('countdown').style.display = 'none';
-
                                 window.history.pushState({status: 'paid'}, '', baseUrl + '&status=paid');
-
                             } else if (data.status === 'expired' || data.status === 'cancelled' || data.status === 'failed') {
                                 isExpired = true;
                                 handleExpiry();
@@ -313,8 +300,6 @@
                             console.error('[Poll] Error:', error);
                         });
             }, 5000);
-
-            // CSS animation cho countdown
             const style = document.createElement('style');
             style.textContent = `
              @keyframes pulse {

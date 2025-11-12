@@ -15,6 +15,7 @@
         <li><a href="Dashboard.jsp">Dashboard</a></li>
         <li><a href="${pageContext.request.contextPath}/approve-application">Duyệt Yêu Cầu</a></li>
         <li><a href="${pageContext.request.contextPath}/user-management">Quản Lý Người Dùng</a></li>
+        <li><a href="PermissionsManager.jsp"> quản lý phân quyền</a></li>
         <li><a href="#">Cài Đặt</a></li>
     </ul>
     <div class="sidebar-footer">
