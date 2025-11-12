@@ -12,16 +12,14 @@ public class Features {
     private int featureId;
     private String featureName;
     private String url;
-    private String requiredBusinessType;
 
     public Features() {
     }
 
-    public Features(int featureId, String featureName, String url, String requiredBusinessType) {
+    public Features(int featureId, String featureName, String url) {
         this.featureId = featureId;
         this.featureName = featureName;
         this.url = url;
-        this.requiredBusinessType = requiredBusinessType;
     }
 
     public int getFeatureId() {
@@ -48,17 +46,9 @@ public class Features {
         this.url = url;
     }
 
-    public String getRequiredBusinessType() {
-        return requiredBusinessType;
-    }
-
-    public void setRequiredBusinessType(String requiredBusinessType) {
-        this.requiredBusinessType = requiredBusinessType;
-    }
-
     @Override
     public String toString() {
-        return "Features{" + "featureId=" + featureId + ", featureName=" + featureName + ", url=" + url + ", requiredBusinessType=" + requiredBusinessType + '}';
+        return "Features{" + "featureId=" + featureId + ", featureName=" + featureName + ", url=" + url + '}';
     }
-    
+
 }

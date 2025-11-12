@@ -389,7 +389,6 @@
                                 <th>Tên Chức Năng</th>
                                 <th>Đường dẫn URL</th>
                                 <th>Customer</th>
-                                <th>Guest</th>
                                 <th>Owner Homestay</th>
                                 <th>Owner Restaurant</th>
                                 <th>Thao tác</th>
@@ -402,7 +401,6 @@
                                 <td>Trang chủ</td>
                                 <td>/home</td>
                                 <td><input type="checkbox" name="permissions[1][customer]" class="permission-checkbox" checked value="true"></td>
-                                <td><input type="checkbox" name="permissions[1][guest]" class="permission-checkbox" checked value="true"></td>
                                 <td><input type="checkbox" name="permissions[1][ownerHomestay]" class="permission-checkbox" checked value="true"></td>
                                 <td><input type="checkbox" name="permissions[1][ownerRestaurant]" class="permission-checkbox" checked value="true"></td>
                                 <td>
@@ -420,7 +418,6 @@
                                 <td>Quản lý đặt phòng</td>
                                 <td>/booking-management</td>
                                 <td><input type="checkbox" name="permissions[2][customer]" class="permission-checkbox" value="true"></td>
-                                <td><input type="checkbox" name="permissions[2][guest]" class="permission-checkbox" value="true"></td>
                                 <td><input type="checkbox" name="permissions[2][ownerHomestay]" class="permission-checkbox" checked value="true"></td>
                                 <td><input type="checkbox" name="permissions[2][ownerRestaurant]" class="permission-checkbox" value="true"></td>
                                 <td>
@@ -438,7 +435,6 @@
                                 <td>Quản lý nhà hàng</td>
                                 <td>/restaurant-management</td>
                                 <td><input type="checkbox" name="permissions[3][customer]" class="permission-checkbox" value="true"></td>
-                                <td><input type="checkbox" name="permissions[3][guest]" class="permission-checkbox" value="true"></td>
                                 <td><input type="checkbox" name="permissions[3][ownerHomestay]" class="permission-checkbox" value="true"></td>
                                 <td><input type="checkbox" name="permissions[3][ownerRestaurant]" class="permission-checkbox" checked value="true"></td>
                                 <td>
@@ -456,7 +452,6 @@
                                 <td>Xem hồ sơ cá nhân</td>
                                 <td>/profile</td>
                                 <td><input type="checkbox" name="permissions[4][customer]" class="permission-checkbox" checked value="true"></td>
-                                <td><input type="checkbox" name="permissions[4][guest]" class="permission-checkbox" value="true"></td>
                                 <td><input type="checkbox" name="permissions[4][ownerHomestay]" class="permission-checkbox" checked value="true"></td>
                                 <td><input type="checkbox" name="permissions[4][ownerRestaurant]" class="permission-checkbox" checked value="true"></td>
                                 <td>
@@ -474,7 +469,6 @@
                                 <td>Đặt phòng</td>
                                 <td>/booking</td>
                                 <td><input type="checkbox" name="permissions[5][customer]" class="permission-checkbox" checked value="true"></td>
-                                <td><input type="checkbox" name="permissions[5][guest]" class="permission-checkbox" checked value="true"></td>
                                 <td><input type="checkbox" name="permissions[5][ownerHomestay]" class="permission-checkbox" value="true"></td>
                                 <td><input type="checkbox" name="permissions[5][ownerRestaurant]" class="permission-checkbox" value="true"></td>
                                 <td>
@@ -492,7 +486,6 @@
                                 <td>Thanh toán</td>
                                 <td>/payment</td>
                                 <td><input type="checkbox" name="permissions[6][customer]" class="permission-checkbox" checked value="true"></td>
-                                <td><input type="checkbox" name="permissions[6][guest]" class="permission-checkbox" value="true"></td>
                                 <td><input type="checkbox" name="permissions[6][ownerHomestay]" class="permission-checkbox" checked value="true"></td>
                                 <td><input type="checkbox" name="permissions[6][ownerRestaurant]" class="permission-checkbox" checked value="true"></td>
                                 <td>
