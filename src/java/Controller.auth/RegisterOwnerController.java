@@ -50,11 +50,11 @@ public class RegisterOwnerController extends HttpServlet {
         String phone = request.getParameter("phone");
         String password = request.getParameter("password");
         String confirmPassword = request.getParameter("confirm-password");
-        String personalAddress = request.getParameter("personal-address"); 
+        String personalAddress = request.getParameter("personal-address");
         String businessName = request.getParameter("business-name");
         String businessType = request.getParameter("business-type");
         String businessAddress = request.getParameter("business-address");
-        String description = request.getParameter("description");        
+        String description = request.getParameter("description");
 
         // Kiểm tra null hoặc rỗng
         if (fullName == null || citizenId == null || email == null || phone == null || password == null || confirmPassword == null
@@ -81,17 +81,29 @@ public class RegisterOwnerController extends HttpServlet {
             return;
         }
 
-        // Tạo đối tượng Roles với role_id = 2 (Owner)
-        Roles role = new Roles(2, "Owner", "Business Owner Role", LocalDateTime.now());
+        int roleId;
+        String roleName;
+        if ("homestay".equals(businessType)) {
+            roleId = 2;
+            roleName = "Owner Homestay";
+        } else if ("restaurant".equals(businessType)) {
+            roleId = 4;
+            roleName = "Owner Restaurant";
+        } else {
+            request.setAttribute("error", "Loại cơ sở không hợp lệ.");
+            request.getRequestDispatcher("/Authentication/RegisterOwner.jsp").forward(request, response);
+            return;
+        }
+        Roles role = new Roles(roleId, roleName, "Business Owner Role - " + businessType, LocalDateTime.now());
         Users user = new Users(
                 role,
                 fullName,
                 email,
-                password, 
+                password,
                 phone,
                 citizenId,
                 personalAddress,
-                null 
+                null
         );
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
