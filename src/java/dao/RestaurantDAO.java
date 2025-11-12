@@ -325,10 +325,7 @@ public class RestaurantDAO {
         biz.setReviewCount(dto.getReviewCount());
         biz.setPricePerNight(dto.getPricePerNight());
         biz.setStatus(dto.getStatus());
-        biz.setOpeningHour(dto.getOpeningHour() != null ? dto.getOpeningHour() : LocalTime.of(8, 0));  // Default nếu null
-        biz.setClosingHour(dto.getClosingHour() != null ? dto.getClosingHour() : LocalTime.of(22, 0));
         biz.setArea(dto.getArea());  // Giả sử Area copy OK
-        biz.setOwner(dto.getOwner());  // Copy Users
         
         return biz;
     }

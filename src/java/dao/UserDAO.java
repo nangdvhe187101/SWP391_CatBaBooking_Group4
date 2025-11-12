@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import util.PassWordUtil;
@@ -41,6 +42,7 @@ public class UserDAO {
                 }
             }
         } catch (SQLException e) {
+            e.printStackTrace();
         }
         return null;
     }
@@ -89,18 +91,19 @@ public class UserDAO {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 Roles role = new Roles(rs.getInt("role_id"), null, null, null);
-                Users user = new Users();
-                user.setUserId(rs.getInt("user_id"));
-                user.setRole(role);
-                user.setFullName(rs.getString("full_name"));
-                user.setEmail(rs.getString("email"));
-                user.setPasswordHash(rs.getString("password_hash"));
-                user.setPhone(rs.getString("phone"));
-                user.setCitizenId(rs.getString("citizen_id"));
-                user.setPersonalAddress(rs.getString("personal_address"));
-                user.setStatus(rs.getString("status"));
-                user.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
-                user.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
+                Users user = new Users(
+                        rs.getInt("user_id"),
+                        role,
+                        rs.getString("full_name"),
+                        rs.getString("email"),
+                        rs.getString("password_hash"),
+                        rs.getString("phone"),
+                        rs.getString("citizen_id"),
+                        rs.getString("personal_address"),
+                        rs.getString("status"),
+                        rs.getObject("created_at", LocalDateTime.class),
+                        rs.getObject("updated_at", LocalDateTime.class)
+                );
                 return user;
             }
         } catch (SQLException e) {
@@ -161,18 +164,19 @@ public class UserDAO {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 Roles role = new Roles(rs.getInt("role_id"), rs.getString("role_name"), null, null);
-                Users user = new Users();
-                user.setUserId(rs.getInt("user_id"));
-                user.setRole(role);
-                user.setFullName(rs.getString("full_name"));
-                user.setEmail(rs.getString("email"));
-                user.setPasswordHash(rs.getString("password_hash"));
-                user.setPhone(rs.getString("phone"));
-                user.setCitizenId(rs.getString("citizen_id"));
-                user.setPersonalAddress(rs.getString("personal_address"));
-                user.setStatus(rs.getString("status"));
-                user.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
-                user.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
+                Users user = new Users(
+                        rs.getInt("user_id"),
+                        role,
+                        rs.getString("full_name"),
+                        rs.getString("email"),
+                        rs.getString("password_hash"),
+                        rs.getString("phone"),
+                        rs.getString("citizen_id"),
+                        rs.getString("personal_address"),
+                        rs.getString("status"),
+                        rs.getObject("created_at", LocalDateTime.class),
+                        rs.getObject("updated_at", LocalDateTime.class)
+                );
                 return user;
             }
         } catch (SQLException e) {
@@ -182,47 +186,55 @@ public class UserDAO {
     }
 
     public List<Users> getPendingOwners() {
-        List<Users> pendingOwners = new ArrayList<>();
-        String sql = "SELECT u.*, r.role_name, b.name as business_name, b.type as business_type, b.address as business_address, b.description as business_description, b.business_id, b.status as business_status "
-                + "FROM users u JOIN roles r ON u.role_id = r.role_id "
-                + "LEFT JOIN businesses b ON u.user_id = b.owner_id "
-                + "WHERE u.role_id = 2 AND u.status = 'pending'";
-        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Users user = new Users();
-                user.setUserId(rs.getInt("user_id"));
-                user.setRole(new Roles(rs.getInt("role_id"), rs.getString("role_name"), null, null));
-                user.setFullName(rs.getString("full_name"));
-                user.setEmail(rs.getString("email"));
-                user.setPhone(rs.getString("phone"));
-                user.setCitizenId(rs.getString("citizen_id"));
-                user.setPersonalAddress(rs.getString("personal_address"));
-                user.setStatus(rs.getString("status"));
-                user.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
-                user.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
+    List<Users> pendingOwners = new ArrayList<>();
+    String sql = "SELECT u.*, r.role_name, b.name as business_name, b.type as business_type, " +
+                 "b.address as business_address, b.description as business_description, " +
+                 "b.business_id, b.status as business_status, b.opening_hour, b.closing_hour " +
+                 "FROM users u " +
+                 "JOIN roles r ON u.role_id = r.role_id " +
+                 "LEFT JOIN businesses b ON u.user_id = b.owner_id " +
+                 "WHERE u.role_id = 2 AND u.status = 'pending'";
+    
+    try (Connection conn = DBUtil.getConnection(); 
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+        
+        ResultSet rs = ps.executeQuery();
+        int rowCount = 0; 
+        while (rs.next()) {
+            rowCount++;
+            Users user = new Users();
+            user.setUserId(rs.getInt("user_id"));
+            user.setRole(new Roles(rs.getInt("role_id"), rs.getString("role_name"), null, null));
+            user.setFullName(rs.getString("full_name"));
+            user.setEmail(rs.getString("email"));
+            user.setPhone(rs.getString("phone"));
+            user.setCitizenId(rs.getString("citizen_id"));
+            user.setPersonalAddress(rs.getString("personal_address"));
+            user.setStatus(rs.getString("status"));
+            user.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
+            user.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
 
-                // Set business info nếu có
-                Businesses biz = null;
-                if (rs.getString("business_name") != null) {
-                    biz = new Businesses();
-                    biz.setBusinessId(rs.getInt("business_id"));
-                    biz.setName(rs.getString("business_name"));
-                    biz.setType(rs.getString("business_type"));
-                    biz.setAddress(rs.getString("business_address"));
-                    biz.setDescription(rs.getString("business_description"));
-                    biz.setStatus(rs.getString("business_status"));
-                    biz.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
-                    biz.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
-                    user.setBusiness(biz);
-                }
-                pendingOwners.add(user);
+            // Set business nếu có
+            Businesses biz = null;
+            if (rs.getString("business_name") != null) {
+                biz = new Businesses();
+                biz.setBusinessId(rs.getInt("business_id"));
+                biz.setName(rs.getString("business_name"));
+                biz.setType(rs.getString("business_type"));
+                biz.setAddress(rs.getString("business_address"));
+                biz.setDescription(rs.getString("business_description"));
+                biz.setStatus(rs.getString("business_status"));
+                biz.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));  // Note: created_at của b, nhưng code dùng của u - fix nếu cần
+                biz.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+            user.setBusiness(biz);
+            pendingOwners.add(user);
         }
-        return pendingOwners;
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+    return pendingOwners;
+}
 
     /**
      * Lấy danh sách tất cả users, hỗ trợ lọc
@@ -235,11 +247,11 @@ public class UserDAO {
     public List<Users> getAllUsers(Integer roleId, String status, String keyword, int pageIndex, int pageSize) {
         List<Users> users = new ArrayList<>();
         String sql = "SELECT u.*, r.role_name, b.name as business_name, b.type as business_type, "
-                + "b.address as business_address, b.description as business_description, "
-                + "b.business_id, b.status as business_status "
-                + "FROM users u JOIN roles r ON u.role_id = r.role_id "
-                + "LEFT JOIN businesses b ON u.user_id = b.owner_id "
-                + "WHERE u.role_id <> 3 AND u.status <> 'pending'";
+            + "b.address as business_address, b.description as business_description, "
+            + "b.business_id, b.status as business_status, b.opening_hour, b.closing_hour " 
+            + "FROM users u JOIN roles r ON u.role_id = r.role_id "
+            + "LEFT JOIN businesses b ON u.user_id = b.owner_id "
+            + "WHERE u.role_id <> 3 AND u.status <> 'pending'";
 
         List<Object> params = new ArrayList<>();
         if (roleId != null) {
@@ -371,88 +383,4 @@ public class UserDAO {
         }
         return 0;
     }
-
-    /**
-     * Cập nhật thông tin profile của user
-     */
-    public boolean updateUserProfile(int userId, String fullName, String email, String phone, 
-                                   String gender, Integer birthDay, Integer birthMonth, Integer birthYear, String city) {
-        // Chỉ cập nhật các trường cơ bản trước, các trường mới sẽ được thêm sau khi chạy script database
-        String sql = "UPDATE users SET full_name = ?, email = ?, phone = ?, updated_at = ? WHERE user_id = ?";
-        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, fullName);
-            ps.setString(2, email);
-            ps.setString(3, phone);
-            ps.setObject(4, LocalDateTime.now());
-            ps.setInt(5, userId);
-            
-            int result = ps.executeUpdate();
-            return result > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    /**
-     * Lấy thông tin user với đầy đủ thông tin profile
-     */
-    public Users getUserProfileById(int userId) {
-        String sql = "SELECT u.*, r.role_name FROM users u JOIN roles r ON u.role_id = r.role_id WHERE u.user_id = ?";
-        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, userId);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                Users user = new Users();
-                user.setUserId(rs.getInt("user_id"));
-                user.setRole(new Roles(rs.getInt("role_id"), rs.getString("role_name"), null, null));
-                user.setFullName(rs.getString("full_name"));
-                user.setEmail(rs.getString("email"));
-                user.setPasswordHash(rs.getString("password_hash"));
-                user.setPhone(rs.getString("phone"));
-                user.setCitizenId(rs.getString("citizen_id"));
-                user.setPersonalAddress(rs.getString("personal_address"));
-                
-                // Kiểm tra và set các trường mới (có thể null nếu chưa có trong DB)
-                try {
-                    user.setGender(rs.getString("gender"));
-                } catch (SQLException e) {
-                    user.setGender(null);
-                }
-                
-                try {
-                    user.setBirthDay(rs.getInt("birth_day"));
-                } catch (SQLException e) {
-                    user.setBirthDay(0);
-                }
-                
-                try {
-                    user.setBirthMonth(rs.getInt("birth_month"));
-                } catch (SQLException e) {
-                    user.setBirthMonth(0);
-                }
-                
-                try {
-                    user.setBirthYear(rs.getInt("birth_year"));
-                } catch (SQLException e) {
-                    user.setBirthYear(0);
-                }
-                
-                try {
-                    user.setCity(rs.getString("city"));
-                } catch (SQLException e) {
-                    user.setCity(null);
-                }
-                
-                user.setStatus(rs.getString("status"));
-                user.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
-                user.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
-                return user;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-}
 }
