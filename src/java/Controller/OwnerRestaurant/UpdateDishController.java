@@ -62,7 +62,7 @@ public class UpdateDishController extends HttpServlet {
 
         try {
             Users currentUser = (Users) session.getAttribute("currentUser");
-            if (currentUser == null || currentUser.getBusiness() == null) {
+            if (currentUser == null || currentUser.getBusiness() == null || currentUser.getRole().getRoleId() != 4) {
                 session.setAttribute("error", "Phiên làm việc hết hạn hoặc bạn không có quyền.");
                 response.sendRedirect(request.getContextPath() + "/Login");
                 return;

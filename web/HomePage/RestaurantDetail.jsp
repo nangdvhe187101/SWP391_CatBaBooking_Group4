@@ -208,7 +208,7 @@
                             </div>
                         </div>
                         <c:set var="page" value="${param.dishPage != null && param.dishPage > 0 ? param.dishPage : 1}" />
-                        <c:set var="itemsPerPage" value="2" />
+                        <c:set var="itemsPerPage" value="6" />
                         <c:set var="totalItems" value="${fn:length(dishes)}" />
                         <c:set var="totalPages" value="${(totalItems + itemsPerPage - 1) / itemsPerPage}" />
                         <c:set var="start" value="${(page - 1) * itemsPerPage}" />
