@@ -75,8 +75,8 @@ public class UserManagementController extends HttpServlet {
         try {
             int userId = Integer.parseInt(path.substring(1));
             Users user = userDAO.getUserById(userId);
-            if (user != null && user.getRole().getRoleId() == 2) {
-                Businesses business = businessDAO.getBusinessByOwnerId(userId); 
+            if (user != null && (user.getRole().getRoleId() == 2 || user.getRole().getRoleId() == 4)) {
+                Businesses business = businessDAO.getBusinessByOwnerId(userId);
                 if (business != null) {
                     user.setBusiness(business);
                 }
@@ -93,93 +93,113 @@ public class UserManagementController extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        Users currentUser = (Users) session.getAttribute("currentUser");
-        if (currentUser == null || currentUser.getRole().getRoleId() != 3) {
-            response.sendRedirect(request.getContextPath() + "/Login");
-            return;
-        }
-        String action = request.getParameter("action");
-        String roleParam = request.getParameter("role");
-        String statusParam = request.getParameter("status");
-        String keyword = request.getParameter("keyword");
-        String pageParam = request.getParameter("page");  // Thêm để giữ pageIndex
-        try {
-            int userId = Integer.parseInt(request.getParameter("userId"));
-            Users targetUser = userDAO.getUserById(userId);
-            boolean success = false;
-            if ("toggleStatus".equals(action)) {
-                success = userDAO.toggleUserStatus(userId, "toggle");
-                if (success && targetUser != null && targetUser.getRole().getRoleId() == 2) {
-                }
-            } else if ("updateStatus".equals(action)) {
-                String newStatus = request.getParameter("newStatus");
-                success = userDAO.toggleUserStatus(userId, newStatus);
-            }
-
-            if (success) {
-                statusParam = null;
-            }
-
-            String successParam = success ? "toggled" : "error";
-            StringBuilder redirectUrl = new StringBuilder(request.getContextPath() + "/user-management?success=" + successParam);
-            if (roleParam != null && !roleParam.isEmpty()) {
-                redirectUrl.append("&role=").append(roleParam);
-            }
-            if (statusParam != null && !statusParam.isEmpty()) {
-                redirectUrl.append("&status=").append(statusParam);
-            }
-            if (keyword != null && !keyword.isEmpty()) {
-                try {
-                    redirectUrl.append("&keyword=").append(URLEncoder.encode(keyword, "UTF-8"));
-                } catch (Exception e) {
-                    redirectUrl.append("&keyword=").append(keyword);
-                }
-            }
-            if (pageParam != null && !pageParam.isEmpty()) {
-                redirectUrl.append("&page=").append(pageParam);
-            }
-            response.sendRedirect(redirectUrl.toString());
-        } catch (NumberFormatException e) {
-            StringBuilder redirectUrl = new StringBuilder(request.getContextPath() + "/user-management?success=error");
-            if (roleParam != null && !roleParam.isEmpty()) {
-                redirectUrl.append("&role=").append(roleParam);
-            }
-            if (statusParam != null && !statusParam.isEmpty()) {
-                redirectUrl.append("&status=").append(statusParam);
-            }
-            if (keyword != null && !keyword.isEmpty()) {
-                try {
-                    redirectUrl.append("&keyword=").append(URLEncoder.encode(keyword, "UTF-8"));
-                } catch (Exception ex) {
-                    redirectUrl.append("&keyword=").append(keyword);
-                }
-            }
-            if (pageParam != null && !pageParam.isEmpty()) {
-                redirectUrl.append("&page=").append(pageParam);
-            }
-            response.sendRedirect(redirectUrl.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-            StringBuilder redirectUrl = new StringBuilder(request.getContextPath() + "/user-management?success=error");
-            if (roleParam != null && !roleParam.isEmpty()) {
-                redirectUrl.append("&role=").append(roleParam);
-            }
-            if (statusParam != null && !statusParam.isEmpty()) {
-                redirectUrl.append("&status=").append(statusParam);
-            }
-            if (keyword != null && !keyword.isEmpty()) {
-                try {
-                    redirectUrl.append("&keyword=").append(URLEncoder.encode(keyword, "UTF-8"));
-                } catch (Exception ex) {
-                    redirectUrl.append("&keyword=").append(keyword);
-                }
-            }
-            if (pageParam != null && !pageParam.isEmpty()) {
-                redirectUrl.append("&page=").append(pageParam);
-            }
-            response.sendRedirect(redirectUrl.toString());
-        }
+protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    HttpSession session = request.getSession();
+    Users currentUser = (Users) session.getAttribute("currentUser");
+    if (currentUser == null || currentUser.getRole().getRoleId() != 3) {
+        response.sendRedirect(request.getContextPath() + "/Login");
+        return;
     }
+    String action = request.getParameter("action");
+    String roleParam = request.getParameter("role");
+    String statusParam = request.getParameter("status");
+    String keyword = request.getParameter("keyword");
+    String pageParam = request.getParameter("page");   
+    try {
+        int userId = Integer.parseInt(request.getParameter("userId"));
+        Users targetUser = userDAO.getUserById(userId);
+        boolean success = false;      
+        if ("toggleStatus".equals(action)) {
+            success = userDAO.toggleUserStatus(userId, "toggle");
+            
+            // Cập nhật business status nếu user là owner (role 2 hoặc 4)
+            if (success && targetUser != null && 
+                (targetUser.getRole().getRoleId() == 2 || targetUser.getRole().getRoleId() == 4)) {
+                
+                // Lấy status mới của user
+                Users updatedUser = userDAO.getUserById(userId);
+                String newUserStatus = updatedUser.getStatus();
+                
+                // Cập nhật business status tương ứng
+                String newBusinessStatus = "active".equals(newUserStatus) ? "active" : "rejected";
+                businessDAO.updateBusinessStatus(userId, newBusinessStatus);
+            }
+            
+        } else if ("updateStatus".equals(action)) {
+            String newStatus = request.getParameter("newStatus");
+            success = userDAO.toggleUserStatus(userId, newStatus);
+            
+            // Cập nhật business status nếu user là owner
+            if (success && targetUser != null && 
+                (targetUser.getRole().getRoleId() == 2 || targetUser.getRole().getRoleId() == 4)) {
+                
+                String newBusinessStatus = "active".equals(newStatus) ? "active" : "rejected";
+                businessDAO.updateBusinessStatus(userId, newBusinessStatus);
+            }
+        }
+
+        if (success) {
+            statusParam = null;
+        }
+
+        String successParam = success ? "toggled" : "error";
+        StringBuilder redirectUrl = new StringBuilder(request.getContextPath() + "/user-management?success=" + successParam);
+        if (roleParam != null && !roleParam.isEmpty()) {
+            redirectUrl.append("&role=").append(roleParam);
+        }
+        if (statusParam != null && !statusParam.isEmpty()) {
+            redirectUrl.append("&status=").append(statusParam);
+        }
+        if (keyword != null && !keyword.isEmpty()) {
+            try {
+                redirectUrl.append("&keyword=").append(URLEncoder.encode(keyword, "UTF-8"));
+            } catch (Exception e) {
+                redirectUrl.append("&keyword=").append(keyword);
+            }
+        }
+        if (pageParam != null && !pageParam.isEmpty()) {
+            redirectUrl.append("&page=").append(pageParam);
+        }
+        response.sendRedirect(redirectUrl.toString());      
+    } catch (NumberFormatException e) {
+        StringBuilder redirectUrl = new StringBuilder(request.getContextPath() + "/user-management?success=error");
+        if (roleParam != null && !roleParam.isEmpty()) {
+            redirectUrl.append("&role=").append(roleParam);
+        }
+        if (statusParam != null && !statusParam.isEmpty()) {
+            redirectUrl.append("&status=").append(statusParam);
+        }
+        if (keyword != null && !keyword.isEmpty()) {
+            try {
+                redirectUrl.append("&keyword=").append(URLEncoder.encode(keyword, "UTF-8"));
+            } catch (Exception ex) {
+                redirectUrl.append("&keyword=").append(keyword);
+            }
+        }
+        if (pageParam != null && !pageParam.isEmpty()) {
+            redirectUrl.append("&page=").append(pageParam);
+        }
+        response.sendRedirect(redirectUrl.toString());       
+    } catch (Exception e) {
+        e.printStackTrace();
+        StringBuilder redirectUrl = new StringBuilder(request.getContextPath() + "/user-management?success=error");
+        if (roleParam != null && !roleParam.isEmpty()) {
+            redirectUrl.append("&role=").append(roleParam);
+        }
+        if (statusParam != null && !statusParam.isEmpty()) {
+            redirectUrl.append("&status=").append(statusParam);
+        }
+        if (keyword != null && !keyword.isEmpty()) {
+            try {
+                redirectUrl.append("&keyword=").append(URLEncoder.encode(keyword, "UTF-8"));
+            } catch (Exception ex) {
+                redirectUrl.append("&keyword=").append(keyword);
+            }
+        }
+        if (pageParam != null && !pageParam.isEmpty()) {
+            redirectUrl.append("&page=").append(pageParam);
+        }
+        response.sendRedirect(redirectUrl.toString());
+    }
+}
 }

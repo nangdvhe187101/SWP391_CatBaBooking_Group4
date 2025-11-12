@@ -10,8 +10,7 @@ import java.io.IOException;
 import model.Users;
 import dao.UserDAO;
 
-//@WebServlet("/Login")
-@WebServlet(name = "LoginController", urlPatterns = {"/Login"})
+@WebServlet("/Login")
 public class LoginController extends HttpServlet {
 
     private UserDAO userDAO;
@@ -23,7 +22,7 @@ public class LoginController extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.getRequestDispatcher("/Authentication/Login.jsp").forward(request, response);
     }
@@ -39,7 +38,7 @@ public class LoginController extends HttpServlet {
         }
         Users user = userDAO.authenticateUser(email, password);
         if (user != null) {
-            String userStatus = user.getStatus(); 
+            String userStatus = user.getStatus();
             if ("active".equalsIgnoreCase(userStatus)) {
                 HttpSession session = request.getSession(true);
                 session.setAttribute("currentUser", user);
@@ -49,10 +48,11 @@ public class LoginController extends HttpServlet {
                     case "admin":
                         response.sendRedirect(request.getContextPath() + "/AdminPage/Dashboard.jsp");
                         break;
-                    case "owner":
+                    case "owner homestay":
+                    case "owner restaurant":
                         response.sendRedirect(request.getContextPath() + "/OwnerPage/Dashboard.jsp");
                         break;
-                    default: 
+                    default:
                         response.sendRedirect(request.getContextPath() + "/Home");
                         break;
                 }

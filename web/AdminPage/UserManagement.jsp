@@ -63,7 +63,7 @@
                                         </c:choose>
                                     </div>
                                 </div>
-                                <c:if test="${user.role.roleId == 2 && not empty user.business}">
+                                <c:if test="${(user.role.roleId == 2 || user.role.roleId == 4) && not empty user.business}">
                                     <div class="detail-column">
                                         <h4>THÔNG TIN CƠ SỞ KINH DOANH</h4>
                                         <div class="detail-item"><strong>Tên cơ sở:</strong> ${user.business.name}</div>
@@ -88,7 +88,8 @@
                                     <select name="role">
                                         <option value="">Tất cả quyền</option>
                                         <option value="1" ${roleFilter == '1' ? 'selected' : ''}>Customer</option>
-                                        <option value="2" ${roleFilter == '2' ? 'selected' : ''}>Owner</option>
+                                        <option value="2" ${roleFilter == '2' ? 'selected' : ''}>Owner Homestay</option>
+                                        <option value="4" ${roleFilter == '4' ? 'selected' : ''}>Owner Restaurant</option>
                                     </select>
                                     <select name="status">
                                         <option value="">Tất cả trạng thái</option>

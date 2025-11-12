@@ -68,13 +68,13 @@
     nbproject/build-impl.xml file. 
 
     -->
-    <!-- Task tự động copy ảnh sau build -->
+    <!-- Task tá»± Ä‘á»™ng copy áº£nh sau build -->
     <target name="-post-compile" depends="-pre-compile">
         <echo message="=== Auto Copy Dishes Images From Backup ==="/>
-        <mkdir dir="${build.web.dir}/uploads/dishes"/>  <!-- Tạo dir nếu chưa có -->
+        <mkdir dir="${build.web.dir}/uploads/dishes"/>  <!-- Táº¡o dir náº¿u chÆ°a cÃ³ -->
         <copy todir="${build.web.dir}/uploads/dishes" failonerror="false">
-            <fileset dir="C:\Users\jackd\Máy tính\CatBaBackup\dish_images">  <!-- Đường dẫn backup của bạn -->
-                <include name="**/*"/>  <!-- Copy tất cả file ảnh -->
+            <fileset dir="C:\Users\ADMIN\Desktop\CatBaBackup\dish_images">  <!-- ÄÆ°á»ng dáº«n backup cá»§a báº¡n -->
+                <include name="**/*"/>  <!-- Copy táº¥t cáº£ file áº£nh -->
             </fileset>
         </copy>
         <echo message="Copy dishes images done!"/>
@@ -82,10 +82,10 @@
     <!-- Auto copy images to backup after compile/run (post-deploy) -->
     <target name="-post-run-deploy">
         <echo message="=== Auto Copy Dishes Images TO Backup After Run/Deploy ==="/>
-        <mkdir dir="C:/Users/jackd/Máy tính/CatBaBackup/dish_images"/>  <!-- Tạo backup dir nếu chưa -->
-        <copy todir="C:/Users/jackd/Máy tính/CatBaBackup/dish_images" failonerror="false" overwrite="true">
-            <fileset dir="${build.web.dir}/uploads/dishes">  <!-- Từ build dir -->
-                <include name="**/*"/>  <!-- Tất cả file ảnh -->
+        <mkdir dir="C:/Users/ADMIN/Desktop/CatBaBackup/dish_images"/>  <!-- Táº¡o backup dir náº¿u chÆ°a -->
+        <copy todir="C:/Users/ADMIN/Desktop/CatBaBackup/dish_images" failonerror="false" overwrite="true">
+            <fileset dir="${build.web.dir}/uploads/dishes">  <!-- Tá»« build dir -->
+                <include name="**/*"/>  <!-- Táº¥t cáº£ file áº£nh -->
             </fileset>
         </copy>
         <echo message="Copy to backup done!"/>

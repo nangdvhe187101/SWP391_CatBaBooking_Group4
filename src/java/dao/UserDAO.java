@@ -193,7 +193,7 @@ public class UserDAO {
                  "FROM users u " +
                  "JOIN roles r ON u.role_id = r.role_id " +
                  "LEFT JOIN businesses b ON u.user_id = b.owner_id " +
-                 "WHERE u.role_id = 2 AND u.status = 'pending'";
+                 "WHERE u.role_id IN (2, 4) AND u.status = 'pending'";
     
     try (Connection conn = DBUtil.getConnection(); 
          PreparedStatement ps = conn.prepareStatement(sql)) {
