@@ -46,10 +46,8 @@ public class Features {
         this.url = url;
     }
 
-
     @Override
     public String toString() {
         return "Features{" + "featureId=" + featureId + ", featureName=" + featureName + ", url=" + url + '}';
     }
-
 }
