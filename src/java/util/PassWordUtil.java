@@ -40,43 +40,4 @@ public class PassWordUtil {
         String passwordPattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\\-=\\[\\]{}|']).{8,64}$";
         return password != null && password.matches(passwordPattern);
     }
-
-    public static void main(String[] args) {
-        try (Scanner scanner = new Scanner(System.in)) {
-            String passwordToHash;
-            String hash;
-
-            while (true) {
-                System.out.print("⌨️ Vui lòng nhập mật khẩu để tạo hash: ");
-                passwordToHash = scanner.nextLine();
-
-                if (isValidPassword(passwordToHash)) {
-                    System.out.println("✅ Mật khẩu hợp lệ. Đang tiến hành hash...");
-                    break; // Thoát khỏi vòng lặp nếu mật khẩu hợp lệ
-                } else {
-                    System.out.println("❌ Mật khẩu không đủ mạnh! Yêu cầu: 8-64 ký tự, có chữ hoa, chữ thường, số, và ký tự đặc biệt.");
-                    System.out.println("   Vui lòng thử lại.\n");
-                }
-            }
-
-            hash = hashPassword(passwordToHash);
-            System.out.println("\n✅ Hash đã được tạo thành công!");
-            System.out.println("   🔐 Mật khẩu gốc   : " + passwordToHash);
-            System.out.println("   🔑 Hash để lưu trữ : " + hash);
-            System.out.println("----------------------------------------");
-
-            System.out.println("Bây giờ, hãy xác thực mật khẩu bạn vừa tạo.");
-            while (true) {
-                System.out.print("⌨️ Vui lòng nhập lại mật khẩu để xác thực: ");
-                String passwordToVerify = scanner.nextLine();
-                if (verifyPassword(hash, passwordToVerify)) {
-                    System.out.println("✅ Tuyệt vời! Xác thực thành công! Mật khẩu khớp.");
-                    break; // Thoát khỏi vòng lặp khi xác thực đúng
-                } else {
-                    System.out.println("❌ Sai rồi! Mật khẩu không khớp. Vui lòng thử lại.");
-                }
-            }
-            System.out.println("Chương trình kết thúc.");
-        }
-    }
 }
