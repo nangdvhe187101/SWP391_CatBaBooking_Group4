@@ -65,7 +65,10 @@ public class BusinessDAO {
     }
 
     public Businesses getBusinessByOwnerId(int ownerId) {
-        String sql = "SELECT * FROM businesses WHERE owner_id = ?";
+        String sql = "SELECT b.*, a.area_id AS area_id_fk, a.name AS area_name "
+                + "FROM businesses b "
+                + "LEFT JOIN areas a ON b.area_id = a.area_id "
+                + "WHERE b.owner_id = ?";
         try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, ownerId);
             ResultSet rs = ps.executeQuery();
@@ -146,6 +149,14 @@ public class BusinessDAO {
                 biz.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
                 biz.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
                 biz.setImage(rs.getString("image"));
+                Integer areaIdFk = rs.getInt("area_id_fk");
+                if (!rs.wasNull() && areaIdFk != 0) {
+                    Areas area = new Areas();
+                    area.setAreaId(areaIdFk);
+                    area.setName(rs.getString("area_name"));
+                    biz.setArea(area);
+                }
+
                 return biz;
             }
         } catch (SQLException e) {
@@ -155,7 +166,7 @@ public class BusinessDAO {
     }
 
     //Hàm Dao chức năng RestaurantSettings
-    public int updateBusinessSettingsByOwnerId(int ownerId, String name, String address, String description, String image, Integer areaId)
+    public int updateBusinessSettingsByOwnerId(int ownerId, String name, String address, String description, String image, Integer areaId, LocalTime openingHour, LocalTime closingHour)
             throws SQLException {
         String sql = "UPDATE businesses "
                 + "SET name=?, address=?, description=?, image=?, area_id=?, updated_at=? "
@@ -171,8 +182,20 @@ public class BusinessDAO {
             } else {
                 ps.setInt(5, areaId);
             }
-            ps.setObject(6, LocalDateTime.now());
-            ps.setInt(7, ownerId);
+            if (openingHour == null) {
+                ps.setNull(6, java.sql.Types.TIME);
+            } else {
+                ps.setObject(6, openingHour);
+            }
+            if (closingHour == null) {
+                ps.setNull(7, java.sql.Types.TIME);
+            } else {
+                ps.setObject(7, closingHour);
+            }
+
+            ps.setObject(8, LocalDateTime.now());
+            ps.setInt(9, ownerId);
+
             return ps.executeUpdate();
         }
     }
