@@ -10,7 +10,8 @@ import java.io.IOException;
 import model.Users;
 import dao.UserDAO;
 
-@WebServlet("/Login")
+//@WebServlet("/Login")
+@WebServlet(name = "LoginController", urlPatterns = {"/Login"})
 public class LoginController extends HttpServlet {
 
     private UserDAO userDAO;

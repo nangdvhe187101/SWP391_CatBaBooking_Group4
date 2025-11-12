@@ -548,4 +548,153 @@ public List<RoomsDTO> getAvailableRooms(int businessId, LocalDate checkIn, Local
     
     return rooms;
 }
+
+/**
+     * Lấy danh sách phòng theo businessId có phân trang.
+     *
+     * @param businessId ID của homestay
+     * @param page Số trang hiện tại (bắt đầu từ 1)
+     * @param pageSize Số phòng trên mỗi trang
+     * @return Danh sách phòng
+     */
+    public List<Rooms> getPaginatedRoomsByBusinessId(int businessId, int page, int pageSize) {
+        List<Rooms> rooms = new ArrayList<>();
+        String sql = "SELECT * FROM rooms WHERE business_id = ? ORDER BY name ASC LIMIT ? OFFSET ?";
+        int offset = (page - 1) * pageSize;
+
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, businessId);
+            stmt.setInt(2, pageSize);
+            stmt.setInt(3, offset);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Rooms room = new Rooms();
+                    room.setRoomId(rs.getInt("room_id"));
+                    // Chúng ta không cần set business đầy đủ ở đây để tránh gọi đệ quy
+                    // Tạm thời set businessId vào một trường (nếu có) hoặc để null
+                    room.setName(rs.getString("name"));
+                    room.setCapacity(rs.getInt("capacity"));
+                    room.setPricePerNight(rs.getBigDecimal("price_per_night"));
+                    room.setIsActive(rs.getBoolean("is_active"));
+                    rooms.add(room);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return rooms;
+    }
+
+    /**
+     * Đếm tổng số phòng của một homestay.
+     *
+     * @param businessId ID của homestay
+     * @return Tổng số phòng
+     */
+    public int countRoomsByBusinessId(int businessId) {
+        String sql = "SELECT COUNT(*) FROM rooms WHERE business_id = ?";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, businessId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * Lấy thông tin một phòng bằng ID và businessId (để xác thực chủ sở hữu).
+     *
+     * @param roomId ID của phòng
+     * @param businessId ID của homestay
+     * @return Đối tượng Rooms nếu tìm thấy, ngược lại là null
+     */
+    public Rooms getRoomById(int roomId, int businessId) {
+        String sql = "SELECT * FROM rooms WHERE room_id = ? AND business_id = ?";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, roomId);
+            stmt.setInt(2, businessId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Rooms room = new Rooms();
+                    room.setRoomId(rs.getInt("room_id"));
+                    room.setName(rs.getString("name"));
+                    room.setCapacity(rs.getInt("capacity"));
+                    room.setPricePerNight(rs.getBigDecimal("price_per_night"));
+                    room.setIsActive(rs.getBoolean("is_active"));
+                    // Không set business để tránh vòng lặp
+                    return room;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Cập nhật thông tin phòng.
+     *
+     * @param room Đối tượng Rooms chứa thông tin mới
+     * @return true nếu cập nhật thành công, false nếu thất bại
+     */
+    public boolean updateRoom(Rooms room) {
+        String sql = "UPDATE rooms SET name = ?, capacity = ?, price_per_night = ?, is_active = ? WHERE room_id = ? AND business_id = ?";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, room.getName());
+            stmt.setInt(2, room.getCapacity());
+            stmt.setBigDecimal(3, room.getPricePerNight());
+            stmt.setBoolean(4, room.isIsActive());
+            stmt.setInt(5, room.getRoomId());
+            stmt.setInt(6, room.getBusiness().getBusinessId());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Xóa phòng vĩnh viễn.
+     *
+     * @param roomId ID phòng cần xóa
+     * @param businessId ID của homestay (để xác thực)
+     * @return true nếu xóa thành công, false nếu thất bại
+     */
+    public boolean deleteRoom(int roomId, int businessId) {
+        String sql = "DELETE FROM rooms WHERE room_id = ? AND business_id = ?";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, roomId);
+            stmt.setInt(2, businessId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Cập nhật trạng thái active/inactive cho phòng.
+     *
+     * @param roomId ID phòng
+     * @param isActive Trạng thái mới
+     * @param businessId ID của homestay (để xác thực)
+     * @return true nếu cập nhật thành công, false nếu thất bại
+     */
+    public boolean updateRoomStatus(int roomId, boolean isActive, int businessId) {
+        String sql = "UPDATE rooms SET is_active = ? WHERE room_id = ? AND business_id = ?";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setBoolean(1, isActive);
+            stmt.setInt(2, roomId);
+            stmt.setInt(3, businessId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
