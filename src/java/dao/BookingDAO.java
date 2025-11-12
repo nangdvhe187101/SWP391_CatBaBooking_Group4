@@ -12,7 +12,9 @@ import java.util.UUID;
 import model.Bookings;
 import model.BookingDishes;
 import model.Businesses;
+import model.Rooms;
 import model.Users;
+import model.dto.BookedRoomDTO;
 import util.DBUtil;
 
 /**
@@ -510,4 +512,200 @@ public class BookingDAO {
         }
         return null;
     }
+    
+    public List<Bookings> getHomestayBookingsByBusinessId(int businessId, String statusFilter, int page, int pageSize) {
+        List<Bookings> bookingList = new ArrayList<>();
+        int offset = (page - 1) * pageSize;
+
+        // Dùng SELECT b.* sẽ lấy tất cả các cột, bao gồm cả 'created_at'
+        // nhưng model của bạn không có trường này, nên chúng ta sẽ bỏ qua nó.
+        StringBuilder sql = new StringBuilder(
+            "SELECT b.* FROM bookings b " +
+            "JOIN businesses biz ON b.business_id = biz.business_id " +
+            "WHERE b.business_id = ? AND biz.type = 'homestay' ");
+
+        if (statusFilter != null && !statusFilter.equalsIgnoreCase("all")) {
+            sql.append(" AND b.status = ? ");
+        }
+        // Sắp xếp theo created_at (vẫn tồn tại trong DB)
+        sql.append(" ORDER BY b.created_at DESC LIMIT ? OFFSET ?"); 
+
+        try (Connection conn = DBUtil.getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            
+            int paramIndex = 1;
+            stmt.setInt(paramIndex++, businessId);
+            
+            if (statusFilter != null && !statusFilter.equalsIgnoreCase("all")) {
+                stmt.setString(paramIndex++, statusFilter);
+            }
+            stmt.setInt(paramIndex++, pageSize);
+            stmt.setInt(paramIndex++, offset);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Bookings booking = new Bookings();
+                    booking.setBookingId(rs.getInt("booking_id"));
+                    booking.setBookingCode(rs.getString("booking_code"));
+                    
+                    // SỬA LỖI 1: Model 'Bookings' dùng setBusiness(Businesses)
+                    Businesses tempBiz = new Businesses();
+                    tempBiz.setBusinessId(rs.getInt("business_id"));
+                    booking.setBusiness(tempBiz); // <-- ĐÃ SỬA
+                    
+                    booking.setBookerName(rs.getString("booker_name"));
+                    booking.setBookerEmail(rs.getString("booker_email"));
+                    booking.setBookerPhone(rs.getString("booker_phone"));
+                    booking.setNumGuests(rs.getInt("num_guests"));
+                    booking.setTotalPrice(rs.getBigDecimal("total_price"));
+                    booking.setPaidAmount(rs.getBigDecimal("paid_amount"));
+                    booking.setPaymentStatus(rs.getString("payment_status"));
+                    booking.setNotes(rs.getString("notes"));
+                    
+                    // Các trường này dùng cho Homestay
+                    booking.setReservationStartTime(rs.getObject("reservation_start_time", LocalDateTime.class));
+                    booking.setReservationEndTime(rs.getObject("reservation_end_time", LocalDateTime.class));
+                    
+                    booking.setStatus(rs.getString("status"));
+                    
+                    // SỬA LỖI 2: Map các trường legacy (dùng cho restaurant)
+                    // vì model của bạn (lượt 28) CÓ CÁC TRƯỜNG NÀY
+                    booking.setReservation_date(rs.getObject("reservation_date", LocalDateTime.class));
+                    booking.setReservation_time(rs.getObject("reservation_time", LocalDateTime.class));
+
+                    // SỬA LỖI 3: XÓA DÒNG GÂY LỖI
+                    // booking.setCreatedAt(...) <-- Đã xóa vì model (lượt 28) không có
+                    
+                    bookingList.add(booking);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return bookingList;
+    }
+
+    /**
+     * Đếm tổng số đơn đặt phòng (homestay) cho phân trang.
+     * (Hàm này không có lỗi, giữ nguyên)
+     */
+    public int countHomestayBookingsByBusinessId(int businessId, String statusFilter) {
+        StringBuilder sql = new StringBuilder(
+            "SELECT COUNT(*) FROM bookings b " +
+            "JOIN businesses biz ON b.business_id = biz.business_id " +
+            "WHERE b.business_id = ? AND biz.type = 'homestay' ");
+
+        if (statusFilter != null && !statusFilter.equalsIgnoreCase("all")) {
+            sql.append(" AND b.status = ? ");
+        }
+
+        try (Connection conn = DBUtil.getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            
+            int paramIndex = 1;
+            stmt.setInt(paramIndex++, businessId);
+            
+            if (statusFilter != null && !statusFilter.equalsIgnoreCase("all")) {
+                stmt.setString(paramIndex++, statusFilter);
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * Lấy danh sách các phòng đã đặt cho một đơn hàng (booking).
+     */
+    public List<BookedRoomDTO> getBookedRoomsByBookingId(int bookingId) {
+        List<BookedRoomDTO> bookedRooms = new ArrayList<>();
+        String sql = "SELECT br.*, r.name as room_name FROM booked_rooms br " +
+                     "JOIN rooms r ON br.room_id = r.room_id " +
+                     "WHERE br.booking_id = ?";
+        
+        try (Connection conn = DBUtil.getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, bookingId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    BookedRoomDTO dto = new BookedRoomDTO();
+                    dto.setBookedRoomId(rs.getInt("booked_room_id"));
+                    
+                    // SỬA LỖI 4: Model 'BookedRooms' dùng setBooking(Bookings)
+                    Bookings tempBooking = new Bookings();
+                    tempBooking.setBookingId(rs.getInt("booking_id"));
+                    dto.setBooking(tempBooking); // <-- ĐÃ SỬA
+                    
+                    // SỬA LỖI 5: Model 'BookedRooms' dùng setRoom(Rooms)
+                    Rooms tempRoom = new Rooms();
+                    tempRoom.setRoomId(rs.getInt("room_id"));
+                    dto.setRoom(tempRoom); // <-- ĐÃ SỬA
+
+                    dto.setPriceAtBooking(rs.getBigDecimal("price_at_booking"));
+                    dto.setRoomName(rs.getString("room_name")); 
+                    
+                    bookedRooms.add(dto);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return bookedRooms;
+    }
+    
+    public Bookings getBookingById(int bookingId) {
+        Bookings booking = null;
+        String sql = "SELECT * FROM bookings WHERE booking_id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, bookingId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    booking = new Bookings();
+                    booking.setBookingId(rs.getInt("booking_id"));
+                    booking.setBookingCode(rs.getString("booking_code"));
+
+                    // Set User
+                    Users tempUser = new Users();
+                    tempUser.setUserId(rs.getInt("user_id"));
+                    booking.setUser(tempUser);
+
+                    // Set Business
+                    Businesses tempBiz = new Businesses();
+                    tempBiz.setBusinessId(rs.getInt("business_id"));
+                    booking.setBusiness(tempBiz);
+
+                    booking.setBookerName(rs.getString("booker_name"));
+                    booking.setBookerEmail(rs.getString("booker_email"));
+                    booking.setBookerPhone(rs.getString("booker_phone"));
+                    booking.setNumGuests(rs.getInt("num_guests"));
+                    booking.setTotalPrice(rs.getBigDecimal("total_price"));
+                    booking.setPaidAmount(rs.getBigDecimal("paid_amount"));
+                    booking.setPaymentStatus(rs.getString("payment_status"));
+                    booking.setNotes(rs.getString("notes"));
+
+                    // Map các trường thời gian
+                    booking.setReservationStartTime(rs.getObject("reservation_start_time", LocalDateTime.class));
+                    booking.setReservationEndTime(rs.getObject("reservation_end_time", LocalDateTime.class));
+                    booking.setReservation_date(rs.getObject("reservation_date", LocalDateTime.class));
+                    booking.setReservation_time(rs.getObject("reservation_time", LocalDateTime.class));
+                    
+                    booking.setStatus(rs.getString("status"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return booking;
+    }
+    
 }
