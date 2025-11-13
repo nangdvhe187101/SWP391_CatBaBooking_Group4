@@ -1166,5 +1166,84 @@ public class BookingDAO {
         } catch (SQLException e) { e.printStackTrace(); }
         return null;
     }
+    
+    /**
+     * Tính tổng doanh thu của Business (chỉ tính đơn đã hoàn thành/xác nhận)
+     */
+    public BigDecimal getTotalRevenue(int businessId) {
+        String sql = "SELECT SUM(total_price) FROM bookings " +
+                     "WHERE business_id = ? AND status IN ('confirmed', 'completed')";
+        try (Connection conn = DBUtil.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, businessId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBigDecimal(1) != null ? rs.getBigDecimal(1) : BigDecimal.ZERO;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return BigDecimal.ZERO;
+    }
+
+    /**
+     * Đếm số lượng đơn theo trạng thái (Dùng để đếm đơn chờ, đơn hủy, v.v...)
+     * Nếu statusFilter = null -> Đếm tất cả
+     */
+    public int countBookingsByStatus(int businessId, String statusFilter) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM bookings WHERE business_id = ?");
+        if (statusFilter != null) {
+            sql.append(" AND status = ?");
+        }
+        
+        try (Connection conn = DBUtil.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            ps.setInt(1, businessId);
+            if (statusFilter != null) {
+                ps.setString(2, statusFilter);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * Lấy danh sách 5 đơn đặt gần nhất (để hiển thị widget)
+     */
+    public List<Bookings> getRecentBookings(int businessId, int limit) {
+        List<Bookings> list = new ArrayList<>();
+        // Lấy 5 đơn mới nhất dựa theo ngày tạo
+        String sql = "SELECT * FROM bookings WHERE business_id = ? ORDER BY created_at DESC LIMIT ?";
+        
+        try (Connection conn = DBUtil.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, businessId);
+            ps.setInt(2, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Bookings b = new Bookings();
+                    b.setBookingId(rs.getInt("booking_id"));
+                    b.setBookingCode(rs.getString("booking_code"));
+                    b.setBookerName(rs.getString("booker_name"));
+                    b.setTotalPrice(rs.getBigDecimal("total_price"));
+                    b.setStatus(rs.getString("status"));
+                    // Lấy created_at
+                    java.sql.Timestamp ts = rs.getTimestamp("created_at");
+                    
+                    list.add(b);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 
 }

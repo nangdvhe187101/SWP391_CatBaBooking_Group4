@@ -50,8 +50,10 @@ public class LoginController extends HttpServlet {
                         response.sendRedirect(request.getContextPath() + "/AdminPage/Dashboard.jsp");
                         break;
                     case "owner homestay":
+                        response.sendRedirect(request.getContextPath() + "/owner-dashboard");
+                        break;
                     case "owner restaurant":
-                        response.sendRedirect(request.getContextPath() + "/OwnerPage/Dashboard.jsp");
+                        response.sendRedirect(request.getContextPath() + "/owner-dashboard");
                         break;
                     default:
                         response.sendRedirect(request.getContextPath() + "/Home");

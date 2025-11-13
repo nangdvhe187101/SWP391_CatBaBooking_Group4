@@ -14,7 +14,7 @@
     </div>
     <nav class="sidebar-nav">
         <ul>
-            <li><a href="Dashboard.jsp" class="nav-link">🏠 Tổng quan</a></li>
+            <li><a href="${pageContext.request.contextPath}/owner-dashboard" class="nav-link">🏠 Tổng quan</a></li>
             <li><a href="AddHomestay.jsp" class="nav-link">🏠 Thông tin Homestay</a></li>
             <li><a href="ManageHomestay.jsp" class="nav-link">🏠 Quản lý Homestay</a></li>
             <li><a href="${pageContext.request.contextPath}/manage-homestay-rooms" class="nav-link">🛏️ Quản lý Phòng</a></li>
