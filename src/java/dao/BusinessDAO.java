@@ -141,4 +141,20 @@ public class BusinessDAO {
             return ps.executeUpdate();
         }
     }
+    
+    // Phương thức để lấy business_id từ user_id
+    public int getBusinessIdForUser(int userId) throws SQLException {
+        String sql = "SELECT business_id FROM businesses WHERE owner_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("business_id");
+                }
+            }
+        }
+        throw new SQLException("Không tìm thấy business_id cho user_id: " + userId);
+    }
+
 }

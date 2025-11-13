@@ -14,7 +14,9 @@ import model.BookingDishes;
 import model.Businesses;
 import model.Rooms;
 import model.Users;
+import model.dto.BookedDishDTO;
 import model.dto.BookedRoomDTO;
+import model.dto.BookingsDTO;
 import util.DBUtil;
 
 /**
@@ -47,12 +49,12 @@ public class BookingDAO {
                     }
                 }
             }
-            
+
             if (!createInitialPayment(conn, bookingId, booking.getTotalPrice(), "sepay", booking.getBookingCode())) {
                 conn.rollback();
                 return -1;
             }
-            
+
             conn.commit();
             System.out.println("[BookingDAO] ✅ Created booking: " + booking.getBookingCode());
             return bookingId;
@@ -83,7 +85,7 @@ public class BookingDAO {
         if (booking.getStatus() == null) {
             booking.setStatus("pending");
         }
-        
+
         String bookingCode;
         if (booking.getBookingCode() == null || booking.getBookingCode().isEmpty()) {
             String shortUuid = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
@@ -93,7 +95,7 @@ public class BookingDAO {
             bookingCode = booking.getBookingCode();
         }
         booking.setBookingCode(bookingCode);
-        
+
         String sql = "INSERT INTO bookings (booking_code, user_id, business_id, booker_name, booker_email, booker_phone, "
                 + "num_guests, total_price, paid_amount, payment_status, notes, reservation_date, reservation_time, status) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -147,10 +149,10 @@ public class BookingDAO {
         }
     }
 
-    private boolean createInitialPayment(Connection conn, int bookingId, BigDecimal amount, 
-                                        String paymentMethod, String bookingCode) throws SQLException {
+    private boolean createInitialPayment(Connection conn, int bookingId, BigDecimal amount,
+            String paymentMethod, String bookingCode) throws SQLException {
         String sql = "INSERT INTO payments (booking_id, amount, payment_method, status, gateway_response, created_at) "
-                   + "VALUES (?, ?, ?, 'pending', ?, NOW())";
+                + "VALUES (?, ?, ?, 'pending', ?, NOW())";
 
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, bookingId);
@@ -178,7 +180,7 @@ public class BookingDAO {
         Connection conn = null;
         try {
             conn = DBUtil.getConnection();
-            
+
             BigDecimal paidSum = BigDecimal.ZERO;
             String sumSql = "SELECT COALESCE(SUM(amount), 0) FROM payments "
                     + "WHERE booking_id = ? AND status = 'completed'";
@@ -190,7 +192,7 @@ public class BookingDAO {
                     }
                 }
             }
-            
+
             BigDecimal totalPrice = BigDecimal.ZERO;
             String priceSql = "SELECT total_price FROM bookings WHERE booking_id = ?";
             try (PreparedStatement ps = conn.prepareStatement(priceSql)) {
@@ -201,7 +203,7 @@ public class BookingDAO {
                     }
                 }
             }
-            
+
             String newPaymentStatus;
             String newBookingStatus;
             if (paidSum.compareTo(totalPrice) >= 0) {
@@ -214,7 +216,7 @@ public class BookingDAO {
                 newPaymentStatus = "unpaid";
                 newBookingStatus = "pending";
             }
-            
+
             String updateSql = "UPDATE bookings SET paid_amount = ?, payment_status = ?, status = ? WHERE booking_id = ?";
             try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
                 ps.setBigDecimal(1, paidSum);
@@ -237,16 +239,15 @@ public class BookingDAO {
         if (bookingCode == null || bookingCode.trim().isEmpty()) {
             return null;
         }
-        
+
         String sql = "SELECT b.*, bus.business_id as bus_id, bus.name as bus_name "
                 + "FROM bookings b "
                 + "LEFT JOIN businesses bus ON b.business_id = bus.business_id "
                 + "WHERE b.booking_code = ? LIMIT 1";
-                
-        try (Connection conn = DBUtil.getConnection(); 
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, bookingCode.trim());
-            
+
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     Bookings b = new Bookings();
@@ -290,8 +291,7 @@ public class BookingDAO {
     public List<Bookings> getBookingsByUser(int userId) throws SQLException {
         List<Bookings> bookings = new ArrayList<>();
         String sql = "SELECT * FROM bookings WHERE user_id = ? ORDER BY created_at DESC";
-        try (Connection conn = DBUtil.getConnection(); 
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -310,8 +310,7 @@ public class BookingDAO {
      */
     public boolean updateBookingStatus(int bookingId, String newStatus) throws SQLException {
         String sql = "UPDATE bookings SET status = ? WHERE booking_id = ?";
-        try (Connection conn = DBUtil.getConnection(); 
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, newStatus);
             ps.setInt(2, bookingId);
             return ps.executeUpdate() > 0;
@@ -319,46 +318,44 @@ public class BookingDAO {
     }
 
     // ========== EXPIRY MANAGEMENT (KHÔNG dùng expiry_time column) ==========
-
     /**
-     * Lấy danh sách booking quá 5 phút chưa thanh toán
-     * Tính toán expiry on-the-fly từ created_at
+     * Lấy danh sách booking quá 5 phút chưa thanh toán Tính toán expiry
+     * on-the-fly từ created_at
      */
     public List<Bookings> getExpiredBookings(int limit) throws SQLException {
         List<Bookings> expired = new ArrayList<>();
-        
-        String sql = "SELECT b.booking_id, b.booking_code, b.business_id, b.status, b.payment_status, " +
-                     "       b.created_at, " +
-                     "       DATE_ADD(b.created_at, INTERVAL 5 MINUTE) as expiry_time " +
-                     "FROM bookings b " +
-                     "WHERE b.status = 'pending' " +
-                     "  AND b.payment_status IN ('unpaid', 'partially_paid') " +
-                     "  AND DATE_ADD(b.created_at, INTERVAL 5 MINUTE) < NOW() " +
-                     "ORDER BY b.created_at ASC " +
-                     "LIMIT ?";
-        
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+        String sql = "SELECT b.booking_id, b.booking_code, b.business_id, b.status, b.payment_status, "
+                + "       b.created_at, "
+                + "       DATE_ADD(b.created_at, INTERVAL 5 MINUTE) as expiry_time "
+                + "FROM bookings b "
+                + "WHERE b.status = 'pending' "
+                + "  AND b.payment_status IN ('unpaid', 'partially_paid') "
+                + "  AND DATE_ADD(b.created_at, INTERVAL 5 MINUTE) < NOW() "
+                + "ORDER BY b.created_at ASC "
+                + "LIMIT ?";
+
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, limit);
-            
+
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Bookings b = new Bookings();
                     b.setBookingId(rs.getInt("booking_id"));
                     b.setBookingCode(rs.getString("booking_code"));
-                    
+
                     Businesses business = new Businesses();
                     business.setBusinessId(rs.getInt("business_id"));
                     b.setBusiness(business);
-                    
+
                     b.setStatus(rs.getString("status"));
                     b.setPaymentStatus(rs.getString("payment_status"));
-                    
+
                     expired.add(b);
                 }
             }
         }
-        
+
         return expired;
     }
 
@@ -370,12 +367,12 @@ public class BookingDAO {
         try {
             conn = DBUtil.getConnection();
             conn.setAutoCommit(false);
-            
+
             // 1. Kiểm tra booking còn pending không
             String checkSql = "SELECT status, payment_status FROM bookings WHERE booking_id = ? FOR UPDATE";
             String currentStatus = null;
             String currentPaymentStatus = null;
-            
+
             try (PreparedStatement ps = conn.prepareStatement(checkSql)) {
                 ps.setInt(1, bookingId);
                 try (ResultSet rs = ps.executeQuery()) {
@@ -385,57 +382,57 @@ public class BookingDAO {
                     }
                 }
             }
-            
+
             // Nếu đã confirmed hoặc paid -> skip
-            if ("confirmed".equals(currentStatus) || 
-                "fully_paid".equals(currentPaymentStatus)) {
+            if ("confirmed".equals(currentStatus)
+                    || "fully_paid".equals(currentPaymentStatus)) {
                 conn.rollback();
                 System.out.println("[BookingDAO] ⚠️ Booking " + bookingId + " already confirmed, skip cancel");
                 return true;
             }
-            
+
             // Nếu đã bị hủy -> skip
-            if ("cancelled_by_owner".equals(currentStatus) || 
-                "cancelled_by_user".equals(currentStatus)) {
+            if ("cancelled_by_owner".equals(currentStatus)
+                    || "cancelled_by_user".equals(currentStatus)) {
                 conn.rollback();
                 System.out.println("[BookingDAO] ⚠️ Booking " + bookingId + " already cancelled");
                 return true;
             }
-            
+
             // 2. Update booking
-            String updateBookingSql = 
-                "UPDATE bookings " +
-                "SET status = 'cancelled_by_owner', " +
-                "    payment_status = 'refunded', " +
-                "    notes = CONCAT(COALESCE(notes, ''), ?) " +
-                "WHERE booking_id = ?";
-            
+            String updateBookingSql
+                    = "UPDATE bookings "
+                    + "SET status = 'cancelled_by_owner', "
+                    + "    payment_status = 'refunded', "
+                    + "    notes = CONCAT(COALESCE(notes, ''), ?) "
+                    + "WHERE booking_id = ?";
+
             try (PreparedStatement ps = conn.prepareStatement(updateBookingSql)) {
                 ps.setString(1, "\n[AUTO] " + (reason != null ? reason : "Hủy do quá 5 phút không thanh toán"));
                 ps.setInt(2, bookingId);
                 ps.executeUpdate();
             }
-            
+
             // 3. Update payments
-            String updatePaymentSql = 
-                "UPDATE payments " +
-                "SET status = 'failed', " +
-                "    gateway_response = CONCAT(COALESCE(gateway_response, ''), ?) " +
-                "WHERE booking_id = ? AND status = 'pending'";
-            
+            String updatePaymentSql
+                    = "UPDATE payments "
+                    + "SET status = 'failed', "
+                    + "    gateway_response = CONCAT(COALESCE(gateway_response, ''), ?) "
+                    + "WHERE booking_id = ? AND status = 'pending'";
+
             try (PreparedStatement ps = conn.prepareStatement(updatePaymentSql)) {
                 ps.setString(1, "\n[AUTO] Expired - " + (reason != null ? reason : "không thanh toán trong 5 phút"));
                 ps.setInt(2, bookingId);
                 ps.executeUpdate();
             }
-            
+
             // 4. Giải phóng bàn
             freeTableAvailability(conn, bookingId);
-            
+
             conn.commit();
             System.out.println("[BookingDAO] ✅ Cancelled expired booking: " + bookingId);
             return true;
-            
+
         } catch (SQLException e) {
             if (conn != null) {
                 try {
@@ -462,10 +459,10 @@ public class BookingDAO {
      * Giải phóng table availability
      */
     private void freeTableAvailability(Connection conn, int bookingId) throws SQLException {
-        String sql = "DELETE ta FROM table_availability ta " +
-                     "JOIN booked_tables bt ON ta.table_id = bt.table_id " +
-                     "WHERE bt.booking_id = ?";
-        
+        String sql = "DELETE ta FROM table_availability ta "
+                + "JOIN booked_tables bt ON ta.table_id = bt.table_id "
+                + "WHERE bt.booking_id = ?";
+
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, bookingId);
             int rows = ps.executeUpdate();
@@ -479,11 +476,10 @@ public class BookingDAO {
      * Kiểm tra booking có quá hạn không (tính từ created_at)
      */
     public boolean isBookingExpired(int bookingId) throws SQLException {
-        String sql = "SELECT DATE_ADD(created_at, INTERVAL 5 MINUTE) < NOW() as is_expired " +
-                     "FROM bookings WHERE booking_id = ?";
-        
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        String sql = "SELECT DATE_ADD(created_at, INTERVAL 5 MINUTE) < NOW() as is_expired "
+                + "FROM bookings WHERE booking_id = ?";
+
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, bookingId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -498,11 +494,10 @@ public class BookingDAO {
      * Lấy thời gian hết hạn timestamp (milliseconds) từ created_at
      */
     public Long getBookingExpiryTimestamp(String bookingCode) throws SQLException {
-        String sql = "SELECT UNIX_TIMESTAMP(DATE_ADD(created_at, INTERVAL 5 MINUTE)) * 1000 as expiry_ms " +
-                     "FROM bookings WHERE booking_code = ?";
-        
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        String sql = "SELECT UNIX_TIMESTAMP(DATE_ADD(created_at, INTERVAL 5 MINUTE)) * 1000 as expiry_ms "
+                + "FROM bookings WHERE booking_code = ?";
+
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, bookingCode);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -512,7 +507,7 @@ public class BookingDAO {
         }
         return null;
     }
-    
+
     public List<Bookings> getHomestayBookingsByBusinessId(int businessId, String statusFilter, int page, int pageSize) {
         List<Bookings> bookingList = new ArrayList<>();
         int offset = (page - 1) * pageSize;
@@ -520,22 +515,21 @@ public class BookingDAO {
         // Dùng SELECT b.* sẽ lấy tất cả các cột, bao gồm cả 'created_at'
         // nhưng model của bạn không có trường này, nên chúng ta sẽ bỏ qua nó.
         StringBuilder sql = new StringBuilder(
-            "SELECT b.* FROM bookings b " +
-            "JOIN businesses biz ON b.business_id = biz.business_id " +
-            "WHERE b.business_id = ? AND biz.type = 'homestay' ");
+                "SELECT b.* FROM bookings b "
+                + "JOIN businesses biz ON b.business_id = biz.business_id "
+                + "WHERE b.business_id = ? AND biz.type = 'homestay' ");
 
         if (statusFilter != null && !statusFilter.equalsIgnoreCase("all")) {
             sql.append(" AND b.status = ? ");
         }
         // Sắp xếp theo created_at (vẫn tồn tại trong DB)
-        sql.append(" ORDER BY b.created_at DESC LIMIT ? OFFSET ?"); 
+        sql.append(" ORDER BY b.created_at DESC LIMIT ? OFFSET ?");
 
-        try (Connection conn = DBUtil.getConnection(); 
-             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
-            
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
             int paramIndex = 1;
             stmt.setInt(paramIndex++, businessId);
-            
+
             if (statusFilter != null && !statusFilter.equalsIgnoreCase("all")) {
                 stmt.setString(paramIndex++, statusFilter);
             }
@@ -547,12 +541,12 @@ public class BookingDAO {
                     Bookings booking = new Bookings();
                     booking.setBookingId(rs.getInt("booking_id"));
                     booking.setBookingCode(rs.getString("booking_code"));
-                    
+
                     // SỬA LỖI 1: Model 'Bookings' dùng setBusiness(Businesses)
                     Businesses tempBiz = new Businesses();
                     tempBiz.setBusinessId(rs.getInt("business_id"));
                     booking.setBusiness(tempBiz); // <-- ĐÃ SỬA
-                    
+
                     booking.setBookerName(rs.getString("booker_name"));
                     booking.setBookerEmail(rs.getString("booker_email"));
                     booking.setBookerPhone(rs.getString("booker_phone"));
@@ -561,13 +555,13 @@ public class BookingDAO {
                     booking.setPaidAmount(rs.getBigDecimal("paid_amount"));
                     booking.setPaymentStatus(rs.getString("payment_status"));
                     booking.setNotes(rs.getString("notes"));
-                    
+
                     // Các trường này dùng cho Homestay
                     booking.setReservationStartTime(rs.getObject("reservation_start_time", LocalDateTime.class));
                     booking.setReservationEndTime(rs.getObject("reservation_end_time", LocalDateTime.class));
-                    
+
                     booking.setStatus(rs.getString("status"));
-                    
+
                     // SỬA LỖI 2: Map các trường legacy (dùng cho restaurant)
                     // vì model của bạn (lượt 28) CÓ CÁC TRƯỜNG NÀY
                     booking.setReservation_date(rs.getObject("reservation_date", LocalDateTime.class));
@@ -575,7 +569,6 @@ public class BookingDAO {
 
                     // SỬA LỖI 3: XÓA DÒNG GÂY LỖI
                     // booking.setCreatedAt(...) <-- Đã xóa vì model (lượt 28) không có
-                    
                     bookingList.add(booking);
                 }
             }
@@ -586,25 +579,24 @@ public class BookingDAO {
     }
 
     /**
-     * Đếm tổng số đơn đặt phòng (homestay) cho phân trang.
-     * (Hàm này không có lỗi, giữ nguyên)
+     * Đếm tổng số đơn đặt phòng (homestay) cho phân trang. (Hàm này không có
+     * lỗi, giữ nguyên)
      */
     public int countHomestayBookingsByBusinessId(int businessId, String statusFilter) {
         StringBuilder sql = new StringBuilder(
-            "SELECT COUNT(*) FROM bookings b " +
-            "JOIN businesses biz ON b.business_id = biz.business_id " +
-            "WHERE b.business_id = ? AND biz.type = 'homestay' ");
+                "SELECT COUNT(*) FROM bookings b "
+                + "JOIN businesses biz ON b.business_id = biz.business_id "
+                + "WHERE b.business_id = ? AND biz.type = 'homestay' ");
 
         if (statusFilter != null && !statusFilter.equalsIgnoreCase("all")) {
             sql.append(" AND b.status = ? ");
         }
 
-        try (Connection conn = DBUtil.getConnection(); 
-             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
-            
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
             int paramIndex = 1;
             stmt.setInt(paramIndex++, businessId);
-            
+
             if (statusFilter != null && !statusFilter.equalsIgnoreCase("all")) {
                 stmt.setString(paramIndex++, statusFilter);
             }
@@ -625,32 +617,31 @@ public class BookingDAO {
      */
     public List<BookedRoomDTO> getBookedRoomsByBookingId(int bookingId) {
         List<BookedRoomDTO> bookedRooms = new ArrayList<>();
-        String sql = "SELECT br.*, r.name as room_name FROM booked_rooms br " +
-                     "JOIN rooms r ON br.room_id = r.room_id " +
-                     "WHERE br.booking_id = ?";
-        
-        try (Connection conn = DBUtil.getConnection(); 
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+        String sql = "SELECT br.*, r.name as room_name FROM booked_rooms br "
+                + "JOIN rooms r ON br.room_id = r.room_id "
+                + "WHERE br.booking_id = ?";
+
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setInt(1, bookingId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     BookedRoomDTO dto = new BookedRoomDTO();
                     dto.setBookedRoomId(rs.getInt("booked_room_id"));
-                    
+
                     // SỬA LỖI 4: Model 'BookedRooms' dùng setBooking(Bookings)
                     Bookings tempBooking = new Bookings();
                     tempBooking.setBookingId(rs.getInt("booking_id"));
                     dto.setBooking(tempBooking); // <-- ĐÃ SỬA
-                    
+
                     // SỬA LỖI 5: Model 'BookedRooms' dùng setRoom(Rooms)
                     Rooms tempRoom = new Rooms();
                     tempRoom.setRoomId(rs.getInt("room_id"));
                     dto.setRoom(tempRoom); // <-- ĐÃ SỬA
 
                     dto.setPriceAtBooking(rs.getBigDecimal("price_at_booking"));
-                    dto.setRoomName(rs.getString("room_name")); 
-                    
+                    dto.setRoomName(rs.getString("room_name"));
+
                     bookedRooms.add(dto);
                 }
             }
@@ -659,13 +650,12 @@ public class BookingDAO {
         }
         return bookedRooms;
     }
-    
+
     public Bookings getBookingById(int bookingId) {
         Bookings booking = null;
         String sql = "SELECT * FROM bookings WHERE booking_id = ?";
 
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, bookingId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -698,7 +688,7 @@ public class BookingDAO {
                     booking.setReservationEndTime(rs.getObject("reservation_end_time", LocalDateTime.class));
                     booking.setReservation_date(rs.getObject("reservation_date", LocalDateTime.class));
                     booking.setReservation_time(rs.getObject("reservation_time", LocalDateTime.class));
-                    
+
                     booking.setStatus(rs.getString("status"));
                 }
             }
@@ -707,19 +697,20 @@ public class BookingDAO {
         }
         return booking;
     }
-    
+
     /**
-     * Lấy danh sách đặt phòng với đầy đủ bộ lọc: Ngày, Từ khóa, Trạng thái, Phân trang.
+     * Lấy danh sách đặt phòng với đầy đủ bộ lọc: Ngày, Từ khóa, Trạng thái,
+     * Phân trang.
      */
-    public List<Bookings> searchHomestayBookings(int businessId, String status, String keyword, 
-                                                 String fromDate, String toDate, int page, int pageSize) {
+    public List<Bookings> searchHomestayBookings(int businessId, String status, String keyword,
+            String fromDate, String toDate, int page, int pageSize) {
         List<Bookings> list = new ArrayList<>();
         int offset = (page - 1) * pageSize;
-        
+
         StringBuilder sql = new StringBuilder(
-            "SELECT b.* FROM bookings b " +
-            "JOIN businesses biz ON b.business_id = biz.business_id " +
-            "WHERE b.business_id = ? AND biz.type = 'homestay' ");
+                "SELECT b.* FROM bookings b "
+                + "JOIN businesses biz ON b.business_id = biz.business_id "
+                + "WHERE b.business_id = ? AND biz.type = 'homestay' ");
 
         List<Object> params = new ArrayList<>();
         params.add(businessId);
@@ -753,9 +744,8 @@ public class BookingDAO {
         params.add(pageSize);
         params.add(offset);
 
-        try (Connection conn = DBUtil.getConnection(); 
-             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
-            
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
             }
@@ -776,7 +766,7 @@ public class BookingDAO {
                     b.setNotes(rs.getString("notes"));
                     b.setReservationStartTime(rs.getObject("reservation_start_time", LocalDateTime.class));
                     b.setReservationEndTime(rs.getObject("reservation_end_time", LocalDateTime.class));
-                    
+
                     // Set business dummy để tránh null pointer
                     Businesses biz = new Businesses();
                     biz.setBusinessId(businessId);
@@ -796,9 +786,9 @@ public class BookingDAO {
      */
     public int countSearchHomestayBookings(int businessId, String status, String keyword, String fromDate, String toDate) {
         StringBuilder sql = new StringBuilder(
-            "SELECT COUNT(*) FROM bookings b " +
-            "JOIN businesses biz ON b.business_id = biz.business_id " +
-            "WHERE b.business_id = ? AND biz.type = 'homestay' ");
+                "SELECT COUNT(*) FROM bookings b "
+                + "JOIN businesses biz ON b.business_id = biz.business_id "
+                + "WHERE b.business_id = ? AND biz.type = 'homestay' ");
 
         List<Object> params = new ArrayList<>();
         params.add(businessId);
@@ -822,20 +812,21 @@ public class BookingDAO {
             params.add(toDate + " 23:59:59");
         }
 
-        try (Connection conn = DBUtil.getConnection(); 
-             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql.toString())) {
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
             }
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt(1);
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return 0;
     }
-    
+
     /**
      * Lưu thông tin phòng đã đặt vào bảng booked_rooms
      */
@@ -851,15 +842,15 @@ public class BookingDAO {
             return false;
         }
     }
-    
+
     /**
      * Chặn lịch trong bảng room_availability
      */
     public void blockRoomAvailability(int roomId, LocalDate checkIn, LocalDate checkOut, BigDecimal price) {
         // Status 'booked' nghĩa là đã có người đặt
-        String sql = "INSERT INTO room_availability (room_id, date, price, status) VALUES (?, ?, ?, 'booked') " +
-                     "ON DUPLICATE KEY UPDATE status = 'booked'"; 
-        
+        String sql = "INSERT INTO room_availability (room_id, date, price, status) VALUES (?, ?, ?, 'booked') "
+                + "ON DUPLICATE KEY UPDATE status = 'booked'";
+
         try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             // Lặp qua từng ngày từ checkIn đến checkOut (KHÔNG bao gồm ngày checkout)
             // Ví dụ: Book 01-03 (2 đêm), sẽ chặn ngày 01 và 02. Ngày 03 khách check-out trưa nên tối 03 vẫn trống.
@@ -867,12 +858,167 @@ public class BookingDAO {
                 ps.setInt(1, roomId);
                 ps.setDate(2, java.sql.Date.valueOf(date));
                 ps.setBigDecimal(3, price);
-                ps.addBatch(); 
+                ps.addBatch();
             }
             ps.executeBatch();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-    
+
+    // H
+//Lấy danh sách đặt bàn cho chủ nhà hàng
+    public List<BookingsDTO> getBookingsForOwner(int businessId) throws SQLException {
+        List<BookingsDTO> bookings = new ArrayList<>();
+
+        // Query chính lấy thông tin booking
+        String sql = "SELECT b.booking_id, b.booking_code, b.booker_name, b.booker_email, b.booker_phone, "
+                + "b.num_guests, b.total_price, b.payment_status, "
+                + "b.reservation_date, b.reservation_time, rt.name AS table_name "
+                + "FROM bookings b "
+                + "JOIN booked_tables bt ON b.booking_id = bt.booking_id "
+                + "JOIN restaurant_tables rt ON bt.table_id = rt.table_id "
+                + "WHERE b.business_id = ? "
+                + "AND b.payment_status IN ('fully_paid', 'refunded') "
+                + "ORDER BY b.reservation_date DESC, b.reservation_time DESC";
+
+        // Query lấy món đặt trước
+        String dishSql = "SELECT d.name, bd.quantity, bd.price_at_booking, bd.notes "
+                + "FROM booking_dishes bd "
+                + "LEFT JOIN dishes d ON bd.dish_id = d.dish_id "
+                + "WHERE bd.booking_id = ?";
+
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); PreparedStatement dishPs = conn.prepareStatement(dishSql)) {
+
+            ps.setInt(1, businessId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    BookingsDTO booking = new BookingsDTO();
+
+                    int bookingId = rs.getInt("booking_id");
+                    booking.setBookingCode(rs.getString("booking_code"));
+                    booking.setBookerName(rs.getString("booker_name"));
+                    booking.setBookerEmail(rs.getString("booker_email"));
+                    booking.setBookerPhone(rs.getString("booker_phone"));
+                    booking.setNumGuests(rs.getInt("num_guests"));
+                    booking.setTotalPrice(rs.getBigDecimal("total_price"));
+                    booking.setPaymentStatus(rs.getString("payment_status"));
+
+                    // Lấy ngày và giờ đặt bàn
+                    LocalDate reservationDate = rs.getDate("reservation_date") != null
+                            ? rs.getDate("reservation_date").toLocalDate() : null;
+                    LocalTime reservationTime = rs.getTime("reservation_time") != null
+                            ? rs.getTime("reservation_time").toLocalTime() : null;
+                    booking.setReservationDate(reservationDate);
+                    booking.setReservationTime(reservationTime);
+
+                    // Lấy tên bàn
+                    booking.setTableName(rs.getString("table_name"));
+
+                    // Lấy danh sách món đặt trước cho booking này
+                    dishPs.setInt(1, bookingId);
+                    try (ResultSet dishRs = dishPs.executeQuery()) {
+                        while (dishRs.next()) {
+                            BookedDishDTO dish = new BookedDishDTO();
+                            dish.setDishName(dishRs.getString("name") != null
+                                    ? dishRs.getString("name") : "Món đã bị xóa");
+                            dish.setQuantity(dishRs.getInt("quantity"));
+                            dish.setPriceAtBooking(dishRs.getBigDecimal("price_at_booking"));
+                            dish.setNotes(dishRs.getString("notes"));
+                            booking.addBookedDish(dish);
+                        }
+                    }
+
+                    bookings.add(booking);
+                }
+            }
+        }
+        return bookings;
+    }
+
+    //lọc booking
+    public List<BookingsDTO> getFilteredBookingsForOwner(int businessId, LocalDate reservationDate, LocalTime reservationTime,
+            Integer numGuests, String status, String searchCode) throws SQLException {
+        List<BookingsDTO> bookings = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(
+                "SELECT b.booking_code, b.booker_name, b.booker_email, b.booker_phone, b.num_guests, b.total_price, b.payment_status, "
+                + "b.reservation_date, b.reservation_time, rt.name AS table_name "
+                + "FROM bookings b "
+                + "JOIN booked_tables bt ON b.booking_id = bt.booking_id "
+                + "JOIN restaurant_tables rt ON bt.table_id = rt.table_id "
+                + "WHERE b.business_id = ? "
+        );
+
+        // Thêm điều kiện lọc
+        List<Object> params = new ArrayList<>();
+        params.add(businessId);
+
+        // Lọc theo trạng thái
+        if (status != null && !status.isEmpty()) {
+            if ("confirmed".equals(status)) {
+                sql.append("AND b.payment_status = 'fully_paid' ");
+            } else if ("cancelled".equals(status)) {
+                sql.append("AND b.payment_status = 'refunded' ");
+            }
+        } else {
+            sql.append("AND b.payment_status IN ('fully_paid', 'refunded') ");
+        }
+
+        // Lọc theo ngày
+        if (reservationDate != null) {
+            sql.append("AND b.reservation_date = ? ");
+            params.add(reservationDate);
+        }
+
+        // Lọc theo giờ
+        if (reservationTime != null) {
+            sql.append("AND b.reservation_time = ? ");
+            params.add(reservationTime);
+        }
+
+        // Lọc theo số khách
+        if (numGuests != null && numGuests > 0) {
+            sql.append("AND b.num_guests = ? ");
+            params.add(numGuests);
+        }
+
+        // Lọc theo mã booking
+        if (searchCode != null && !searchCode.trim().isEmpty()) {
+            sql.append("AND b.booking_code LIKE ? ");
+            params.add("%" + searchCode.trim() + "%");
+        }
+
+        sql.append("ORDER BY b.reservation_date DESC, b.reservation_time DESC");
+
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            // Gán tham số cho PreparedStatement
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    BookingsDTO booking = new BookingsDTO();
+                    booking.setBookingCode(rs.getString("booking_code"));
+                    booking.setBookerName(rs.getString("booker_name"));
+                    booking.setBookerEmail(rs.getString("booker_email"));
+                    booking.setBookerPhone(rs.getString("booker_phone"));
+                    booking.setNumGuests(rs.getInt("num_guests"));
+                    booking.setTotalPrice(rs.getBigDecimal("total_price"));
+                    booking.setPaymentStatus(rs.getString("payment_status"));
+
+                    LocalDate date = rs.getDate("reservation_date") != null ? rs.getDate("reservation_date").toLocalDate() : null;
+                    LocalTime time = rs.getTime("reservation_time") != null ? rs.getTime("reservation_time").toLocalTime() : null;
+                    booking.setReservationDate(date);
+                    booking.setReservationTime(time);
+
+                    booking.setTableName(rs.getString("table_name"));
+                    bookings.add(booking);
+                }
+            }
+        }
+        return bookings;
+    }
+
 }
