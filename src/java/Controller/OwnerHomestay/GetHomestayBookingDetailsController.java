@@ -1,4 +1,4 @@
-package controller.OwnerHomestay;
+package controller.OwnerHomestay; // Chú ý package name chữ thường
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -35,7 +35,6 @@ public class GetHomestayBookingDetailsController extends HttpServlet {
         bookingDAO = new BookingDAO();
         businessDAO = new BusinessDAO();
         
-        // Cấu hình Gson với Adapter (như bước trước)
         gson = new GsonBuilder()
             .registerTypeAdapter(LocalDateTime.class, new util.LocalDateTimeAdapter())
             .registerTypeAdapter(LocalDate.class, new util.LocalDateAdapter())
@@ -62,34 +61,40 @@ public class GetHomestayBookingDetailsController extends HttpServlet {
         Businesses biz = businessDAO.getBusinessByOwnerId(currentUser.getUserId());
         if (biz == null) {
             response.setStatus(403);
-            out.print("{\"error\":\"No Business Found\"}");
+            out.print("{\"error\":\"No Business\"}");
             return;
         }
 
         try {
-            int bookingId = Integer.parseInt(request.getParameter("bookingId"));
+            String bookingIdStr = request.getParameter("bookingId");
+            if(bookingIdStr == null) return;
+            
+            int bookingId = Integer.parseInt(bookingIdStr);
             
             Bookings booking = bookingDAO.getBookingById(bookingId); 
+            
             if (booking == null || booking.getBusiness() == null || booking.getBusiness().getBusinessId() != biz.getBusinessId()) {
                 response.setStatus(403);
                 out.print("{\"error\":\"Access Denied\"}");
                 return;
             }
 
-            // Lấy danh sách phòng
             List<BookedRoomDTO> rooms = bookingDAO.getBookedRoomsByBookingId(bookingId);
+            
+            // [FIX] Lấy ngày tạo từ DB
+            LocalDateTime createdAt = bookingDAO.getBookingCreatedTime(bookingId);
 
-            // Gói dữ liệu thành 1 object duy nhất để trả về
             Map<String, Object> responseData = new HashMap<>();
-            responseData.put("booking", booking); // Chứa thông tin tổng quan, khách, thanh toán
-            responseData.put("rooms", rooms);     // Chứa danh sách phòng
+            responseData.put("booking", booking);
+            responseData.put("rooms", rooms);
+            responseData.put("createdAt", createdAt); // Gửi thêm trường này
 
             out.print(gson.toJson(responseData));
             
         } catch (Exception e) {
-            response.setStatus(500);
-            out.print("{\"error\":\"Server Error: " + e.getMessage() + "\"}");
             e.printStackTrace();
+            response.setStatus(500);
+            out.print("{\"error\":\"Server Error\"}");
         }
     }
 }

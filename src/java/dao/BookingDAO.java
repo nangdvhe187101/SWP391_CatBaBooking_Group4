@@ -617,31 +617,20 @@ public class BookingDAO {
      */
     public List<BookedRoomDTO> getBookedRoomsByBookingId(int bookingId) {
         List<BookedRoomDTO> bookedRooms = new ArrayList<>();
-        String sql = "SELECT br.*, r.name as room_name FROM booked_rooms br "
-                + "JOIN rooms r ON br.room_id = r.room_id "
-                + "WHERE br.booking_id = ?";
-
-        try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-
+        String sql = "SELECT br.*, r.name as room_name FROM booked_rooms br " +
+                     "JOIN rooms r ON br.room_id = r.room_id " +
+                     "WHERE br.booking_id = ?";
+        
+        try (Connection conn = DBUtil.getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, bookingId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     BookedRoomDTO dto = new BookedRoomDTO();
                     dto.setBookedRoomId(rs.getInt("booked_room_id"));
-
-                    // SỬA LỖI 4: Model 'BookedRooms' dùng setBooking(Bookings)
-                    Bookings tempBooking = new Bookings();
-                    tempBooking.setBookingId(rs.getInt("booking_id"));
-                    dto.setBooking(tempBooking); // <-- ĐÃ SỬA
-
-                    // SỬA LỖI 5: Model 'BookedRooms' dùng setRoom(Rooms)
-                    Rooms tempRoom = new Rooms();
-                    tempRoom.setRoomId(rs.getInt("room_id"));
-                    dto.setRoom(tempRoom); // <-- ĐÃ SỬA
-
                     dto.setPriceAtBooking(rs.getBigDecimal("price_at_booking"));
+                    // Set tên phòng vào DTO
                     dto.setRoomName(rs.getString("room_name"));
-
                     bookedRooms.add(dto);
                 }
             }
@@ -651,11 +640,20 @@ public class BookingDAO {
         return bookedRooms;
     }
 
+    /**
+     * Lấy thông tin Booking chi tiết theo ID (Dùng cho Modal)
+     */
     public Bookings getBookingById(int bookingId) {
         Bookings booking = null;
-        String sql = "SELECT * FROM bookings WHERE booking_id = ?";
+        // Query lấy đủ thông tin User và Business
+        String sql = "SELECT b.*, bus.name as bus_name, u.full_name as user_name " +
+                     "FROM bookings b " +
+                     "LEFT JOIN businesses bus ON b.business_id = bus.business_id " +
+                     "LEFT JOIN users u ON b.user_id = u.user_id " +
+                     "WHERE b.booking_id = ?";
 
-        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, bookingId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -664,32 +662,39 @@ public class BookingDAO {
                     booking.setBookingId(rs.getInt("booking_id"));
                     booking.setBookingCode(rs.getString("booking_code"));
 
-                    // Set User
-                    Users tempUser = new Users();
-                    tempUser.setUserId(rs.getInt("user_id"));
-                    booking.setUser(tempUser);
+                    // User Info
+                    Users user = new Users();
+                    user.setUserId(rs.getInt("user_id"));
+                    user.setFullName(rs.getString("user_name")); // Lấy tên user
+                    booking.setUser(user);
 
-                    // Set Business
-                    Businesses tempBiz = new Businesses();
-                    tempBiz.setBusinessId(rs.getInt("business_id"));
-                    booking.setBusiness(tempBiz);
+                    // Business Info
+                    Businesses business = new Businesses();
+                    business.setBusinessId(rs.getInt("business_id"));
+                    business.setName(rs.getString("bus_name"));
+                    booking.setBusiness(business);
 
+                    // Booking Info
                     booking.setBookerName(rs.getString("booker_name"));
                     booking.setBookerEmail(rs.getString("booker_email"));
                     booking.setBookerPhone(rs.getString("booker_phone"));
                     booking.setNumGuests(rs.getInt("num_guests"));
+                    
                     booking.setTotalPrice(rs.getBigDecimal("total_price"));
                     booking.setPaidAmount(rs.getBigDecimal("paid_amount"));
                     booking.setPaymentStatus(rs.getString("payment_status"));
+                    booking.setStatus(rs.getString("status"));
                     booking.setNotes(rs.getString("notes"));
 
-                    // Map các trường thời gian
-                    booking.setReservationStartTime(rs.getObject("reservation_start_time", LocalDateTime.class));
-                    booking.setReservationEndTime(rs.getObject("reservation_end_time", LocalDateTime.class));
-                    booking.setReservation_date(rs.getObject("reservation_date", LocalDateTime.class));
-                    booking.setReservation_time(rs.getObject("reservation_time", LocalDateTime.class));
-
-                    booking.setStatus(rs.getString("status"));
+                    // Date Time
+                    java.sql.Timestamp start = rs.getTimestamp("reservation_start_time");
+                    if(start != null) booking.setReservationStartTime(start.toLocalDateTime());
+                    
+                    java.sql.Timestamp end = rs.getTimestamp("reservation_end_time");
+                    if(end != null) booking.setReservationEndTime(end.toLocalDateTime());
+                    
+                    // [QUAN TRỌNG] Lấy created_at (nếu model có setter, nếu không sẽ dùng hàm riêng)
+                    // Giả sử bạn chưa sửa model Bookings để thêm createdAt, ta sẽ dùng hàm phụ trợ getBookingCreatedTime
                 }
             }
         } catch (SQLException e) {
@@ -1143,6 +1148,23 @@ public class BookingDAO {
             }
         }
         return bookings;
+    }
+    
+    /**
+     * Hàm hỗ trợ lấy ngày tạo booking mà không cần sửa Model Bookings
+     */
+    public LocalDateTime getBookingCreatedTime(int bookingId) {
+        String sql = "SELECT created_at FROM bookings WHERE booking_id = ?";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    java.sql.Timestamp ts = rs.getTimestamp("created_at");
+                    return ts != null ? ts.toLocalDateTime() : null;
+                }
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return null;
     }
 
 }
