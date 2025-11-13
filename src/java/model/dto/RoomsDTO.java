@@ -5,29 +5,33 @@
 package model.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  *
  * @author Admin
  */
 public class RoomsDTO {
+
     private int roomId;
     private int businessId;
     private String name;
     private int capacity;
     private BigDecimal price;
     private boolean isActive;
+    private List<String> images;
 
     public RoomsDTO() {
     }
 
-    public RoomsDTO(int roomId, int businessId, String name, int capacity, BigDecimal price, boolean isActive) {
+    public RoomsDTO(int roomId, int businessId, String name, int capacity, BigDecimal price, boolean isActive, List<String> images) {
         this.roomId = roomId;
         this.businessId = businessId;
         this.name = name;
         this.capacity = capacity;
         this.price = price;
         this.isActive = isActive;
+        this.images = images;
     }
 
     public int getRoomId() {
@@ -77,6 +81,13 @@ public class RoomsDTO {
     public void setIsActive(boolean isActive) {
         this.isActive = isActive;
     }
-    
-    
+
+    public List<String> getImages() {
+        return images;
+    }
+
+    public void setImages(List<String> images) {
+        this.images = images;
+    }
+
 }

@@ -17,10 +17,8 @@
             <li><a href="Dashboard.jsp" class="nav-link">🏠 Tổng quan</a></li>
             <li><a href="AddHomestay.jsp" class="nav-link">🏠 Thông tin Homestay</a></li>
             <li><a href="ManageHomestay.jsp" class="nav-link">🏠 Quản lý Homestay</a></li>
-            <li><a href="${pageContext.request.contextPath}/manage-homestay-rooms" class="nav-link">🛏️ Quản lý Phòng</a></li>
-            <li><a href="${pageContext.request.contextPath}/homestay-bookings" class="nav-link">📅 Lịch sử Đặt phòng</a></li>
             <li><a href="${pageContext.request.contextPath}/list-dish" class="nav-link">🍽️ Quản lý Món ăn</a></li>
-            <li><a href="RestaurantBookings.jsp" class="nav-link">📅 Đặt bàn</a></li>
+            <li><a href="${pageContext.request.contextPath}/owner-bookings" class="nav-link">📅 Đặt bàn</a></li>
             <li><a href="${pageContext.request.contextPath}/restaurant-manage-tables" class="nav-link">🍽️ Quản lý Bàn</a></li>
             <li><a href="RestaurantTableAvailability.jsp" class="nav-link">🪑 Tình trạng bàn</a></li>
             <li><a href="${pageContext.request.contextPath}/restaurant-settings" class="nav-link">Thông tin cơ sở kinh doanh</a></li>

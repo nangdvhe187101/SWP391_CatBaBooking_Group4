@@ -354,8 +354,8 @@ public class HomestayDAO {
     }
 
     public Businesses getHomestayById(int businessId) {
-    Businesses homestay = null;
-    String sql = """
+        Businesses homestay = null;
+        String sql = """
         SELECT b.business_id, b.name, b.address, b.description, b.image, b.avg_rating, b.review_count,
                b.capacity, b.num_bedrooms, b.price_per_night, b.status, b.created_at, b.updated_at,
                b.opening_hour, b.closing_hour,
@@ -366,54 +366,52 @@ public class HomestayDAO {
         WHERE b.type = 'homestay' AND b.status = 'active' AND b.business_id = ?
         """;
 
-    try (Connection conn = DBUtil.getConnection();
-         PreparedStatement stmt = conn.prepareStatement(sql)) {
-        
-        stmt.setInt(1, businessId);
-        try (ResultSet rs = stmt.executeQuery()) {
-            if (rs.next()) {
-                homestay = new Businesses();
-                homestay.setBusinessId(rs.getInt("business_id"));
-                homestay.setName(rs.getString("name"));
-                homestay.setAddress(rs.getString("address"));
-                homestay.setDescription(rs.getString("description"));
-                homestay.setImage(rs.getString("image"));
-                homestay.setAvgRating(rs.getBigDecimal("avg_rating"));
-                homestay.setReviewCount(rs.getInt("review_count"));
-                homestay.setCapacity(rs.getInt("capacity"));
-                homestay.setNumBedrooms(rs.getInt("num_bedrooms"));
-                homestay.setPricePerNight(rs.getBigDecimal("price_per_night"));
-                homestay.setStatus(rs.getString("status"));
-                homestay.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
-                homestay.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
-                homestay.setOpeningHour(rs.getObject("opening_hour", LocalTime.class));
-                homestay.setClosingHour(rs.getObject("closing_hour", LocalTime.class));
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-                Areas area = new Areas();
-                area.setAreaId(rs.getInt("area_id"));
-                area.setName(rs.getString("area_name"));
-                homestay.setArea(area);
+            stmt.setInt(1, businessId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    homestay = new Businesses();
+                    homestay.setBusinessId(rs.getInt("business_id"));
+                    homestay.setName(rs.getString("name"));
+                    homestay.setAddress(rs.getString("address"));
+                    homestay.setDescription(rs.getString("description"));
+                    homestay.setImage(rs.getString("image"));
+                    homestay.setAvgRating(rs.getBigDecimal("avg_rating"));
+                    homestay.setReviewCount(rs.getInt("review_count"));
+                    homestay.setCapacity(rs.getInt("capacity"));
+                    homestay.setNumBedrooms(rs.getInt("num_bedrooms"));
+                    homestay.setPricePerNight(rs.getBigDecimal("price_per_night"));
+                    homestay.setStatus(rs.getString("status"));
+                    homestay.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
+                    homestay.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
+                    homestay.setOpeningHour(rs.getObject("opening_hour", LocalTime.class));
+                    homestay.setClosingHour(rs.getObject("closing_hour", LocalTime.class));
 
-                Users owner = new Users();
-                owner.setUserId(rs.getInt("user_id"));
-                owner.setFullName(rs.getString("owner_name"));
-                homestay.setOwner(owner);
+                    Areas area = new Areas();
+                    area.setAreaId(rs.getInt("area_id"));
+                    area.setName(rs.getString("area_name"));
+                    homestay.setArea(area);
 
-                // Lấy tiện nghi
-                List<Amenities> amenities = getAmenitiesForHomestay(businessId);
-                homestay.setAmenities(amenities);
+                    Users owner = new Users();
+                    owner.setUserId(rs.getInt("user_id"));
+                    owner.setFullName(rs.getString("owner_name"));
+                    homestay.setOwner(owner);
 
-                System.out.println("TÌM THẤY homestay: " + homestay.getName());
-            } else {
-                System.out.println("KHÔNG TÌM THẤY homestay ID: " + businessId);
+                    // Lấy tiện nghi
+                    List<Amenities> amenities = getAmenitiesForHomestay(businessId);
+                    homestay.setAmenities(amenities);
+
+                    System.out.println("TÌM THẤY homestay: " + homestay.getName());
+                } else {
+                    System.out.println("KHÔNG TÌM THẤY homestay ID: " + businessId);
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    } catch (Exception e) {
-        e.printStackTrace();
+        return homestay;
     }
-    return homestay;
-}
-   
 
     public List<ReviewsDTO> getReviewsByBusinessId(int businessId) {
         List<ReviewsDTO> reviews = new ArrayList<>();
@@ -462,12 +460,12 @@ public class HomestayDAO {
         }
         return images;
     }
-    
-public List<RoomsDTO> getAvailableRooms(int businessId, LocalDate checkIn, LocalDate checkOut, int guests, int numRooms) {
-    List<RoomsDTO> rooms = new ArrayList<>();
-    
-    // Query lấy tất cả phòng còn trống trong khoảng thời gian
-    String sql = """
+
+    public List<RoomsDTO> getAvailableRooms(int businessId, LocalDate checkIn, LocalDate checkOut, int guests, int numRooms) {
+        List<RoomsDTO> rooms = new ArrayList<>();
+
+        // Query lấy tất cả phòng còn trống trong khoảng thời gian
+        String sql = """
         SELECT r.room_id, r.business_id, r.name, r.capacity, r.price_per_night, r.is_active
         FROM rooms r
         WHERE r.business_id = ? 
@@ -481,75 +479,77 @@ public List<RoomsDTO> getAvailableRooms(int businessId, LocalDate checkIn, Local
         ORDER BY r.price_per_night ASC
     """;
 
-    try (Connection conn = DBUtil.getConnection(); 
-         PreparedStatement stmt = conn.prepareStatement(sql)) {
-        
-        stmt.setInt(1, businessId);
-        stmt.setDate(2, Date.valueOf(checkIn));
-        stmt.setDate(3, Date.valueOf(checkOut));
-        
-        try (ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                RoomsDTO room = new RoomsDTO();
-                room.setRoomId(rs.getInt("room_id"));
-                room.setBusinessId(rs.getInt("business_id"));
-                room.setName(rs.getString("name"));
-                room.setCapacity(rs.getInt("capacity"));
-                room.setPrice(rs.getBigDecimal("price_per_night"));
-                room.setIsActive(rs.getBoolean("is_active"));
-                rooms.add(room);
-            }
-            
-            System.out.println("Found " + rooms.size() + " available rooms for businessId: " + businessId);
-            
-            // Kiểm tra xem tổng sức chứa của các phòng có đủ cho số người không
-            if (guests > 0 && numRooms > 0) {
-                // Sắp xếp phòng theo sức chứa giảm dần để ưu tiên phòng lớn trước
-                // Sử dụng bubble sort đơn giản
-                for (int i = 0; i < rooms.size() - 1; i++) {
-                    for (int j = 0; j < rooms.size() - i - 1; j++) {
-                        if (rooms.get(j).getCapacity() < rooms.get(j + 1).getCapacity()) {
-                            // Swap
-                            RoomsDTO temp = rooms.get(j);
-                            rooms.set(j, rooms.get(j + 1));
-                            rooms.set(j + 1, temp);
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, businessId);
+            stmt.setDate(2, Date.valueOf(checkIn));
+            stmt.setDate(3, Date.valueOf(checkOut));
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    RoomsDTO room = new RoomsDTO();
+                    room.setRoomId(rs.getInt("room_id"));
+                    room.setBusinessId(rs.getInt("business_id"));
+                    room.setName(rs.getString("name"));
+                    room.setCapacity(rs.getInt("capacity"));
+                    room.setPrice(rs.getBigDecimal("price_per_night"));
+                    room.setIsActive(rs.getBoolean("is_active"));
+
+                    List<String> images = getImagesByRoomId(room.getRoomId());
+                    room.setImages(images);
+                    rooms.add(room);
+                }
+
+                System.out.println("Found " + rooms.size() + " available rooms for businessId: " + businessId);
+
+                // Kiểm tra xem tổng sức chứa của các phòng có đủ cho số người không
+                if (guests > 0 && numRooms > 0) {
+                    // Sắp xếp phòng theo sức chứa giảm dần để ưu tiên phòng lớn trước
+                    // Sử dụng bubble sort đơn giản
+                    for (int i = 0; i < rooms.size() - 1; i++) {
+                        for (int j = 0; j < rooms.size() - i - 1; j++) {
+                            if (rooms.get(j).getCapacity() < rooms.get(j + 1).getCapacity()) {
+                                // Swap
+                                RoomsDTO temp = rooms.get(j);
+                                rooms.set(j, rooms.get(j + 1));
+                                rooms.set(j + 1, temp);
+                            }
                         }
                     }
-                }
-                
-                // Kiểm tra xem có thể sắp xếp được không
-                List<RoomsDTO> selectedRooms = new ArrayList<>();
-                int totalCapacity = 0;
-                
-                // Lấy numRooms phòng đầu tiên (đã sắp xếp theo sức chứa giảm dần)
-                for (int i = 0; i < rooms.size() && i < numRooms; i++) {
-                    selectedRooms.add(rooms.get(i));
-                    totalCapacity += rooms.get(i).getCapacity();
-                }
-                
-                // Nếu tổng sức chứa không đủ, trả về danh sách rỗng
-                if (totalCapacity < guests) {
-                    System.out.println("Total capacity (" + totalCapacity + ") is not enough for " + guests + " guests");
-                    return new ArrayList<>();
-                }
-                
-                // Nếu số phòng còn trống ít hơn số phòng yêu cầu
-                if (rooms.size() < numRooms) {
-                    System.out.println("Not enough rooms available. Requested: " + numRooms + ", Available: " + rooms.size());
-                    return new ArrayList<>();
-                }
-            }
-            
-        }
-    } catch (SQLException e) {
-        e.printStackTrace();
-        System.out.println("SQL Error in getAvailableRooms: " + e.getMessage());
-    }
-    
-    return rooms;
-}
 
-/**
+                    // Kiểm tra xem có thể sắp xếp được không
+                    List<RoomsDTO> selectedRooms = new ArrayList<>();
+                    int totalCapacity = 0;
+
+                    // Lấy numRooms phòng đầu tiên (đã sắp xếp theo sức chứa giảm dần)
+                    for (int i = 0; i < rooms.size() && i < numRooms; i++) {
+                        selectedRooms.add(rooms.get(i));
+                        totalCapacity += rooms.get(i).getCapacity();
+                    }
+
+                    // Nếu tổng sức chứa không đủ, trả về danh sách rỗng
+                    if (totalCapacity < guests) {
+                        System.out.println("Total capacity (" + totalCapacity + ") is not enough for " + guests + " guests");
+                        return new ArrayList<>();
+                    }
+
+                    // Nếu số phòng còn trống ít hơn số phòng yêu cầu
+                    if (rooms.size() < numRooms) {
+                        System.out.println("Not enough rooms available. Requested: " + numRooms + ", Available: " + rooms.size());
+                        return new ArrayList<>();
+                    }
+                }
+
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("SQL Error in getAvailableRooms: " + e.getMessage());
+        }
+
+        return rooms;
+    }
+
+    /**
      * Lấy danh sách phòng theo businessId có phân trang.
      *
      * @param businessId ID của homestay
@@ -697,20 +697,19 @@ public List<RoomsDTO> getAvailableRooms(int businessId, LocalDate checkIn, Local
             return false;
         }
     }
-    
+
     /**
      * Lấy chi tiết phòng kèm thông tin Homestay (Dành cho trang Booking)
      */
     public Rooms getRoomDetailById(int roomId) {
         Rooms room = null;
         String sql = "SELECT r.*, b.name as homestay_name, b.address as homestay_address, b.image as homestay_image "
-                   + "FROM rooms r "
-                   + "JOIN businesses b ON r.business_id = b.business_id "
-                   + "WHERE r.room_id = ?";
-        
-        try (Connection conn = DBUtil.getConnection(); 
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                + "FROM rooms r "
+                + "JOIN businesses b ON r.business_id = b.business_id "
+                + "WHERE r.room_id = ?";
+
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setInt(1, roomId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -720,14 +719,14 @@ public List<RoomsDTO> getAvailableRooms(int businessId, LocalDate checkIn, Local
                     room.setCapacity(rs.getInt("capacity"));
                     room.setPricePerNight(rs.getBigDecimal("price_per_night"));
                     room.setIsActive(rs.getBoolean("is_active"));
-                    
+
                     // Map thông tin Homestay vào object Business
                     Businesses homestay = new Businesses();
                     homestay.setBusinessId(rs.getInt("business_id"));
                     homestay.setName(rs.getString("homestay_name"));
                     homestay.setAddress(rs.getString("homestay_address"));
                     homestay.setImage(rs.getString("homestay_image"));
-                    
+
                     room.setBusiness(homestay);
                 }
             }
@@ -736,5 +735,21 @@ public List<RoomsDTO> getAvailableRooms(int businessId, LocalDate checkIn, Local
         }
         return room;
     }
-    
+
+    public List<String> getImagesByRoomId(int roomId) {
+        List<String> images = new ArrayList<>();
+        String sql = "SELECT image_url FROM room_images WHERE room_id = ?";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, roomId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    images.add(rs.getString("image_url"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("SQL Error in getImagesByRoomId: " + e.getMessage());
+        }
+        return images;
+    }
 }
