@@ -852,4 +852,27 @@ public class BookingDAO {
         }
     }
     
+    /**
+     * Chặn lịch trong bảng room_availability
+     */
+    public void blockRoomAvailability(int roomId, LocalDate checkIn, LocalDate checkOut, BigDecimal price) {
+        // Status 'booked' nghĩa là đã có người đặt
+        String sql = "INSERT INTO room_availability (room_id, date, price, status) VALUES (?, ?, ?, 'booked') " +
+                     "ON DUPLICATE KEY UPDATE status = 'booked'"; 
+        
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            // Lặp qua từng ngày từ checkIn đến checkOut (KHÔNG bao gồm ngày checkout)
+            // Ví dụ: Book 01-03 (2 đêm), sẽ chặn ngày 01 và 02. Ngày 03 khách check-out trưa nên tối 03 vẫn trống.
+            for (LocalDate date = checkIn; date.isBefore(checkOut); date = date.plusDays(1)) {
+                ps.setInt(1, roomId);
+                ps.setDate(2, java.sql.Date.valueOf(date));
+                ps.setBigDecimal(3, price);
+                ps.addBatch(); 
+            }
+            ps.executeBatch();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
 }
