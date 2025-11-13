@@ -697,4 +697,44 @@ public List<RoomsDTO> getAvailableRooms(int businessId, LocalDate checkIn, Local
             return false;
         }
     }
+    
+    /**
+     * Lấy chi tiết phòng kèm thông tin Homestay (Dành cho trang Booking)
+     */
+    public Rooms getRoomDetailById(int roomId) {
+        Rooms room = null;
+        String sql = "SELECT r.*, b.name as homestay_name, b.address as homestay_address, b.image as homestay_image "
+                   + "FROM rooms r "
+                   + "JOIN businesses b ON r.business_id = b.business_id "
+                   + "WHERE r.room_id = ?";
+        
+        try (Connection conn = DBUtil.getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, roomId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    room = new Rooms();
+                    room.setRoomId(rs.getInt("room_id"));
+                    room.setName(rs.getString("name"));
+                    room.setCapacity(rs.getInt("capacity"));
+                    room.setPricePerNight(rs.getBigDecimal("price_per_night"));
+                    room.setIsActive(rs.getBoolean("is_active"));
+                    
+                    // Map thông tin Homestay vào object Business
+                    Businesses homestay = new Businesses();
+                    homestay.setBusinessId(rs.getInt("business_id"));
+                    homestay.setName(rs.getString("homestay_name"));
+                    homestay.setAddress(rs.getString("homestay_address"));
+                    homestay.setImage(rs.getString("homestay_image"));
+                    
+                    room.setBusiness(homestay);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return room;
+    }
+    
 }
