@@ -19,7 +19,7 @@ public class HomestayBookingsController extends HttpServlet {
 
     private BusinessDAO businessDAO;
     private BookingDAO bookingDAO;
-    private static final int PAGE_SIZE = 10; // 10 đơn mỗi trang
+    private static final int PAGE_SIZE = 10;
 
     @Override
     public void init() throws ServletException {
@@ -33,41 +33,51 @@ public class HomestayBookingsController extends HttpServlet {
         HttpSession session = request.getSession();
         Users currentUser = (Users) session.getAttribute("currentUser");
 
-        if (currentUser == null || currentUser.getRole().getRoleId() != 2) { // 2 = owner
+        if (currentUser == null || currentUser.getRole().getRoleId() != 2) {
             response.sendRedirect(request.getContextPath() + "/Login");
             return;
         }
 
         Businesses biz = businessDAO.getBusinessByOwnerId(currentUser.getUserId());
         if (biz == null || !"homestay".equals(biz.getType())) {
-            request.setAttribute("error", "Không tìm thấy homestay hoặc cơ sở kinh doanh không phải là homestay.");
+            request.setAttribute("error", "Không tìm thấy homestay.");
             request.getRequestDispatcher("/OwnerPage/Dashboard.jsp").forward(request, response);
             return;
         }
 
-        // Lấy tham số trang và trạng thái
+        // 1. Lấy tham số từ Request
         String status = request.getParameter("status");
-        if (status == null || status.trim().isEmpty()) {
-            status = "all"; // Mặc định
-        }
+        if (status == null) status = "all";
 
+        String search = request.getParameter("search"); // Tên hoặc SĐT
+        String fromDate = request.getParameter("fromDate");
+        String toDate = request.getParameter("toDate");
+        
         int page = 1;
         try {
-            page = Integer.parseInt(request.getParameter("page"));
-        } catch (NumberFormatException e) {
-            // Dùng trang mặc định là 1
-        }
+            String pageStr = request.getParameter("page");
+            if (pageStr != null) page = Integer.parseInt(pageStr);
+        } catch (NumberFormatException e) { }
 
-        // Lấy dữ liệu
-        List<Bookings> bookingList = bookingDAO.getHomestayBookingsByBusinessId(biz.getBusinessId(), status, page, PAGE_SIZE);
-        int totalBookings = bookingDAO.countHomestayBookingsByBusinessId(biz.getBusinessId(), status);
-        int totalPages = (int) Math.ceil((double) totalBookings / PAGE_SIZE);
+        // 2. Gọi DAO tìm kiếm
+        List<Bookings> bookingList = bookingDAO.searchHomestayBookings(
+                biz.getBusinessId(), status, search, fromDate, toDate, page, PAGE_SIZE);
+        
+        int totalRecords = bookingDAO.countSearchHomestayBookings(
+                biz.getBusinessId(), status, search, fromDate, toDate);
+        
+        int totalPages = (int) Math.ceil((double) totalRecords / PAGE_SIZE);
 
-        // Đặt attributes cho JSP
+        // 3. Set Attributes để hiển thị lại trên Form
         request.setAttribute("bookingList", bookingList);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("currentPage", page);
+        
+        // Giữ lại giá trị bộ lọc
         request.setAttribute("currentStatus", status);
+        request.setAttribute("search", search);
+        request.setAttribute("fromDate", fromDate);
+        request.setAttribute("toDate", toDate);
 
         request.getRequestDispatcher("/OwnerPage/HomestayBookings.jsp").forward(request, response);
     }

@@ -73,7 +73,7 @@
         <echo message="=== Auto Copy Dishes Images From Backup ==="/>
         <mkdir dir="${build.web.dir}/uploads/dishes"/>  <!-- Táº¡o dir náº¿u chÆ°a cÃ³ -->
         <copy todir="${build.web.dir}/uploads/dishes" failonerror="false">
-            <fileset dir="C:\Users\ADMIN\Desktop\CatBaBackup\dish_images">  <!-- ÄÆ°á»ng dáº«n backup cá»§a báº¡n -->
+            <fileset dir="C:\Users\jackd\Máy tính\CatBaBackup\dish_images">  <!-- ÄÆ°á»ng dáº«n backup cá»§a báº¡n -->
                 <include name="**/*"/>  <!-- Copy táº¥t cáº£ file áº£nh -->
             </fileset>
         </copy>
@@ -82,8 +82,8 @@
     <!-- Auto copy images to backup after compile/run (post-deploy) -->
     <target name="-post-run-deploy">
         <echo message="=== Auto Copy Dishes Images TO Backup After Run/Deploy ==="/>
-        <mkdir dir="C:/Users/ADMIN/Desktop/CatBaBackup/dish_images"/>  <!-- Táº¡o backup dir náº¿u chÆ°a -->
-        <copy todir="C:/Users/ADMIN/Desktop/CatBaBackup/dish_images" failonerror="false" overwrite="true">
+        <mkdir dir="C:/Users/jackd/Máy tính/CatBaBackup/dish_images"/>  <!-- Táº¡o backup dir náº¿u chÆ°a -->
+        <copy todir="C:/Users/jackd/Máy tính/CatBaBackup/dish_images" failonerror="false" overwrite="true">
             <fileset dir="${build.web.dir}/uploads/dishes">  <!-- Tá»« build dir -->
                 <include name="**/*"/>  <!-- Táº¥t cáº£ file áº£nh -->
             </fileset>

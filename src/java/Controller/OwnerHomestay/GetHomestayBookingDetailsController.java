@@ -1,6 +1,7 @@
 package controller.OwnerHomestay;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import dao.BookingDAO;
 import dao.BusinessDAO;
 import jakarta.servlet.ServletException;
@@ -11,7 +12,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import model.Bookings;
 import model.Businesses;
 import model.Users;
@@ -22,12 +28,19 @@ public class GetHomestayBookingDetailsController extends HttpServlet {
 
     private BookingDAO bookingDAO;
     private BusinessDAO businessDAO;
-    private Gson gson = new Gson();
+    private Gson gson;
 
     @Override
     public void init() throws ServletException {
         bookingDAO = new BookingDAO();
         businessDAO = new BusinessDAO();
+        
+        // Cấu hình Gson với Adapter (như bước trước)
+        gson = new GsonBuilder()
+            .registerTypeAdapter(LocalDateTime.class, new util.LocalDateTimeAdapter())
+            .registerTypeAdapter(LocalDate.class, new util.LocalDateAdapter())
+            .registerTypeAdapter(LocalTime.class, new util.LocalTimeAdapter())
+            .create();
     }
 
     @Override
@@ -40,52 +53,43 @@ public class GetHomestayBookingDetailsController extends HttpServlet {
         HttpSession session = request.getSession();
         Users currentUser = (Users) session.getAttribute("currentUser");
 
-        // 1. Kiểm tra đăng nhập
         if (currentUser == null || currentUser.getRole().getRoleId() != 2) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
-            out.print("{\"error\":\"Bạn cần đăng nhập.\"}");
-            out.flush();
+            response.setStatus(401);
+            out.print("{\"error\":\"Unauthorized\"}");
             return;
         }
 
-        // 2. Lấy business của owner
         Businesses biz = businessDAO.getBusinessByOwnerId(currentUser.getUserId());
         if (biz == null) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN); // 403
-            out.print("{\"error\":\"Không tìm thấy cơ sở kinh doanh.\"}");
-            out.flush();
+            response.setStatus(403);
+            out.print("{\"error\":\"No Business Found\"}");
             return;
         }
 
         try {
             int bookingId = Integer.parseInt(request.getParameter("bookingId"));
             
-            // 3. Xác thực chủ sở hữu: Đơn hàng này có thuộc business này không?
-            // === BẮT ĐẦU SỬA LỖI ===
             Bookings booking = bookingDAO.getBookingById(bookingId); 
-            
-            // Lỗi ở dòng 'if' cũ. Sửa thành booking.getBusiness().getBusinessId()
             if (booking == null || booking.getBusiness() == null || booking.getBusiness().getBusinessId() != biz.getBusinessId()) {
-            // === KẾT THÚC SỬA LỖI ===
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN); // 403
-                out.print("{\"error\":\"Bạn không có quyền xem chi tiết đơn này.\"}");
-                out.flush();
+                response.setStatus(403);
+                out.print("{\"error\":\"Access Denied\"}");
                 return;
             }
 
-            // 4. Lấy dữ liệu và trả về JSON
-            List<BookedRoomDTO> bookedRooms = bookingDAO.getBookedRoomsByBookingId(bookingId);
-            String jsonResult = this.gson.toJson(bookedRooms);
-            out.print(jsonResult);
+            // Lấy danh sách phòng
+            List<BookedRoomDTO> rooms = bookingDAO.getBookedRoomsByBookingId(bookingId);
+
+            // Gói dữ liệu thành 1 object duy nhất để trả về
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("booking", booking); // Chứa thông tin tổng quan, khách, thanh toán
+            responseData.put("rooms", rooms);     // Chứa danh sách phòng
+
+            out.print(gson.toJson(responseData));
             
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
-            out.print("{\"error\":\"bookingId không hợp lệ.\"}");
         } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500
-            out.print("{\"error\":\"Lỗi máy chủ: " + e.getMessage() + "\"}");
-        } finally {
-            out.flush();
+            response.setStatus(500);
+            out.print("{\"error\":\"Server Error: " + e.getMessage() + "\"}");
+            e.printStackTrace();
         }
     }
 }

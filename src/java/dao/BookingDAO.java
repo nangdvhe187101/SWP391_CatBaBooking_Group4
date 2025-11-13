@@ -708,4 +708,132 @@ public class BookingDAO {
         return booking;
     }
     
+    /**
+     * Lấy danh sách đặt phòng với đầy đủ bộ lọc: Ngày, Từ khóa, Trạng thái, Phân trang.
+     */
+    public List<Bookings> searchHomestayBookings(int businessId, String status, String keyword, 
+                                                 String fromDate, String toDate, int page, int pageSize) {
+        List<Bookings> list = new ArrayList<>();
+        int offset = (page - 1) * pageSize;
+        
+        StringBuilder sql = new StringBuilder(
+            "SELECT b.* FROM bookings b " +
+            "JOIN businesses biz ON b.business_id = biz.business_id " +
+            "WHERE b.business_id = ? AND biz.type = 'homestay' ");
+
+        List<Object> params = new ArrayList<>();
+        params.add(businessId);
+
+        // 1. Lọc theo trạng thái
+        if (status != null && !status.equals("all")) {
+            sql.append(" AND b.status = ? ");
+            params.add(status);
+        }
+
+        // 2. Tìm kiếm theo Tên hoặc SĐT
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (b.booker_name LIKE ? OR b.booker_phone LIKE ?) ");
+            String likeKey = "%" + keyword.trim() + "%";
+            params.add(likeKey);
+            params.add(likeKey);
+        }
+
+        // 3. Lọc theo khoảng thời gian (Ngày nhận phòng hoặc Trả phòng nằm trong khoảng)
+        if (fromDate != null && !fromDate.isEmpty()) {
+            sql.append(" AND b.reservation_start_time >= ? ");
+            params.add(fromDate + " 00:00:00");
+        }
+        if (toDate != null && !toDate.isEmpty()) {
+            sql.append(" AND b.reservation_end_time <= ? ");
+            params.add(toDate + " 23:59:59");
+        }
+
+        // Sắp xếp và Phân trang
+        sql.append(" ORDER BY b.reservation_start_time DESC LIMIT ? OFFSET ?");
+        params.add(pageSize);
+        params.add(offset);
+
+        try (Connection conn = DBUtil.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Bookings b = new Bookings();
+                    b.setBookingId(rs.getInt("booking_id"));
+                    b.setBookingCode(rs.getString("booking_code"));
+                    b.setBookerName(rs.getString("booker_name"));
+                    b.setBookerPhone(rs.getString("booker_phone"));
+                    b.setBookerEmail(rs.getString("booker_email"));
+                    b.setNumGuests(rs.getInt("num_guests"));
+                    b.setTotalPrice(rs.getBigDecimal("total_price"));
+                    b.setPaidAmount(rs.getBigDecimal("paid_amount"));
+                    b.setPaymentStatus(rs.getString("payment_status"));
+                    b.setStatus(rs.getString("status"));
+                    b.setNotes(rs.getString("notes"));
+                    b.setReservationStartTime(rs.getObject("reservation_start_time", LocalDateTime.class));
+                    b.setReservationEndTime(rs.getObject("reservation_end_time", LocalDateTime.class));
+                    
+                    // Set business dummy để tránh null pointer
+                    Businesses biz = new Businesses();
+                    biz.setBusinessId(businessId);
+                    b.setBusiness(biz);
+
+                    list.add(b);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
+     * Đếm tổng số bản ghi để phân trang (với cùng bộ lọc).
+     */
+    public int countSearchHomestayBookings(int businessId, String status, String keyword, String fromDate, String toDate) {
+        StringBuilder sql = new StringBuilder(
+            "SELECT COUNT(*) FROM bookings b " +
+            "JOIN businesses biz ON b.business_id = biz.business_id " +
+            "WHERE b.business_id = ? AND biz.type = 'homestay' ");
+
+        List<Object> params = new ArrayList<>();
+        params.add(businessId);
+
+        if (status != null && !status.equals("all")) {
+            sql.append(" AND b.status = ? ");
+            params.add(status);
+        }
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (b.booker_name LIKE ? OR b.booker_phone LIKE ?) ");
+            String likeKey = "%" + keyword.trim() + "%";
+            params.add(likeKey);
+            params.add(likeKey);
+        }
+        if (fromDate != null && !fromDate.isEmpty()) {
+            sql.append(" AND b.reservation_start_time >= ? ");
+            params.add(fromDate + " 00:00:00");
+        }
+        if (toDate != null && !toDate.isEmpty()) {
+            sql.append(" AND b.reservation_end_time <= ? ");
+            params.add(toDate + " 23:59:59");
+        }
+
+        try (Connection conn = DBUtil.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    
 }
