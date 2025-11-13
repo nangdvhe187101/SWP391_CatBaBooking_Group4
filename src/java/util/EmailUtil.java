@@ -6,13 +6,21 @@ package util;
 
 import jakarta.mail.Authenticator;
 import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
 import jakarta.mail.PasswordAuthentication;
 import jakarta.mail.Session;
 import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.text.NumberFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Properties;
+import java.util.ResourceBundle;
+import model.Bookings;
 
 /**
  * @author ADMIN 
@@ -335,6 +343,87 @@ public class EmailUtil {
         </body>
         </html>
         """.formatted(escapeHtml(recipientName), escapeHtml(businessName), escapeHtml(reason), getSupportEmail(), getSupportEmail());
+    }
+    
+    public static void sendBookingConfirmation(String toEmail, Bookings booking) {
+        // 1. Lấy cấu hình từ file properties
+        ResourceBundle rb = ResourceBundle.getBundle("properties.Email");
+        final String fromEmail = rb.getString("email.user");
+        final String password = rb.getString("email.password");
+
+        Properties props = new Properties();
+        props.put("mail.smtp.host", "smtp.gmail.com");
+        props.put("mail.smtp.port", "587");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+
+        // 2. Tạo Session
+        Session session = Session.getInstance(props, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(fromEmail, password);
+            }
+        });
+
+        try {
+            // 3. Tạo nội dung Email (HTML)
+            MimeMessage msg = new MimeMessage(session);
+            msg.addHeader("Content-type", "text/HTML; charset=UTF-8");
+            msg.addHeader("format", "flowed");
+            msg.addHeader("Content-Transfer-Encoding", "8bit");
+
+            msg.setFrom(new InternetAddress(fromEmail, "Cat Ba Booking System"));
+            msg.setReplyTo(InternetAddress.parse(fromEmail, false));
+            msg.setSubject("Xác nhận đặt phòng thành công - Mã đơn: " + booking.getBookingCode(), "UTF-8");
+            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail, false));
+
+            // Format dữ liệu
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            NumberFormat nf = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+            String totalPrice = nf.format(booking.getTotalPrice());
+            String checkIn = booking.getReservationStartTime() != null ? booking.getReservationStartTime().format(dtf) : "N/A";
+            String checkOut = booking.getReservationEndTime() != null ? booking.getReservationEndTime().format(dtf) : "N/A";
+            
+            // Tên Homestay/Nhà hàng
+            String businessName = (booking.getBusiness() != null) ? booking.getBusiness().getName() : "Dịch vụ";
+
+            // Template HTML
+            String body = 
+                "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;'>" +
+                "  <h2 style='color: #198754; text-align: center;'>Đặt phòng thành công!</h2>" +
+                "  <p>Xin chào <strong>" + booking.getBookerName() + "</strong>,</p>" +
+                "  <p>Cảm ơn bạn đã sử dụng dịch vụ của <strong>Cat Ba Booking</strong>. Đơn đặt phòng của bạn đã được thanh toán và xác nhận.</p>" +
+                "  <hr style='border: 0; border-top: 1px dashed #ccc;'/>" +
+                "  <h3 style='color: #333;'>Thông tin chi tiết:</h3>" +
+                "  <table style='width: 100%; border-collapse: collapse;'>" +
+                "    <tr><td style='padding: 8px; color: #666;'>Mã đơn hàng:</td><td style='padding: 8px; font-weight: bold;'>" + booking.getBookingCode() + "</td></tr>" +
+                "    <tr><td style='padding: 8px; color: #666;'>Địa điểm:</td><td style='padding: 8px; font-weight: bold;'>" + businessName + "</td></tr>" +
+                "    <tr><td style='padding: 8px; color: #666;'>Nhận phòng:</td><td style='padding: 8px;'>" + checkIn + "</td></tr>" +
+                "    <tr><td style='padding: 8px; color: #666;'>Trả phòng:</td><td style='padding: 8px;'>" + checkOut + "</td></tr>" +
+                "    <tr><td style='padding: 8px; color: #666;'>Số khách:</td><td style='padding: 8px;'>" + booking.getNumGuests() + " người</td></tr>" +
+                "    <tr><td style='padding: 8px; color: #666;'>Tổng thanh toán:</td><td style='padding: 8px; font-weight: bold; color: #d32f2f;'>" + totalPrice + "</td></tr>" +
+                "  </table>" +
+                "  <hr style='border: 0; border-top: 1px dashed #ccc;'/>" +
+                "  <p>Vui lòng xuất trình email này hoặc mã đơn hàng khi đến nhận phòng.</p>" +
+                "  <p style='text-align: center; font-size: 12px; color: #999;'>Đây là email tự động, vui lòng không trả lời.</p>" +
+                "</div>";
+
+            msg.setContent(body, "text/html; charset=UTF-8");
+            msg.setSentDate(new Date());
+
+            // 4. Gửi mail (Chạy trong thread riêng để không chặn luồng chính)
+            new Thread(() -> {
+                try {
+                    Transport.send(msg);
+                    System.out.println("Email sent successfully to " + toEmail);
+                } catch (MessagingException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+
+        } catch (MessagingException | UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
     }
 
     private static String escapeHtml(String str) {

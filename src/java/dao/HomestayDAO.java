@@ -752,4 +752,54 @@ public class HomestayDAO {
         }
         return images;
     }
+    
+        /**
+     * Cập nhật thông tin chung của Homestay
+     */
+    public boolean updateHomestay(Businesses homestay) {
+        String sql = "UPDATE businesses SET name=?, address=?, description=?, image=?, area_id=?, "
+                   + "price_per_night=?, opening_hour=?, closing_hour=? "
+                   + "WHERE business_id=?";
+        
+        try (Connection conn = DBUtil.getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, homestay.getName());
+            stmt.setString(2, homestay.getAddress());
+            stmt.setString(3, homestay.getDescription());
+            stmt.setString(4, homestay.getImage());
+            
+            if (homestay.getArea() != null) {
+                stmt.setInt(5, homestay.getArea().getAreaId());
+            } else {
+                stmt.setNull(5, java.sql.Types.INTEGER);
+            }
+            
+            // Giá trung bình hiển thị ở trang chủ
+            stmt.setBigDecimal(6, homestay.getPricePerNight());
+            
+            // Giờ Check-in (lưu vào opening_hour)
+            if (homestay.getOpeningHour() != null) {
+                stmt.setTime(7, java.sql.Time.valueOf(homestay.getOpeningHour()));
+            } else {
+                stmt.setNull(7, java.sql.Types.TIME);
+            }
+            
+            // Giờ Check-out (lưu vào closing_hour)
+            if (homestay.getClosingHour() != null) {
+                stmt.setTime(8, java.sql.Time.valueOf(homestay.getClosingHour()));
+            } else {
+                stmt.setNull(8, java.sql.Types.TIME);
+            }
+            
+            stmt.setInt(9, homestay.getBusinessId());
+            
+            return stmt.executeUpdate() > 0;
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
 }

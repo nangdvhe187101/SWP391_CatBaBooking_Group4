@@ -16,6 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import model.Bookings;
 import java.sql.SQLException;
+import util.EmailUtil;
 
 /**
  *
@@ -129,6 +130,13 @@ public class SePayWebhookController extends HttpServlet {
                 Bookings booking = bookingDAO.getBookingByCode(bookingCode);
                 if (booking != null) {
                     bookingDAO.syncBookingPayment(booking.getBookingId());
+                    Bookings fullBookingInfo = bookingDAO.getBookingById(booking.getBookingId());
+                    if (fullBookingInfo != null && fullBookingInfo.getBookerEmail() != null) {
+                        System.out.println("Sending confirmation email to: " + fullBookingInfo.getBookerEmail());
+                        
+                        // Gửi email xác nhận
+                        EmailUtil.sendBookingConfirmation(fullBookingInfo.getBookerEmail(), fullBookingInfo);
+                    }
                 }
             }
         } catch (SQLException e) {
