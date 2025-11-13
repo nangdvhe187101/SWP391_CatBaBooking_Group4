@@ -386,7 +386,7 @@
             }
             alert('Chuyển đến trang đặt phòng cho phòng ID: ' + roomId);
             // TODO: Implement booking flow
-            // window.location.href = '${pageContext.request.contextPath}/booking?roomId=' + roomId + '&checkIn=' + checkIn + '&checkOut=' + checkOut;
+            window.location.href = '${pageContext.request.contextPath}/booking-homestay?roomId=' + roomId + '&checkIn=' + checkIn + '&checkOut=' + checkOut + '&guests=' + guests;
         }
     </script>
 </body>
