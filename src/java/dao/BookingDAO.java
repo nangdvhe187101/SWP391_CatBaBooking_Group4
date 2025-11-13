@@ -836,4 +836,20 @@ public class BookingDAO {
         return 0;
     }
     
+    /**
+     * Lưu thông tin phòng đã đặt vào bảng booked_rooms
+     */
+    public boolean insertBookedRoom(int bookingId, int roomId, BigDecimal price) {
+        String sql = "INSERT INTO booked_rooms (booking_id, room_id, price_at_booking) VALUES (?, ?, ?)";
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingId);
+            ps.setInt(2, roomId);
+            ps.setBigDecimal(3, price);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
 }
