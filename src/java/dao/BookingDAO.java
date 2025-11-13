@@ -289,16 +289,58 @@ public class BookingDAO {
      */
     public List<Bookings> getBookingsByUser(int userId) throws SQLException {
         List<Bookings> bookings = new ArrayList<>();
-        String sql = "SELECT * FROM bookings WHERE user_id = ? ORDER BY created_at DESC";
+        String sql = "SELECT b.*, bus.name AS business_name, bus.type AS business_type, bus.address AS business_address "
+                + "FROM bookings b "
+                + "LEFT JOIN businesses bus ON b.business_id = bus.business_id "
+                + "WHERE b.user_id = ? "
+                + "ORDER BY b.created_at DESC";
         try (Connection conn = DBUtil.getConnection(); 
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    Bookings b = new Bookings();
-                    b.setBookingId(rs.getInt("booking_id"));
-                    b.setBookingCode(rs.getString("booking_code"));
-                    bookings.add(b);
+                    Bookings booking = new Bookings();
+                    booking.setBookingId(rs.getInt("booking_id"));
+                    booking.setBookingCode(rs.getString("booking_code"));
+
+                    Users user = new Users();
+                    user.setUserId(rs.getInt("user_id"));
+                    booking.setUser(user);
+
+                    int businessId = rs.getInt("business_id");
+                    if (!rs.wasNull() && businessId > 0) {
+                        Businesses business = new Businesses();
+                        business.setBusinessId(businessId);
+                        business.setName(rs.getString("business_name"));
+                        business.setType(rs.getString("business_type"));
+                        business.setAddress(rs.getString("business_address"));
+                        booking.setBusiness(business);
+                    }
+
+                    booking.setBookerName(rs.getString("booker_name"));
+                    booking.setBookerEmail(rs.getString("booker_email"));
+                    booking.setBookerPhone(rs.getString("booker_phone"));
+                    booking.setNumGuests(rs.getInt("num_guests"));
+                    booking.setTotalPrice(rs.getBigDecimal("total_price"));
+                    booking.setPaidAmount(rs.getBigDecimal("paid_amount"));
+                    booking.setPaymentStatus(rs.getString("payment_status"));
+                    booking.setNotes(rs.getString("notes"));
+                    booking.setStatus(rs.getString("status"));
+
+                    booking.setReservationStartTime(rs.getObject("reservation_start_time", LocalDateTime.class));
+                    booking.setReservationEndTime(rs.getObject("reservation_end_time", LocalDateTime.class));
+
+                    java.sql.Date resDate = rs.getDate("reservation_date");
+                    if (resDate != null) {
+                        booking.setReservationDateForDB(resDate.toLocalDate());
+                    }
+
+                    java.sql.Time resTime = rs.getTime("reservation_time");
+                    if (resTime != null) {
+                        booking.setReservationTimeForDB(resTime.toLocalTime());
+                    }
+
+                    bookings.add(booking);
                 }
             }
         }
@@ -662,7 +704,10 @@ public class BookingDAO {
     
     public Bookings getBookingById(int bookingId) {
         Bookings booking = null;
-        String sql = "SELECT * FROM bookings WHERE booking_id = ?";
+        String sql = "SELECT b.*, bus.name AS business_name, bus.type AS business_type, bus.address AS business_address "
+                + "FROM bookings b "
+                + "LEFT JOIN businesses bus ON b.business_id = bus.business_id "
+                + "WHERE b.booking_id = ?";
 
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -679,10 +724,16 @@ public class BookingDAO {
                     tempUser.setUserId(rs.getInt("user_id"));
                     booking.setUser(tempUser);
 
-                    // Set Business
+                    // Set Business với đầy đủ thông tin
+                    int businessId = rs.getInt("business_id");
+                    if (!rs.wasNull() && businessId > 0) {
                     Businesses tempBiz = new Businesses();
-                    tempBiz.setBusinessId(rs.getInt("business_id"));
+                        tempBiz.setBusinessId(businessId);
+                        tempBiz.setName(rs.getString("business_name"));
+                        tempBiz.setType(rs.getString("business_type"));
+                        tempBiz.setAddress(rs.getString("business_address"));
                     booking.setBusiness(tempBiz);
+                    }
 
                     booking.setBookerName(rs.getString("booker_name"));
                     booking.setBookerEmail(rs.getString("booker_email"));
@@ -696,8 +747,17 @@ public class BookingDAO {
                     // Map các trường thời gian
                     booking.setReservationStartTime(rs.getObject("reservation_start_time", LocalDateTime.class));
                     booking.setReservationEndTime(rs.getObject("reservation_end_time", LocalDateTime.class));
-                    booking.setReservation_date(rs.getObject("reservation_date", LocalDateTime.class));
-                    booking.setReservation_time(rs.getObject("reservation_time", LocalDateTime.class));
+                    
+                    // Map reservation_date và reservation_time đúng cách (DATE và TIME, không phải DATETIME)
+                    java.sql.Date resDate = rs.getDate("reservation_date");
+                    if (resDate != null) {
+                        booking.setReservationDateForDB(resDate.toLocalDate());
+                    }
+                    
+                    java.sql.Time resTime = rs.getTime("reservation_time");
+                    if (resTime != null) {
+                        booking.setReservationTimeForDB(resTime.toLocalTime());
+                    }
                     
                     booking.setStatus(rs.getString("status"));
                 }
@@ -873,6 +933,220 @@ public class BookingDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public BigDecimal getMonthlyRevenue() {
+        String sql = "SELECT COALESCE(SUM(total_price), 0) FROM bookings "
+                + "WHERE MONTH(created_at) = MONTH(CURRENT_DATE) "
+                + "AND YEAR(created_at) = YEAR(CURRENT_DATE) "
+                + "AND status = 'confirmed'";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getBigDecimal(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return BigDecimal.ZERO;
+    }
+
+    public List<Bookings> getRecentBookings(int limit) throws SQLException {
+        List<Bookings> bookings = new ArrayList<>();
+        String sql = "SELECT b.*, bus.name AS business_name, bus.type AS business_type, bus.address AS business_address, "
+                + "u.full_name AS user_name, u.email AS user_email "
+                + "FROM bookings b "
+                + "LEFT JOIN businesses bus ON b.business_id = bus.business_id "
+                + "LEFT JOIN users u ON b.user_id = u.user_id "
+                + "ORDER BY b.created_at DESC LIMIT ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Bookings booking = new Bookings();
+                    booking.setBookingId(rs.getInt("booking_id"));
+                    booking.setBookingCode(rs.getString("booking_code"));
+
+                    Users user = new Users();
+                    user.setUserId(rs.getInt("user_id"));
+                    user.setFullName(rs.getString("user_name"));
+                    user.setEmail(rs.getString("user_email"));
+                    booking.setUser(user);
+
+                    int businessId = rs.getInt("business_id");
+                    if (!rs.wasNull() && businessId > 0) {
+                        Businesses business = new Businesses();
+                        business.setBusinessId(businessId);
+                        business.setName(rs.getString("business_name"));
+                        business.setType(rs.getString("business_type"));
+                        business.setAddress(rs.getString("business_address"));
+                        booking.setBusiness(business);
+                    }
+
+                    booking.setBookerName(rs.getString("booker_name"));
+                    booking.setBookerEmail(rs.getString("booker_email"));
+                    booking.setBookerPhone(rs.getString("booker_phone"));
+                    booking.setNumGuests(rs.getInt("num_guests"));
+                    booking.setTotalPrice(rs.getBigDecimal("total_price"));
+                    booking.setPaidAmount(rs.getBigDecimal("paid_amount"));
+                    booking.setPaymentStatus(rs.getString("payment_status"));
+                    booking.setNotes(rs.getString("notes"));
+                    booking.setStatus(rs.getString("status"));
+
+                    booking.setReservationStartTime(rs.getObject("reservation_start_time", LocalDateTime.class));
+                    booking.setReservationEndTime(rs.getObject("reservation_end_time", LocalDateTime.class));
+                    booking.setReservation_date(rs.getObject("reservation_date", LocalDateTime.class));
+                    booking.setReservation_time(rs.getObject("reservation_time", LocalDateTime.class));
+
+                    bookings.add(booking);
+                }
+            }
+        }
+        return bookings;
+    }
+    
+    /**
+     * Lấy tất cả booking cho admin với filter và pagination
+     */
+    public List<Bookings> getAllBookingsForAdmin(String statusFilter, String businessTypeFilter, 
+                                                  String keyword, int page, int pageSize) throws SQLException {
+        List<Bookings> bookings = new ArrayList<>();
+        int offset = (page - 1) * pageSize;
+        
+        StringBuilder sql = new StringBuilder(
+            "SELECT b.*, bus.name AS business_name, bus.type AS business_type, bus.address AS business_address, "
+            + "u.full_name AS user_name, u.email AS user_email "
+            + "FROM bookings b "
+            + "LEFT JOIN businesses bus ON b.business_id = bus.business_id "
+            + "LEFT JOIN users u ON b.user_id = u.user_id "
+            + "WHERE 1=1 "
+        );
+        
+        List<Object> params = new ArrayList<>();
+        
+        if (statusFilter != null && !statusFilter.isEmpty() && !"all".equalsIgnoreCase(statusFilter)) {
+            sql.append(" AND b.status = ? ");
+            params.add(statusFilter);
+        }
+        
+        if (businessTypeFilter != null && !businessTypeFilter.isEmpty() && !"all".equalsIgnoreCase(businessTypeFilter)) {
+            sql.append(" AND bus.type = ? ");
+            params.add(businessTypeFilter);
+        }
+        
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (b.booking_code LIKE ? OR b.booker_name LIKE ? OR b.booker_email LIKE ? OR b.booker_phone LIKE ? OR bus.name LIKE ?) ");
+            String likeKey = "%" + keyword.trim() + "%";
+            params.add(likeKey);
+            params.add(likeKey);
+            params.add(likeKey);
+            params.add(likeKey);
+            params.add(likeKey);
+        }
+        
+        sql.append(" ORDER BY b.created_at DESC LIMIT ? OFFSET ? ");
+        params.add(pageSize);
+        params.add(offset);
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Bookings booking = new Bookings();
+                    booking.setBookingId(rs.getInt("booking_id"));
+                    booking.setBookingCode(rs.getString("booking_code"));
+                    
+                    Users user = new Users();
+                    user.setUserId(rs.getInt("user_id"));
+                    user.setFullName(rs.getString("user_name"));
+                    user.setEmail(rs.getString("user_email"));
+                    booking.setUser(user);
+                    
+                    int businessId = rs.getInt("business_id");
+                    if (!rs.wasNull() && businessId > 0) {
+                        Businesses business = new Businesses();
+                        business.setBusinessId(businessId);
+                        business.setName(rs.getString("business_name"));
+                        business.setType(rs.getString("business_type"));
+                        business.setAddress(rs.getString("business_address"));
+                        booking.setBusiness(business);
+                    }
+                    
+                    booking.setBookerName(rs.getString("booker_name"));
+                    booking.setBookerEmail(rs.getString("booker_email"));
+                    booking.setBookerPhone(rs.getString("booker_phone"));
+                    booking.setNumGuests(rs.getInt("num_guests"));
+                    booking.setTotalPrice(rs.getBigDecimal("total_price"));
+                    booking.setPaidAmount(rs.getBigDecimal("paid_amount"));
+                    booking.setPaymentStatus(rs.getString("payment_status"));
+                    booking.setNotes(rs.getString("notes"));
+                    booking.setStatus(rs.getString("status"));
+                    
+                    booking.setReservationStartTime(rs.getObject("reservation_start_time", LocalDateTime.class));
+                    booking.setReservationEndTime(rs.getObject("reservation_end_time", LocalDateTime.class));
+                    booking.setReservation_date(rs.getObject("reservation_date", LocalDateTime.class));
+                    booking.setReservation_time(rs.getObject("reservation_time", LocalDateTime.class));
+                    
+                    bookings.add(booking);
+                }
+            }
+        }
+        return bookings;
+    }
+    
+    /**
+     * Đếm tổng số booking cho admin với filter
+     */
+    public int countAllBookingsForAdmin(String statusFilter, String businessTypeFilter, String keyword) throws SQLException {
+        StringBuilder sql = new StringBuilder(
+            "SELECT COUNT(*) FROM bookings b "
+            + "LEFT JOIN businesses bus ON b.business_id = bus.business_id "
+            + "WHERE 1=1 "
+        );
+        
+        List<Object> params = new ArrayList<>();
+        
+        if (statusFilter != null && !statusFilter.isEmpty() && !"all".equalsIgnoreCase(statusFilter)) {
+            sql.append(" AND b.status = ? ");
+            params.add(statusFilter);
+        }
+        
+        if (businessTypeFilter != null && !businessTypeFilter.isEmpty() && !"all".equalsIgnoreCase(businessTypeFilter)) {
+            sql.append(" AND bus.type = ? ");
+            params.add(businessTypeFilter);
+        }
+        
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (b.booking_code LIKE ? OR b.booker_name LIKE ? OR b.booker_email LIKE ? OR b.booker_phone LIKE ? OR bus.name LIKE ?) ");
+            String likeKey = "%" + keyword.trim() + "%";
+            params.add(likeKey);
+            params.add(likeKey);
+            params.add(likeKey);
+            params.add(likeKey);
+            params.add(likeKey);
+        }
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }
+        return 0;
     }
     
 }

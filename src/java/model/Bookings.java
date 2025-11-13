@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 public class Bookings {
 
@@ -28,6 +29,11 @@ public class Bookings {
     // NEW: Fields riêng để giữ date/time RIÊNG BIỆT (dùng cho mapping trực tiếp)
     private LocalDate reservationDate;
     private LocalTime reservationTime;
+    
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    private static final DateTimeFormatter TIME_WITH_DATE_FORMATTER = DateTimeFormatter.ofPattern("HH:mm - dd/MM/yyyy");
 
     public Bookings() {
     }
@@ -282,6 +288,81 @@ public class Bookings {
     private void updateSeparateFields() {
         if (reservation_date != null) this.reservationDate = reservation_date.toLocalDate();
         if (reservation_time != null) this.reservationTime = reservation_time.toLocalTime();
+    }
+    
+    public String getDisplayReservationDateTime() {
+        if (reservationStartTime != null) {
+            return reservationStartTime.format(DATE_TIME_FORMATTER);
+        }
+        if (reservationDate != null) {
+            if (reservationTime != null) {
+                return reservationDate.format(DATE_FORMATTER) + " " + reservationTime.format(TIME_FORMATTER);
+            }
+            return reservationDate.format(DATE_FORMATTER);
+        }
+        return null;
+    }
+    
+    public String getDisplayReservationStart() {
+        if (reservationStartTime != null) {
+            return reservationStartTime.format(TIME_WITH_DATE_FORMATTER);
+        }
+        if (reservationDate != null) {
+            if (reservationTime != null) {
+                return reservationTime.format(TIME_FORMATTER) + " - " + reservationDate.format(DATE_FORMATTER);
+            }
+            return reservationDate.format(DATE_FORMATTER);
+        }
+        return null;
+    }
+    
+    public String getDisplayReservationEnd() {
+        if (reservationEndTime != null) {
+            return reservationEndTime.format(TIME_WITH_DATE_FORMATTER);
+        }
+        if (reservationDate != null) {
+            if (reservationTime != null) {
+                return reservationTime.format(TIME_FORMATTER) + " - " + reservationDate.format(DATE_FORMATTER);
+            }
+            return reservationDate.format(DATE_FORMATTER);
+        }
+        return null;
+    }
+    
+    public String getStatusBadgeClass() {
+        if (status == null) {
+            return "pending";
+        }
+        String normalized = status.toLowerCase();
+        switch (normalized) {
+            case "confirmed":
+                return "confirmed";
+            case "cancelled_by_user":
+            case "cancelled_by_owner":
+            case "rejected":
+                return "cancelled";
+            default:
+                return "pending";
+        }
+    }
+    
+    public String getStatusLabel() {
+        if (status == null) {
+            return "Đang xử lý";
+        }
+        String normalized = status.toLowerCase();
+        switch (normalized) {
+            case "confirmed":
+                return "Đã xác nhận";
+            case "cancelled_by_user":
+            case "cancelled_by_owner":
+            case "rejected":
+                return "Đã hủy";
+            case "completed":
+                return "Hoàn tất";
+            default:
+                return "Đang chờ";
+        }
     }
 
     @Override

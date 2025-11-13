@@ -4,7 +4,7 @@
     Notes      : Bootstrap 5 + Sidebar.jsp. No create. Each row has its own static "Chi tiết" modal (no JS needed).
 --%>
 
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <!DOCTYPE html>
 <html lang="vi">
     <head>
@@ -13,7 +13,7 @@
         <title>Owner - Đặt bàn</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
-        <link rel="stylesheet" href="owner-styles.css" />
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/OwnerPage/owner-styles.css" />
         <style>
             body {
                 background:#f8f9fa;

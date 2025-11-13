@@ -332,4 +332,69 @@ public class RestaurantDAO {
         
         return biz;
     }
+
+    /**
+     * Lấy 5 reviews gần nhất cho restaurant (chỉ approved)
+     */
+    public List<model.dto.ReviewsDTO> getReviewsByBusinessId(int businessId) {
+        List<model.dto.ReviewsDTO> reviews = new ArrayList<>();
+        try (Connection conn = DBUtil.getConnection()) {
+            boolean hasStatus = columnExists(conn, "reviews", "status");
+            
+            StringBuilder sql = new StringBuilder(
+                    "SELECT r.review_id, r.user_id, r.rating, r.comment, r.created_at, u.full_name "
+                    + "FROM reviews r "
+                    + "JOIN users u ON r.user_id = u.user_id "
+                    + "WHERE r.business_id = ? ");
+            
+            if (hasStatus) {
+                sql.append("AND (r.status = 'approved' OR r.status IS NULL) ");
+            }
+            
+            sql.append("ORDER BY r.created_at DESC LIMIT 5");
+            
+            try (PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+                stmt.setInt(1, businessId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        model.dto.ReviewsDTO review = new model.dto.ReviewsDTO();
+                        review.setReviewId(rs.getInt("review_id"));
+                        review.setRating(rs.getByte("rating"));
+                        review.setComment(rs.getString("comment"));
+                        review.setCreatedAt(rs.getObject("created_at", java.time.LocalDateTime.class));
+
+                        Users user = new Users();
+                        user.setUserId(rs.getInt("user_id"));
+                        user.setFullName(rs.getString("full_name"));
+                        review.setUser(user);
+
+                        reviews.add(review);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return reviews;
+    }
+    
+    /**
+     * Kiểm tra xem cột có tồn tại trong bảng không
+     */
+    private boolean columnExists(Connection conn, String tableName, String columnName) {
+        try {
+            java.sql.DatabaseMetaData meta = conn.getMetaData();
+            try (ResultSet rs = meta.getColumns(conn.getCatalog(), null, tableName, columnName)) {
+                if (rs.next()) {
+                    return true;
+                }
+            }
+            try (ResultSet rs = meta.getColumns(conn.getCatalog(), null, tableName.toUpperCase(), columnName.toUpperCase())) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

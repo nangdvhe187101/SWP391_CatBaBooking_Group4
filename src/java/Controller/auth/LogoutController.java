@@ -20,18 +20,24 @@ import java.io.PrintWriter;
  */
 @WebServlet(name = "LogoutController", urlPatterns = {"/Logout"})
 public class LogoutController extends HttpServlet {
+
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.getRequestDispatcher("/Authentication/Login.jsp").forward(request, response);
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        handleLogout(request, response);
     }
+
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        handleLogout(request, response);
+    }
+
+    private void handleLogout(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
-        
         if (session != null) {
             session.invalidate();
         }
-        response.sendRedirect(request.getContextPath() + "/Home");
-        return;
+        response.sendRedirect(request.getContextPath() + "/Login");
     }
 }

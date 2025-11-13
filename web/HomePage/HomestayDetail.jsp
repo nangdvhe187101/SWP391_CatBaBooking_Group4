@@ -270,7 +270,7 @@
                             </div>
                         </div>
                         <div class="review-text">
-                            <c:forEach var="review" items="${reviews}" begin="0" end="2">
+                            <c:forEach var="review" items="${reviews}">
                                 <p>
                                     "${review.comment}"<br/><br/>
                                     — ${review.user.fullName}, 

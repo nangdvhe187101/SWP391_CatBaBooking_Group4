@@ -64,10 +64,40 @@ public class AuthPermissionFilter implements Filter {
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
             throws IOException, ServletException {
-
+        
+        // ALWAYS set UTF-8 encoding for request parameters FIRST (before any getParameter calls)
+        try {
+            req.setCharacterEncoding("UTF-8");
+        } catch (Exception e) {
+            // Ignore if already set
+        }
+        
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
         String requestUri = request.getRequestURI().replaceFirst(request.getContextPath(), "");
+        
+        // Skip content type setup for static resources (CSS, JS, images, fonts, etc.)
+        boolean isStaticResource = requestUri.matches(".*\\.(css|js|jpg|jpeg|png|gif|svg|ico|woff|woff2|ttf|eot|pdf|zip)$");
+        
+        if (!isStaticResource) {
+            // Set UTF-8 encoding for response (for JSP output)
+            try {
+                res.setCharacterEncoding("UTF-8");
+            } catch (Exception e) {
+                // Ignore if already set
+            }
+            
+            // Set content type for HTML responses (JSP, servlets)
+            // Don't override existing content types
+            String contentType = response.getContentType();
+            if (contentType == null) {
+                // Only set if no content type is set (likely HTML response)
+                response.setContentType("text/html; charset=UTF-8");
+            } else if (contentType.contains("text/html") && !contentType.contains("charset")) {
+                // Add charset if HTML but missing charset
+                response.setContentType("text/html; charset=UTF-8");
+            }
+        }
 
         // Bước 1: Public URL (guest OK) 
         boolean isPublic = false;

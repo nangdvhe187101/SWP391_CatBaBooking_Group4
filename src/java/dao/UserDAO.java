@@ -5,18 +5,22 @@ import model.Roles;
 import model.Businesses;
 import util.DBUtil;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 import util.PassWordUtil;
 
 public class UserDAO {
+
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$", Pattern.CASE_INSENSITIVE);
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^\\+?[0-9]{8,15}$");
 
     public Users authenticateUser(String email, String password) {
         String sql = "SELECT u.*, r.role_name FROM users u JOIN roles r ON u.role_id = r.role_id WHERE u.email = ? LIMIT 1";
@@ -38,6 +42,7 @@ public class UserDAO {
                     user.setStatus(rs.getString("status"));
                     user.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
                     user.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
+                    populateOptionalUserFields(rs, user);
                     return user;
                 }
             }
@@ -104,6 +109,7 @@ public class UserDAO {
                         rs.getObject("created_at", LocalDateTime.class),
                         rs.getObject("updated_at", LocalDateTime.class)
                 );
+                populateOptionalUserFields(rs, user);
                 return user;
             }
         } catch (SQLException e) {
@@ -177,6 +183,7 @@ public class UserDAO {
                         rs.getObject("created_at", LocalDateTime.class),
                         rs.getObject("updated_at", LocalDateTime.class)
                 );
+                populateOptionalUserFields(rs, user);
                 return user;
             }
         } catch (SQLException e) {
@@ -199,9 +206,7 @@ public class UserDAO {
          PreparedStatement ps = conn.prepareStatement(sql)) {
         
         ResultSet rs = ps.executeQuery();
-        int rowCount = 0; 
         while (rs.next()) {
-            rowCount++;
             Users user = new Users();
             user.setUserId(rs.getInt("user_id"));
             user.setRole(new Roles(rs.getInt("role_id"), rs.getString("role_name"), null, null));
@@ -213,6 +218,7 @@ public class UserDAO {
             user.setStatus(rs.getString("status"));
             user.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
             user.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
+            populateOptionalUserFields(rs, user);
 
             // Set business nếu có
             Businesses biz = null;
@@ -293,6 +299,7 @@ public class UserDAO {
                 user.setStatus(rs.getString("status"));
                 user.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
                 user.setUpdatedAt(rs.getObject("updated_at", LocalDateTime.class));
+                populateOptionalUserFields(rs, user);
 
                 if (rs.getString("business_name") != null) {
                     Businesses biz = new Businesses();
@@ -356,6 +363,145 @@ public class UserDAO {
         return "active";
     }
 
+    public String processUserProfileUpdate(int userId, String fullName, String email, String phone, String citizenId, String gender,
+            Integer birthDay, Integer birthMonth, Integer birthYear, String city, String personalAddress,
+            String originalEmail) {
+
+        if (userId <= 0) {
+            return "Người dùng không hợp lệ.";
+        }
+        if (fullName == null || fullName.trim().isEmpty()) {
+            return "Họ và tên không được để trống.";
+        }
+        if (email == null || email.trim().isEmpty() || !EMAIL_PATTERN.matcher(email.trim()).matches()) {
+            return "Email không hợp lệ.";
+        }
+        if (originalEmail == null) {
+            originalEmail = "";
+        }
+        if (!email.trim().equalsIgnoreCase(originalEmail.trim()) && checkEmailExists(email.trim())) {
+            return "Email đã được sử dụng bởi tài khoản khác.";
+        }
+        if (phone != null && !phone.trim().isEmpty() && !PHONE_PATTERN.matcher(phone.trim()).matches()) {
+            return "Số điện thoại không hợp lệ.";
+        }
+        if (birthDay != null && (birthDay < 1 || birthDay > 31)) {
+            return "Ngày sinh không hợp lệ.";
+        }
+        if (birthMonth != null && (birthMonth < 1 || birthMonth > 12)) {
+            return "Tháng sinh không hợp lệ.";
+        }
+        if (birthYear != null && (birthYear < 1900 || birthYear > LocalDateTime.now().getYear())) {
+            return "Năm sinh không hợp lệ.";
+        }
+
+        try (Connection conn = DBUtil.getConnection()) {
+            boolean hasCity = columnExists(conn, "users", "city");
+            boolean hasGender = columnExists(conn, "users", "gender");
+            boolean hasBirthDay = columnExists(conn, "users", "birth_day");
+            boolean hasBirthMonth = columnExists(conn, "users", "birth_month");
+            boolean hasBirthYear = columnExists(conn, "users", "birth_year");
+
+            boolean hasCitizenId = columnExists(conn, "users", "citizen_id");
+            
+            StringBuilder sql = new StringBuilder(
+                    "UPDATE users SET full_name = ?, email = ?, phone = ?, personal_address = ?, updated_at = ?");
+
+            if (hasCitizenId) {
+                sql.append(", citizen_id = ?");
+            }
+            if (hasCity) {
+                sql.append(", city = ?");
+            }
+            if (hasGender) {
+                sql.append(", gender = ?");
+            }
+            if (hasBirthDay) {
+                sql.append(", birth_day = ?");
+            }
+            if (hasBirthMonth) {
+                sql.append(", birth_month = ?");
+            }
+            if (hasBirthYear) {
+                sql.append(", birth_year = ?");
+            }
+
+            sql.append(" WHERE user_id = ?");
+
+            try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+                int idx = 1;
+                ps.setString(idx++, fullName.trim());
+                ps.setString(idx++, email.trim());
+                if (phone == null || phone.trim().isEmpty()) {
+                    ps.setNull(idx++, java.sql.Types.VARCHAR);
+                } else {
+                    ps.setString(idx++, phone.trim());
+                }
+                if (personalAddress == null || personalAddress.trim().isEmpty()) {
+                    ps.setNull(idx++, java.sql.Types.VARCHAR);
+                } else {
+                    ps.setString(idx++, personalAddress.trim());
+                }
+                ps.setObject(idx++, LocalDateTime.now());
+
+                if (hasCitizenId) {
+                    if (citizenId == null || citizenId.trim().isEmpty()) {
+                        ps.setNull(idx++, java.sql.Types.VARCHAR);
+                    } else {
+                        ps.setString(idx++, citizenId.trim());
+                    }
+                }
+                if (hasCity) {
+                    if (city == null || city.trim().isEmpty()) {
+                        ps.setNull(idx++, java.sql.Types.VARCHAR);
+                    } else {
+                        ps.setString(idx++, city.trim());
+                    }
+                }
+                if (hasGender) {
+                    if (gender == null || gender.trim().isEmpty()) {
+                        ps.setNull(idx++, java.sql.Types.VARCHAR);
+                    } else {
+                        ps.setString(idx++, gender.trim());
+                    }
+                }
+                if (hasBirthDay) {
+                    if (birthDay == null) {
+                        ps.setNull(idx++, java.sql.Types.INTEGER);
+                    } else {
+                        ps.setInt(idx++, birthDay);
+                    }
+                }
+                if (hasBirthMonth) {
+                    if (birthMonth == null) {
+                        ps.setNull(idx++, java.sql.Types.INTEGER);
+                    } else {
+                        ps.setInt(idx++, birthMonth);
+                    }
+                }
+                if (hasBirthYear) {
+                    if (birthYear == null) {
+                        ps.setNull(idx++, java.sql.Types.INTEGER);
+                    } else {
+                        ps.setInt(idx++, birthYear);
+                    }
+                }
+
+                ps.setInt(idx, userId);
+
+                int updated = ps.executeUpdate();
+                if (updated == 0) {
+                    return "Không tìm thấy tài khoản hoặc không có thay đổi nào được áp dụng.";
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return "Không thể cập nhật thông tin tài khoản. Vui lòng thử lại sau.";
+        }
+
+        return null;
+    }
+
     public int countAllUsers(Integer roleId, String status, String keyword) {
         String sql = "SELECT COUNT(*) FROM users u WHERE u.role_id <> 3 AND u.status <> 'pending'";
 
@@ -386,5 +532,57 @@ public class UserDAO {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    private void populateOptionalUserFields(ResultSet rs, Users user) throws SQLException {
+        if (hasColumn(rs, "city")) {
+            user.setCity(rs.getString("city"));
+        }
+        if (hasColumn(rs, "gender")) {
+            user.setGender(rs.getString("gender"));
+        }
+        if (hasColumn(rs, "birth_day")) {
+            int value = rs.getInt("birth_day");
+            if (!rs.wasNull()) {
+                user.setBirthDay(value);
+            }
+        }
+        if (hasColumn(rs, "birth_month")) {
+            int value = rs.getInt("birth_month");
+            if (!rs.wasNull()) {
+                user.setBirthMonth(value);
+            }
+        }
+        if (hasColumn(rs, "birth_year")) {
+            int value = rs.getInt("birth_year");
+            if (!rs.wasNull()) {
+                user.setBirthYear(value);
+            }
+        }
+    }
+
+    private boolean hasColumn(ResultSet rs, String columnLabel) {
+        try {
+            rs.findColumn(columnLabel);
+            return true;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    private boolean columnExists(Connection conn, String tableName, String columnName) {
+        try {
+            DatabaseMetaData meta = conn.getMetaData();
+            try (ResultSet rs = meta.getColumns(conn.getCatalog(), null, tableName, columnName)) {
+                if (rs.next()) {
+                    return true;
+                }
+            }
+            try (ResultSet rs = meta.getColumns(conn.getCatalog(), null, tableName.toUpperCase(), columnName.toUpperCase())) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            return false;
+        }
     }
 }

@@ -86,11 +86,18 @@ public class RestaurantDetailController extends HttpServlet {
             // Lưu restaurantId vào session
             session.setAttribute("restaurantId", businessId);
 
+            // Lấy 5 reviews gần nhất
+            List<model.dto.ReviewsDTO> reviews = restaurantDAO.getReviewsByBusinessId(businessId);
+            if (reviews == null) {
+                reviews = new ArrayList<>();
+            }
+
             // Set attributes
             request.setAttribute("restaurant", restaurant);
             request.setAttribute("categories", categories);
             request.setAttribute("dishes", dishes);
             request.setAttribute("orderItems", orderItems);
+            request.setAttribute("reviews", reviews);
             // Forward đến JSP
             request.getRequestDispatcher("/HomePage/RestaurantDetail.jsp").forward(request, response);
             
