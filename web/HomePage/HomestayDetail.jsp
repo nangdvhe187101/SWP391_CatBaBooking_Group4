@@ -380,13 +380,15 @@
         function bookRoom(roomId) {
             const checkIn = document.getElementById('checkin').value;
             const checkOut = document.getElementById('checkout').value;
+            const guests = document.getElementById('guestsInput').value;
+
             if (!checkIn || !checkOut) {
-                alert('Vui lòng chọn ngày trước khi đặt phòng!');
+                alert('Vui lòng chọn ngày nhận phòng và trả phòng trước khi đặt!');
                 return;
             }
-            alert('Chuyển đến trang đặt phòng cho phòng ID: ' + roomId);
-            // TODO: Implement booking flow
-            window.location.href = '${pageContext.request.contextPath}/booking-homestay?roomId=' + roomId + '&checkIn=' + checkIn + '&checkOut=' + checkOut + '&guests=' + guests;
+
+            // [QUAN TRỌNG] Sửa URL thành checkout-homestay
+            window.location.href = '${pageContext.request.contextPath}/checkout-homestay?roomId=' + roomId + '&checkIn=' + checkIn + '&checkOut=' + checkOut + '&guests=' + guests;
         }
     </script>
 </body>

@@ -875,4 +875,128 @@ public class BookingDAO {
         }
     }
     
+    /**
+     * Hàm transaction tổng cho quy trình đặt phòng Homestay
+     * Tự động: Insert Booking + Chi tiết phòng + Chặn lịch + Tạo thanh toán
+     */
+    public int createHomestayBookingTransaction(Bookings booking, int roomId, BigDecimal price) throws SQLException {
+        Connection conn = null;
+        try {
+            conn = DBUtil.getConnection();
+            conn.setAutoCommit(false); // Bắt đầu transaction bảo vệ dữ liệu
+
+            // 1. Insert Booking (Dùng hàm insert riêng có đủ cột ngày giờ)
+            int bookingId = insertHomestayBooking(conn, booking);
+            if (bookingId == -1) {
+                conn.rollback();
+                return -1;
+            }
+            booking.setBookingId(bookingId);
+
+            // 2. Insert Chi tiết phòng (BookedRooms)
+            if (!insertBookedRoomInternal(conn, bookingId, roomId, price)) {
+                conn.rollback();
+                return -1;
+            }
+
+            // 3. Chặn lịch (RoomAvailability)
+            blockRoomAvailabilityInternal(conn, roomId, booking.getReservationDate(), 
+                                        booking.getReservationEndTime().toLocalDate(), price);
+
+            // 4. Tạo thanh toán (Payment) - Gọi lại hàm có sẵn
+            if (!createInitialPayment(conn, bookingId, booking.getTotalPrice(), "sepay", booking.getBookingCode())) {
+                conn.rollback();
+                return -1;
+            }
+
+            conn.commit(); // Thành công -> Lưu tất cả
+            System.out.println("[BookingDAO] ✅ Homestay Booking Created: " + booking.getBookingCode());
+            return bookingId;
+
+        } catch (SQLException e) {
+            if (conn != null) conn.rollback(); // Có lỗi -> Hủy tất cả
+            e.printStackTrace();
+            throw e;
+        } finally {
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                conn.close();
+            }
+        }
+    }
+
+    /**
+     * [PRIVATE] Hàm insert booking riêng cho Homestay (Lưu ĐÚNG reservation_start_time/end_time)
+     */
+    private int insertHomestayBooking(Connection conn, Bookings booking) throws SQLException {
+        if (booking.getStatus() == null) booking.setStatus("pending");
+        
+        String bookingCode = booking.getBookingCode();
+        if (bookingCode == null || bookingCode.isEmpty()) {
+            String shortUuid = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+            long timestampMod = System.currentTimeMillis() % 10000;
+            bookingCode = "HS" + shortUuid + String.format("%04d", timestampMod);
+        }
+        booking.setBookingCode(bookingCode);
+        
+        String sql = "INSERT INTO bookings (booking_code, user_id, business_id, booker_name, booker_email, booker_phone, "
+                + "num_guests, total_price, paid_amount, payment_status, notes, "
+                + "reservation_start_time, reservation_end_time, status, created_at) " 
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, bookingCode);
+            if (booking.getUser() != null && booking.getUser().getUserId() > 0) ps.setInt(2, booking.getUser().getUserId());
+            else ps.setNull(2, Types.INTEGER);
+
+            ps.setInt(3, booking.getBusiness().getBusinessId());
+            ps.setString(4, booking.getBookerName());
+            ps.setString(5, booking.getBookerEmail());
+            ps.setString(6, booking.getBookerPhone());
+            ps.setInt(7, booking.getNumGuests());
+            ps.setBigDecimal(8, booking.getTotalPrice());
+            ps.setBigDecimal(9, BigDecimal.ZERO);
+            ps.setString(10, "unpaid");
+            ps.setString(11, booking.getNotes());
+
+            // QUAN TRỌNG: Lưu đúng cột thời gian
+            ps.setTimestamp(12, java.sql.Timestamp.valueOf(booking.getReservationStartTime()));
+            ps.setTimestamp(13, java.sql.Timestamp.valueOf(booking.getReservationEndTime()));
+            ps.setString(14, booking.getStatus());
+
+            int result = ps.executeUpdate();
+            if (result > 0) {
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) return rs.getInt(1);
+                }
+            }
+            return -1;
+        }
+    }
+
+    // Các hàm hỗ trợ nội bộ cho transaction
+    private boolean insertBookedRoomInternal(Connection conn, int bookingId, int roomId, BigDecimal price) throws SQLException {
+        String sql = "INSERT INTO booked_rooms (booking_id, room_id, price_at_booking) VALUES (?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingId);
+            ps.setInt(2, roomId);
+            ps.setBigDecimal(3, price);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    private void blockRoomAvailabilityInternal(Connection conn, int roomId, LocalDate checkIn, LocalDate checkOut, BigDecimal price) throws SQLException {
+        String sql = "INSERT INTO room_availability (room_id, date, price, status) VALUES (?, ?, ?, 'booked') " +
+                     "ON DUPLICATE KEY UPDATE status = 'booked'"; 
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            for (LocalDate date = checkIn; date.isBefore(checkOut); date = date.plusDays(1)) {
+                ps.setInt(1, roomId);
+                ps.setDate(2, java.sql.Date.valueOf(date));
+                ps.setBigDecimal(3, price);
+                ps.addBatch(); 
+            }
+            ps.executeBatch();
+        }
+    }
+    
 }
