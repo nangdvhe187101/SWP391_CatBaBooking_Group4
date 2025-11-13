@@ -1,4 +1,4 @@
-package Controller.HomePage;
+package controller.HomePage;
 
 import dao.BookingDAO;
 import dao.HomestayDAO;
