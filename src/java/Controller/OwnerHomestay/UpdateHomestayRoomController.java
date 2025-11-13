@@ -49,8 +49,23 @@ public class UpdateHomestayRoomController extends HttpServlet {
             int roomId = Integer.parseInt(request.getParameter("roomId"));
             String name = request.getParameter("name");
             int capacity = Integer.parseInt(request.getParameter("capacity"));
-            BigDecimal pricePerNight = new BigDecimal(request.getParameter("pricePerNight"));
             boolean isActive = Boolean.parseBoolean(request.getParameter("isActive"));
+            
+            String priceStr = request.getParameter("pricePerNight");
+            BigDecimal pricePerNight = BigDecimal.ZERO;
+
+            if (priceStr != null && !priceStr.trim().isEmpty()) {
+                // Loại bỏ tất cả ký tự không phải số (dấu chấm, phẩy, chữ...)
+                // Ví dụ: "500.000" -> "500000", "1,000,000" -> "1000000"
+                String cleanPrice = priceStr.replaceAll("[^0-9]", "");
+                try {
+                    pricePerNight = new BigDecimal(cleanPrice);
+                } catch (NumberFormatException e) {
+                    session.setAttribute("error", "Định dạng giá tiền không hợp lệ.");
+                    response.sendRedirect(redirectURL);
+                    return;
+                }
+            }
 
             // Xác thực đơn giản
             if (name == null || name.trim().isEmpty()) {
