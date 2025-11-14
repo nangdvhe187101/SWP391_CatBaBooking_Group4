@@ -222,4 +222,22 @@ public class BusinessDAO {
         }
         return 0;
     }
+    
+    /**
+     * Lấy business_id từ user_id (owner)
+     */
+    public int getBusinessIdForUser(int userId) {
+        String sql = "SELECT business_id FROM businesses WHERE owner_id = ? LIMIT 1";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("business_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
 }

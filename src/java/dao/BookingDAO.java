@@ -95,8 +95,9 @@ public class BookingDAO {
         booking.setBookingCode(bookingCode);
         
         String sql = "INSERT INTO bookings (booking_code, user_id, business_id, booker_name, booker_email, booker_phone, "
-                + "num_guests, total_price, paid_amount, payment_status, notes, reservation_date, reservation_time, status) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "num_guests, total_price, paid_amount, payment_status, notes, reservation_date, reservation_time, "
+                + "reservation_start_time, reservation_end_time, status) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, bookingCode);
@@ -120,7 +121,12 @@ public class BookingDAO {
             LocalTime resTime = booking.getReservationTimeForDB();
             ps.setDate(12, resDate != null ? java.sql.Date.valueOf(resDate) : null);
             ps.setTime(13, resTime != null ? java.sql.Time.valueOf(resTime) : null);
-            ps.setString(14, booking.getStatus());
+            
+            // Set reservation_start_time and reservation_end_time for homestay bookings
+            ps.setObject(14, booking.getReservationStartTime() != null ? booking.getReservationStartTime() : null, Types.TIMESTAMP);
+            ps.setObject(15, booking.getReservationEndTime() != null ? booking.getReservationEndTime() : null, Types.TIMESTAMP);
+            
+            ps.setString(16, booking.getStatus());
 
             int result = ps.executeUpdate();
             if (result > 0) {
@@ -1147,6 +1153,254 @@ public class BookingDAO {
             }
         }
         return 0;
+    }
+    
+    /**
+     * Tạo booking homestay với room transaction
+     */
+    public int createHomestayBookingTransaction(Bookings booking, int roomId, BigDecimal pricePerNight) throws SQLException {
+        Connection conn = null;
+        try {
+            conn = DBUtil.getConnection();
+            conn.setAutoCommit(false);
+
+            // 1. Insert booking
+            int bookingId = insertBooking(conn, booking);
+            if (bookingId == -1) {
+                conn.rollback();
+                return -1;
+            }
+            booking.setBookingId(bookingId);
+
+            // 2. Insert booked room
+            if (!insertBookedRoom(conn, bookingId, roomId, pricePerNight)) {
+                conn.rollback();
+                return -1;
+            }
+
+            // 3. Block room availability
+            LocalDate checkIn = booking.getReservationDate();
+            LocalDate checkOut = booking.getReservationEndTime() != null ? 
+                booking.getReservationEndTime().toLocalDate() : checkIn.plusDays(1);
+            blockRoomAvailability(conn, roomId, checkIn, checkOut, pricePerNight);
+
+            // 4. Create initial payment
+            if (!createInitialPayment(conn, bookingId, booking.getTotalPrice(), "sepay", booking.getBookingCode())) {
+                conn.rollback();
+                return -1;
+            }
+            
+            conn.commit();
+            System.out.println("[BookingDAO] ✅ Created homestay booking: " + booking.getBookingCode());
+            return bookingId;
+
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            e.printStackTrace();
+            throw e;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+    
+    /**
+     * Lấy thời gian tạo booking từ database
+     */
+    public LocalDateTime getBookingCreatedTime(int bookingId) {
+        String sql = "SELECT created_at FROM bookings WHERE booking_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getObject("created_at", LocalDateTime.class);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    /**
+     * Lấy danh sách bookings cho owner (restaurant)
+     */
+    public List<model.dto.BookingsDTO> getBookingsForOwner(int businessId) {
+        List<model.dto.BookingsDTO> bookings = new ArrayList<>();
+        String sql = "SELECT b.booking_code, b.booker_name, b.booker_email, b.booker_phone, " +
+                     "b.num_guests, b.total_price, b.payment_status, " +
+                     "b.reservation_date, b.reservation_time, " +
+                     "GROUP_CONCAT(DISTINCT t.name SEPARATOR ', ') as table_name " +
+                     "FROM bookings b " +
+                     "LEFT JOIN booked_tables bt ON b.booking_id = bt.booking_id " +
+                     "LEFT JOIN tables t ON bt.table_id = t.table_id " +
+                     "WHERE b.business_id = ? " +
+                     "GROUP BY b.booking_id " +
+                     "ORDER BY b.created_at DESC";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, businessId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    model.dto.BookingsDTO dto = new model.dto.BookingsDTO();
+                    dto.setBookingCode(rs.getString("booking_code"));
+                    dto.setBookerName(rs.getString("booker_name"));
+                    dto.setBookerEmail(rs.getString("booker_email"));
+                    dto.setBookerPhone(rs.getString("booker_phone"));
+                    dto.setNumGuests(rs.getInt("num_guests"));
+                    dto.setTotalPrice(rs.getBigDecimal("total_price"));
+                    dto.setPaymentStatus(rs.getString("payment_status"));
+                    
+                    java.sql.Date resDate = rs.getDate("reservation_date");
+                    if (resDate != null) {
+                        dto.setReservationDate(resDate.toLocalDate());
+                    }
+                    
+                    java.sql.Time resTime = rs.getTime("reservation_time");
+                    if (resTime != null) {
+                        dto.setReservationTime(resTime.toLocalTime());
+                    }
+                    
+                    dto.setTableName(rs.getString("table_name"));
+                    bookings.add(dto);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return bookings;
+    }
+    
+    /**
+     * Lấy danh sách bookings với bộ lọc cho owner (restaurant)
+     */
+    public List<model.dto.BookingsDTO> getFilteredBookingsForOwner(int businessId, 
+            LocalDate reservationDate, LocalTime reservationTime, Integer numGuests, 
+            String status, String searchCode) {
+        List<model.dto.BookingsDTO> bookings = new ArrayList<>();
+        
+        StringBuilder sql = new StringBuilder(
+            "SELECT b.booking_code, b.booker_name, b.booker_email, b.booker_phone, " +
+            "b.num_guests, b.total_price, b.payment_status, " +
+            "b.reservation_date, b.reservation_time, " +
+            "GROUP_CONCAT(DISTINCT t.name SEPARATOR ', ') as table_name " +
+            "FROM bookings b " +
+            "LEFT JOIN booked_tables bt ON b.booking_id = bt.booking_id " +
+            "LEFT JOIN tables t ON bt.table_id = t.table_id " +
+            "WHERE b.business_id = ? "
+        );
+        
+        List<Object> params = new ArrayList<>();
+        params.add(businessId);
+        
+        if (reservationDate != null) {
+            sql.append(" AND DATE(b.reservation_date) = ? ");
+            params.add(reservationDate);
+        }
+        
+        if (reservationTime != null) {
+            sql.append(" AND TIME(b.reservation_time) = ? ");
+            params.add(reservationTime);
+        }
+        
+        if (numGuests != null) {
+            sql.append(" AND b.num_guests = ? ");
+            params.add(numGuests);
+        }
+        
+        if (status != null && !status.trim().isEmpty() && !status.equalsIgnoreCase("all")) {
+            sql.append(" AND b.status = ? ");
+            params.add(status);
+        }
+        
+        if (searchCode != null && !searchCode.trim().isEmpty()) {
+            sql.append(" AND b.booking_code LIKE ? ");
+            params.add("%" + searchCode.trim() + "%");
+        }
+        
+        sql.append(" GROUP BY b.booking_id ORDER BY b.created_at DESC");
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    model.dto.BookingsDTO dto = new model.dto.BookingsDTO();
+                    dto.setBookingCode(rs.getString("booking_code"));
+                    dto.setBookerName(rs.getString("booker_name"));
+                    dto.setBookerEmail(rs.getString("booker_email"));
+                    dto.setBookerPhone(rs.getString("booker_phone"));
+                    dto.setNumGuests(rs.getInt("num_guests"));
+                    dto.setTotalPrice(rs.getBigDecimal("total_price"));
+                    dto.setPaymentStatus(rs.getString("payment_status"));
+                    
+                    java.sql.Date resDate = rs.getDate("reservation_date");
+                    if (resDate != null) {
+                        dto.setReservationDate(resDate.toLocalDate());
+                    }
+                    
+                    java.sql.Time resTime = rs.getTime("reservation_time");
+                    if (resTime != null) {
+                        dto.setReservationTime(resTime.toLocalTime());
+                    }
+                    
+                    dto.setTableName(rs.getString("table_name"));
+                    bookings.add(dto);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return bookings;
+    }
+    
+    /**
+     * Overload insertBookedRoom để dùng với Connection
+     */
+    private boolean insertBookedRoom(Connection conn, int bookingId, int roomId, BigDecimal price) throws SQLException {
+        String sql = "INSERT INTO booked_rooms (booking_id, room_id, price_at_booking) VALUES (?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingId);
+            ps.setInt(2, roomId);
+            ps.setBigDecimal(3, price);
+            return ps.executeUpdate() > 0;
+        }
+    }
+    
+    /**
+     * Overload blockRoomAvailability để dùng với Connection
+     */
+    private void blockRoomAvailability(Connection conn, int roomId, LocalDate checkIn, LocalDate checkOut, BigDecimal price) throws SQLException {
+        String sql = "INSERT INTO room_availability (room_id, date, price, status) VALUES (?, ?, ?, 'booked') " +
+                     "ON DUPLICATE KEY UPDATE status = 'booked'"; 
+        
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            for (LocalDate date = checkIn; date.isBefore(checkOut); date = date.plusDays(1)) {
+                ps.setInt(1, roomId);
+                ps.setDate(2, java.sql.Date.valueOf(date));
+                ps.setBigDecimal(3, price);
+                ps.addBatch(); 
+            }
+            ps.executeBatch();
+        }
     }
     
 }
