@@ -49,24 +49,19 @@ public class LoginController extends HttpServlet {
                 session.setAttribute("currentUser", user);
                 String roleName = (user.getRole() != null && user.getRole().getRoleName() != null)
                         ? user.getRole().getRoleName().trim() : "";
+                int roleId = user.getRole().getRoleId();
+                List<RoleFeature> permittedFeatures = featuresDAO.getPermittedFeaturesForRole(roleId);
+                session.setAttribute("permittedFeatures", permittedFeatures);
                 switch (roleName.toLowerCase()) {
                     case "admin":
                         response.sendRedirect(request.getContextPath() + "/AdminPage/Dashboard.jsp");
                         break;
+                        
                     case "owner homestay":
-                        // Set permitted features for owner homestay
-                        int homestayRoleId = user.getRole().getRoleId();
-                        List<RoleFeature> homestayFeatures = featuresDAO.getPermittedFeaturesForRole(homestayRoleId);
-                        session.setAttribute("permittedFeatures", homestayFeatures);
-                        response.sendRedirect(request.getContextPath() + "/owner/dashboard");
+                        response.sendRedirect(request.getContextPath() + "/owner-dashboard");
                         break;
                     case "owner restaurant":
-                        // Set permitted features for owner restaurant BEFORE redirect
-                        int restaurantRoleId = user.getRole().getRoleId();  
-                        List<RoleFeature> restaurantFeatures = featuresDAO.getPermittedFeaturesForRole(restaurantRoleId);
-                        session.setAttribute("permittedFeatures", restaurantFeatures);
-                        // Only ONE redirect after setting session attributes
-                        response.sendRedirect(request.getContextPath() + "/owner/dashboard");
+                        response.sendRedirect(request.getContextPath() + "/owner-dashboard");
                         break;
                     default:
                         response.sendRedirect(request.getContextPath() + "/Home");

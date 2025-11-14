@@ -255,7 +255,7 @@ public class HomestayDAO {
           AND b.status = 'active'
           AND EXISTS (SELECT 1 FROM rooms r WHERE r.business_id = b.business_id AND r.is_active = 1)
         ORDER BY b.avg_rating DESC, b.review_count DESC
-        LIMIT 5
+        LIMIT 6
         """;
 
         try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
@@ -312,7 +312,7 @@ public class HomestayDAO {
         WHERE b.type = 'restaurant' 
           AND b.status = 'active'
         ORDER BY b.avg_rating DESC, b.review_count DESC
-        LIMIT 3
+        LIMIT 6
         """;
 
         try (Connection conn = DBUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {

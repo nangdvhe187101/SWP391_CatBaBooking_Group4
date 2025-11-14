@@ -15,8 +15,8 @@
         <li><a href="${pageContext.request.contextPath}/admin/booking-history">Lịch sử Booking</a></li>
         <li><a href="${pageContext.request.contextPath}/approve-application">Duyệt Yêu Cầu</a></li>
         <li><a href="${pageContext.request.contextPath}/user-management">Quản Lý Người Dùng</a></li>
+        <li><a href="${pageContext.request.contextPath}/permissions-manager"> quản lý phân quyền</a></li>
         <li><a href="${pageContext.request.contextPath}/admin/feedbacks">Quản Lý Phản Hồi</a></li>
-        <li><a href="#">Cài Đặt</a></li>
     </ul>
     <div class="sidebar-footer">
         <form action="${pageContext.request.contextPath}/Logout" method="post">

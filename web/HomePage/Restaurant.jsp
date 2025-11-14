@@ -430,7 +430,7 @@
                                 <c:otherwise>
                                     <!-- Tính toán phân trang -->
                                     <c:set var="page" value="${param.page != null && param.page > 0 ? param.page : 1}" />
-                                    <c:set var="itemsPerPage" value="2" />
+                                    <c:set var="itemsPerPage" value="6" />
                                     <c:set var="totalItems" value="${restaurants.size()}" />
                                     <c:set var="totalPages" value="${(totalItems + itemsPerPage - 1) / itemsPerPage}" />
                                     <c:set var="start" value="${(page - 1) * itemsPerPage}" />
