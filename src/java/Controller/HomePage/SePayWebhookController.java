@@ -16,7 +16,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import model.Bookings;
 import java.sql.SQLException;
-import util.EmailUtil;
 
 /**
  *
@@ -130,13 +129,6 @@ public class SePayWebhookController extends HttpServlet {
                 Bookings booking = bookingDAO.getBookingByCode(bookingCode);
                 if (booking != null) {
                     bookingDAO.syncBookingPayment(booking.getBookingId());
-                    Bookings fullBookingInfo = bookingDAO.getBookingById(booking.getBookingId());
-                    if (fullBookingInfo != null && fullBookingInfo.getBookerEmail() != null) {
-                        System.out.println("Sending confirmation email to: " + fullBookingInfo.getBookerEmail());
-                        
-                        // Gửi email xác nhận
-                        EmailUtil.sendBookingConfirmation(fullBookingInfo.getBookerEmail(), fullBookingInfo);
-                    }
                 }
             }
         } catch (SQLException e) {
@@ -155,14 +147,14 @@ public class SePayWebhookController extends HttpServlet {
         if (text == null || text.trim().isEmpty()) {
             return null;
         }
-        Pattern p1 = Pattern.compile("(?i)\\b((BK|HS)[0-9A-F]{8}\\d{4,5})\\b");
+        Pattern p1 = Pattern.compile("(?i)\\b(BK[0-9A-F]{8}\\d{4,5})\\b");
         Matcher m1 = p1.matcher(text);
         if (m1.find()) {
             String code = m1.group(1);
             return code;
         }
         
-        Pattern p2 = Pattern.compile("(?i)\\b((BK|HS)[0-9A-F]{10,16})\\b");
+        Pattern p2 = Pattern.compile("(?i)\\b(BK[0-9A-F]{10,16})\\b");
         Matcher m2 = p2.matcher(text);
         if (m2.find()) {
             String code = m2.group(1);
