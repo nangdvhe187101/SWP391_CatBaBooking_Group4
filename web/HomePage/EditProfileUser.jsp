@@ -281,7 +281,7 @@
                     </div>
                     <div class="field">
                         <label for="phone">Số điện thoại</label>
-                        <input type="text" id="phone" name="phone" value="${user.phone}">
+                        <input type="text" id="phone" name="phone" value="${user.phone}" required>
                     </div>
                     <div class="field">
                         <label for="email">Email</label>
