@@ -370,4 +370,37 @@ public class FeaturesDAO {
         }
         return false;
     }
+    
+    /**
+     * Lấy danh sách RoleFeature (features được phép) cho một role cụ thể
+     */
+    public List<RoleFeature> getPermittedFeaturesForRole(int roleId) {
+        List<RoleFeature> permittedFeatures = new ArrayList<>();
+        String sql = "SELECT rf.role_id, rf.feature_id, r.role_name, f.feature_name, f.url "
+                   + "FROM roles_features rf "
+                   + "JOIN roles r ON rf.role_id = r.role_id "
+                   + "JOIN features f ON rf.feature_id = f.feature_id "
+                   + "WHERE rf.role_id = ? "
+                   + "ORDER BY f.feature_id";
+
+        try (Connection conn = DBUtil.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, roleId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    RoleFeature rf = new RoleFeature();
+                    rf.setRoleId(rs.getInt("role_id"));
+                    rf.setFeatureId(rs.getInt("feature_id"));
+                    rf.setRoleName(rs.getString("role_name"));
+                    rf.setFeatureName(rs.getString("feature_name"));
+                    rf.setUrl(rs.getString("url"));
+                    permittedFeatures.add(rf);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return permittedFeatures;
+    }
 }

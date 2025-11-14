@@ -3,6 +3,7 @@ package controller.HomePage;
 import dao.BookingDAO;
 import dao.PaymentDAO;
 import dao.RestaurantDAO;
+import dao.HomestayDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -17,6 +18,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
+import model.Businesses;
 
 /**
  * 
@@ -28,12 +30,14 @@ public class ConfirmationPaymentController extends HttpServlet {
     private BookingDAO bookingDAO;
     private PaymentDAO paymentDAO;
     private RestaurantDAO restaurantDAO;
+    private HomestayDAO homestayDAO;
 
     @Override
     public void init() throws ServletException {
         bookingDAO = new BookingDAO();
         restaurantDAO = new RestaurantDAO();
         paymentDAO = new PaymentDAO();
+        homestayDAO = new HomestayDAO();
     }
 
     @Override
@@ -44,13 +48,24 @@ public class ConfirmationPaymentController extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
 
         String bookingCode = request.getParameter("bookingCode");
-        if (bookingCode == null || bookingCode.trim().isEmpty()) {
+        
+        String bookingIdStr = request.getParameter("bookingId");
+        if (bookingCode == null || bookingCode.trim().isEmpty() && 
+            (bookingIdStr == null || bookingIdStr.trim().isEmpty())) {
             response.sendRedirect(request.getContextPath() + "/restaurants");
             return;
         }
 
         try {
-            Bookings booking = bookingDAO.getBookingByCode(bookingCode.trim());
+            //Bookings booking = bookingDAO.getBookingByCode(bookingCode.trim());
+            
+            Bookings booking = null;
+            if (bookingCode != null) {
+                booking = bookingDAO.getBookingByCode(bookingCode.trim());
+            } else if (bookingIdStr != null) {
+                booking = bookingDAO.getBookingById(Integer.parseInt(bookingIdStr));
+            }
+            
             if (booking == null) {
                 response.sendError(404, "Không tìm thấy đặt bàn");
                 return;
@@ -86,14 +101,36 @@ public class ConfirmationPaymentController extends HttpServlet {
                 return;
             }
 
-            // 4. Load restaurant info
-            BusinessesDTO restaurant = null;
+//            // 4. Load restaurant info
+//            BusinessesDTO restaurant = null;
+//            if (booking.getBusiness() != null && booking.getBusiness().getBusinessId() > 0) {
+//                restaurant = restaurantDAO.getRestaurantById(booking.getBusiness().getBusinessId());
+//            }
+//            
+//            if (restaurant == null) {
+//                response.sendError(404, "Không tìm thấy thông tin nhà hàng");
+//                return;
+//            }
+
+            // 4. [NEW] XỬ LÝ THÔNG TIN DOANH NGHIỆP (Tách riêng Homestay vs Restaurant)
+            Object businessInfo = null;
+            String businessType = "restaurant"; // mặc định
+
             if (booking.getBusiness() != null && booking.getBusiness().getBusinessId() > 0) {
-                restaurant = restaurantDAO.getRestaurantById(booking.getBusiness().getBusinessId());
+                int busId = booking.getBusiness().getBusinessId();
+                
+                // Thử tìm trong bảng Restaurant
+                businessInfo = restaurantDAO.getRestaurantById(busId);
+                
+                // Nếu không thấy, thử tìm trong bảng Homestay
+                if (businessInfo == null) {
+                    businessInfo = homestayDAO.getHomestayById(busId);
+                    businessType = "homestay";
+                }
             }
             
-            if (restaurant == null) {
-                response.sendError(404, "Không tìm thấy thông tin nhà hàng");
+            if (businessInfo == null) {
+                response.sendError(404, "Không tìm thấy thông tin nhà hàng/homestay");
                 return;
             }
 
@@ -103,8 +140,17 @@ public class ConfirmationPaymentController extends HttpServlet {
                 resDateForJsp = java.sql.Date.valueOf(booking.getReservationDateForDB());
             }
 
+//            Date resTimeForJsp = null;
+//            if (booking.getReservationTimeForDB() != null) {
+//                LocalDateTime fullTime = booking.getReservationTimeForDB().atDate(LocalDate.now());
+//                resTimeForJsp = java.sql.Timestamp.valueOf(fullTime);
+//            }
+
             Date resTimeForJsp = null;
-            if (booking.getReservationTimeForDB() != null) {
+            // Ưu tiên lấy giờ chính xác từ ReservationStartTime (cho Homestay)
+            if (booking.getReservationStartTime() != null) {
+                resTimeForJsp = java.sql.Timestamp.valueOf(booking.getReservationStartTime());
+            } else if (booking.getReservationTimeForDB() != null) {
                 LocalDateTime fullTime = booking.getReservationTimeForDB().atDate(LocalDate.now());
                 resTimeForJsp = java.sql.Timestamp.valueOf(fullTime);
             }
@@ -135,7 +181,9 @@ public class ConfirmationPaymentController extends HttpServlet {
 
             // 8. Set attributes
             request.setAttribute("booking", booking);
-            request.setAttribute("restaurant", restaurant);
+            //request.setAttribute("restaurant", restaurant);
+            request.setAttribute("restaurant", businessInfo);
+            request.setAttribute("businessType", businessType);
             request.setAttribute("bookingCode", bookingCode);
             request.setAttribute("amount", vnd);
             request.setAttribute("qrImage", qrImage);

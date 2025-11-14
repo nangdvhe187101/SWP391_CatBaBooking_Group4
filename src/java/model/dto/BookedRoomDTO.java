@@ -4,6 +4,7 @@
  */
 package model.dto;
 
+import java.math.BigDecimal;
 import model.BookedRooms;
 
 /**
@@ -24,5 +25,10 @@ public class BookedRoomDTO extends BookedRooms {
 
     public void setRoomName(String roomName) {
         this.roomName = roomName;
+    }
+    
+    @Override
+    public BigDecimal getPriceAtBooking() {
+        return super.getPriceAtBooking();
     }
 }

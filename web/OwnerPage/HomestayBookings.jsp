@@ -21,29 +21,11 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
         <link rel="stylesheet" href="${pageContext.request.contextPath}/OwnerPage/owner-styles.css" />
         <style>
-            /* === THEME MÀU XANH LÁ === */
-            .nav-tabs .nav-link {
-                color: #000000 !important; 
-                font-weight: 600;
-                background-color: #f8f9fa;
-                border: 1px solid #dee2e6;
-                margin-right: 4px;
-            }
-            .nav-tabs .nav-link:hover {
-                background-color: #e2e6ea;
-                color: #157347 !important;
-            }
-            .nav-tabs .nav-link.active {
-                color: #198754 !important;
-                background-color: #ffffff !important;
-                border-bottom-color: transparent;
-                border-top: 3px solid #198754;
-            }
-            .detail-section-title {
-                font-size: 0.95rem; font-weight: 700; color: #198754;
-                text-transform: uppercase; border-bottom: 2px solid #e9ecef;
-                padding-bottom: 5px; margin-bottom: 10px;
-            }
+            /* Theme Xanh Lá */
+            .nav-tabs .nav-link { color: #000 !important; font-weight: 600; background-color: #f8f9fa; border: 1px solid #dee2e6; margin-right: 4px; }
+            .nav-tabs .nav-link:hover { background-color: #e2e6ea; color: #157347 !important; }
+            .nav-tabs .nav-link.active { color: #198754 !important; background-color: #fff; border-bottom-color: transparent; border-top: 3px solid #198754; }
+            .detail-section-title { font-size: 0.95rem; font-weight: 700; color: #198754; text-transform: uppercase; border-bottom: 2px solid #e9ecef; padding-bottom: 5px; margin-bottom: 10px; }
             .detail-row { margin-bottom: 5px; font-size: 0.9rem; }
             .detail-label { font-weight: 600; color: #555; min-width: 110px; display: inline-block; }
             .text-theme { color: #198754 !important; }
@@ -63,16 +45,13 @@
         <div class="main-content">
             <main class="content">
                 <div class="container-fluid py-3">
-
                     <div class="card mb-3 border-success border-opacity-25">
                         <div class="card-body py-3 bg-white shadow-sm rounded">
                             <form action="homestay-bookings" method="get" class="row g-3 align-items-end">
                                 <input type="hidden" name="status" value="${currentStatus}">
-                                
                                 <div class="col-md-4">
                                     <label class="form-label small fw-bold text-secondary">Từ khóa (Tên/SĐT)</label>
-                                    <input type="text" name="search" class="form-control form-control-sm" 
-                                           value="${search}" placeholder="Nhập tên khách hoặc SĐT...">
+                                    <input type="text" name="search" class="form-control form-control-sm" value="${search}" placeholder="Nhập tên khách hoặc SĐT...">
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label small fw-bold text-secondary">Từ ngày</label>
@@ -83,9 +62,7 @@
                                     <input type="date" name="toDate" class="form-control form-control-sm" value="${toDate}">
                                 </div>
                                 <div class="col-md-2">
-                                    <button type="submit" class="btn btn-success btn-sm w-100 fw-bold">
-                                        Lọc
-                                    </button>
+                                    <button type="submit" class="btn btn-success btn-sm w-100 fw-bold"><i class="bi bi-funnel-fill"></i> Lọc</button>
                                 </div>
                                 <div class="col-md-2">
                                     <a href="homestay-bookings" class="btn btn-outline-secondary btn-sm w-100">Đặt lại</a>
@@ -96,21 +73,11 @@
 
                     <c:set var="baseLink" value="?search=${search}&fromDate=${fromDate}&toDate=${toDate}" />
                     <ul class="nav nav-tabs mb-3 border-bottom-0">
-                        <li class="nav-item">
-                            <a class="nav-link ${currentStatus == 'all' ? 'active' : ''}" href="${baseLink}&status=all">Tất cả</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link ${currentStatus == 'pending' ? 'active' : ''}" href="${baseLink}&status=pending">Chờ xác nhận</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link ${currentStatus == 'confirmed' ? 'active' : ''}" href="${baseLink}&status=confirmed">Đã xác nhận</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link ${currentStatus == 'completed' ? 'active' : ''}" href="${baseLink}&status=completed">Đã hoàn thành</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link ${currentStatus == 'cancelled_by_user' || currentStatus == 'cancelled_by_owner' ? 'active' : ''}" href="${baseLink}&status=cancelled_by_user">Đã hủy</a>
-                        </li>
+                        <li class="nav-item"><a class="nav-link ${currentStatus == 'all' ? 'active' : ''}" href="${baseLink}&status=all">Tất cả</a></li>
+                        <li class="nav-item"><a class="nav-link ${currentStatus == 'pending' ? 'active' : ''}" href="${baseLink}&status=pending">Chờ xác nhận</a></li>
+                        <li class="nav-item"><a class="nav-link ${currentStatus == 'confirmed' ? 'active' : ''}" href="${baseLink}&status=confirmed">Đã xác nhận</a></li>
+                        <li class="nav-item"><a class="nav-link ${currentStatus == 'completed' ? 'active' : ''}" href="${baseLink}&status=completed">Đã hoàn thành</a></li>
+                        <li class="nav-item"><a class="nav-link ${currentStatus == 'cancelled_by_user' || currentStatus == 'cancelled_by_owner' ? 'active' : ''}" href="${baseLink}&status=cancelled_by_user">Đã hủy</a></li>
                     </ul>
 
                     <div class="card shadow-sm border-0">
@@ -131,10 +98,7 @@
                                 <tbody>
                                     <c:choose>
                                         <c:when test="${empty bookingList}">
-                                            <tr><td colspan="8" class="text-center text-muted py-5">
-                                                <i class="bi bi-inbox fs-1 d-block mb-2 text-success"></i>
-                                                Không tìm thấy đơn đặt phòng nào.
-                                            </td></tr>
+                                            <tr><td colspan="8" class="text-center text-muted py-5">Không tìm thấy đơn đặt phòng nào.</td></tr>
                                         </c:when>
                                         <c:otherwise>
                                             <%! DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"); %>
@@ -147,15 +111,11 @@
                                                     <td class="text-center">${booking.numGuests}</td>
                                                     <td>
                                                         <div class="small">
-                                                            <span class="text-success fw-bold">In:</span> 
-                                                            <% out.print(b.getReservationStartTime() != null ? b.getReservationStartTime().format(dtf) : "--"); %><br>
-                                                            <span class="text-danger fw-bold">Out:</span> 
-                                                            <% out.print(b.getReservationEndTime() != null ? b.getReservationEndTime().format(dtf) : "--"); %>
+                                                            <span class="text-success fw-bold">In:</span> <% out.print(b.getReservationStartTime() != null ? b.getReservationStartTime().format(dtf) : "--"); %><br>
+                                                            <span class="text-danger fw-bold">Out:</span> <% out.print(b.getReservationEndTime() != null ? b.getReservationEndTime().format(dtf) : "--"); %>
                                                         </div>
                                                     </td>
-                                                    <td class="fw-bold text-dark">
-                                                        <fmt:formatNumber value="${booking.totalPrice}" type="currency" currencyCode="VND"/>
-                                                    </td>
+                                                    <td class="fw-bold text-dark"><fmt:formatNumber value="${booking.totalPrice}" type="currency" currencyCode="VND"/></td>
                                                     <td>
                                                         <c:choose>
                                                             <c:when test="${booking.status == 'pending'}"><span class="badge bg-warning text-dark">Chờ XN</span></c:when>
@@ -165,8 +125,7 @@
                                                         </c:choose>
                                                     </td>
                                                     <td class="text-end">
-                                                        <button class="btn btn-sm btn-outline-success detail-btn" 
-                                                                data-id="${booking.bookingId}" data-code="${booking.bookingCode}">
+                                                        <button class="btn btn-sm btn-outline-success detail-btn" data-id="${booking.bookingId}" data-code="${booking.bookingCode}">
                                                             <i class="bi bi-eye"></i> Chi tiết
                                                         </button>
                                                     </td>
@@ -177,24 +136,20 @@
                                 </tbody>
                             </table>
                         </div>
-
+                        
                         <c:if test="${totalPages > 1}">
                             <div class="card-footer bg-white py-3">
                                 <nav>
                                     <ul class="pagination pagination-sm justify-content-center mb-0">
                                         <c:set var="pgLink" value="?status=${currentStatus}&search=${search}&fromDate=${fromDate}&toDate=${toDate}" />
-                                        
                                         <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
                                             <a class="page-link text-success" href="${pgLink}&page=${currentPage - 1}">Trước</a>
                                         </li>
-                                        
                                         <c:forEach begin="1" end="${totalPages}" var="i">
                                             <li class="page-item ${i == currentPage ? 'active' : ''}">
-                                                <a class="page-link ${i == currentPage ? 'bg-success border-success text-white' : 'text-success'}" 
-                                                   href="${pgLink}&page=${i}">${i}</a>
+                                                <a class="page-link ${i == currentPage ? 'bg-success border-success text-white' : 'text-success'}" href="${pgLink}&page=${i}">${i}</a>
                                             </li>
                                         </c:forEach>
-                                        
                                         <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
                                             <a class="page-link text-success" href="${pgLink}&page=${currentPage + 1}">Sau</a>
                                         </li>
@@ -216,7 +171,6 @@
                     </div>
                     <div class="modal-body">
                         <div id="modalLoader" class="text-center py-4"><div class="spinner-border text-success"></div></div>
-                        
                         <div id="modalContent" style="display:none;">
                             <div class="row">
                                 <div class="col-md-4 mb-3">
@@ -240,28 +194,19 @@
                                     <div class="detail-row"><span class="detail-label">TT Thanh toán:</span> <span id="d-pay-status"></span></div>
                                 </div>
                             </div>
-
                             <div class="detail-section-title mt-2">Danh sách phòng đã đặt</div>
                             <div class="table-responsive">
                                 <table class="table table-bordered table-sm bg-white">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Tên phòng</th>
-                                            <th class="text-end">Giá lúc đặt</th>
-                                        </tr>
-                                    </thead>
+                                    <thead class="table-light"><tr><th>Tên phòng</th><th class="text-end">Giá lúc đặt</th></tr></thead>
                                     <tbody id="d-room-list"></tbody>
                                 </table>
                             </div>
-                            
                             <div class="alert alert-light border mt-3 p-2 small">
                                 <strong><i class="bi bi-sticky text-success"></i> Ghi chú:</strong> <span id="d-notes">--</span>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer py-1">
-                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
-                    </div>
+                    <div class="modal-footer py-1"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button></div>
                 </div>
             </div>
         </div>
@@ -276,8 +221,14 @@
                 if(toggle) toggle.addEventListener('click', () => { sidebar.style.transform = 'translateX(0)'; overlay.classList.remove('hidden'); });
                 if(overlay) overlay.addEventListener('click', () => { sidebar.style.transform = 'translateX(-100%)'; overlay.classList.add('hidden'); });
 
-                const fmtMoney = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0);
-                const fmtDate = (isoStr) => isoStr ? isoStr.replace('T', ' ').substring(0, 16) : '--';
+                function fmtMoney(v) {
+                    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0);
+                }
+                
+                function fmtDate(isoStr) {
+                    if (!isoStr) return '--';
+                    return isoStr.replace('T', ' ').substring(0, 16);
+                }
 
                 $('.detail-btn').on('click', function() {
                     let id = $(this).data('id');
@@ -294,33 +245,36 @@
                         success: function(res) {
                             let b = res.booking;
                             let rooms = res.rooms;
+                            let createdAt = res.createdAt; // Lấy từ root (do controller thêm vào)
 
-                            $('#d-created').text(fmtDate(b.createdAt || b.created_at)); 
+                            $('#d-code').text('#' + (b.bookingCode || code));
+                            $('#d-created').text(fmtDate(createdAt || b.createdAt || b.created_at)); 
                             $('#d-checkin').text(fmtDate(b.reservationStartTime));
                             $('#d-checkout').text(fmtDate(b.reservationEndTime));
+
                             $('#d-name').text(b.bookerName);
                             $('#d-phone').text(b.bookerPhone);
                             $('#d-email').text(b.bookerEmail);
                             $('#d-total').text(fmtMoney(b.totalPrice));
                             $('#d-paid').text(fmtMoney(b.paidAmount));
                             
-                            let stMap = { 'pending':'Chờ XN', 'confirmed':'Đã XN', 'completed':'Hoàn thành', 'cancelled_by_user':'Hủy bởi khách', 'cancelled_by_owner':'Hủy bởi chủ' };
-                            $('#d-status').html(`<span class="badge bg-secondary">${stMap[b.status] || b.status}</span>`);
+                            // Map trạng thái
+                            let statusMap = { 'pending':'Chờ XN', 'confirmed':'Đã XN', 'completed':'Hoàn thành', 'cancelled_by_user':'Hủy (Khách)', 'cancelled_by_owner':'Hủy (Chủ)' };
+                            let sText = statusMap[b.status] || b.status;
+                            $('#d-status').html('<span class="badge bg-secondary">' + sText + '</span>'); // [FIX] String concat
                             
-                            let payMap = { 'unpaid':'Chưa tt', 'partially_paid':'Đã cọc', 'fully_paid':'Đã tt', 'refunded':'Hoàn tiền' };
-                            $('#d-pay-status').html(`<span class="badge bg-info text-dark">${payMap[b.paymentStatus] || b.paymentStatus}</span>`);
+                            let payMap = { 'unpaid':'Chưa TT', 'partially_paid':'Đã cọc', 'fully_paid':'Đã TT', 'refunded':'Hoàn tiền' };
+                            let pText = payMap[b.paymentStatus] || b.paymentStatus;
+                            $('#d-pay-status').html('<span class="badge bg-info text-dark">' + pText + '</span>'); // [FIX] String concat
 
                             $('#d-notes').text(b.notes || 'Không có');
 
                             let html = '';
                             if(rooms && rooms.length > 0) {
-                                rooms.forEach(r => {
-                                    let rName = r.roomName || r.room_name || 'Chưa có tên';
-                                    let rPrice = r.priceAtBooking || r.price_at_booking || 0;
-                                    html += `<tr>
-                                        <td>${rName}</td>
-                                        <td class="text-end">${rPrice}</td>
-                                    </tr>`;
+                                rooms.forEach(function(r) {
+                                    let rName = r.roomName || 'Phòng (Mất tên)';
+                                    let rPrice = r.priceAtBooking || 0;
+                                    html += '<tr><td>' + rName + '</td><td class="text-end">' + fmtMoney(rPrice) + '</td></tr>';
                                 });
                             } else {
                                 html = '<tr><td colspan="2" class="text-center text-muted">Danh sách phòng trống</td></tr>';
@@ -330,10 +284,9 @@
                             $('#modalLoader').hide();
                             $('#modalContent').fadeIn();
                         },
-                        error: function(xhr) {
-                            console.error(xhr);
-                            alert("Lỗi tải chi tiết!");
-                            $('#detailModal').modal('hide');
+                        error: function() { 
+                            alert("Lỗi tải chi tiết!"); 
+                            $('#detailModal').modal('hide'); 
                         }
                     });
                 });
