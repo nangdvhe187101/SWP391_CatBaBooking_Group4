@@ -4,14 +4,14 @@
     Author     : ADMIN
 --%>
 
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thêm Homestay Mới - Cát Bà Booking</title>
-    <link rel="stylesheet" href="owner-styles.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/OwnerPage/owner-styles.css">
 </head>
 <body>
      <%@ include file="Sidebar.jsp" %>
@@ -114,7 +114,7 @@
                 const formData = new FormData(this);
                 console.log('Form data:', Object.fromEntries(formData));
                 alert('Đã thêm homestay thành công!');
-                window.location.href = 'ManageHomestay.jsp';
+                window.location.href = '${pageContext.request.contextPath}/owner/manage-homestay';
             });
         });
     </script>

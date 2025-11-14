@@ -4,14 +4,14 @@
     Author     : ADMIN
 --%>
 
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Homestay - Cát Bà Booking</title>
-    <link rel="stylesheet" href="owner-styles.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/OwnerPage/owner-styles.css">
 </head>
 <body>
     
@@ -38,7 +38,7 @@
                     <h2>Quản lý Homestay</h2>
                     <p>Quản lý danh sách homestay của bạn</p>
                 </div>
-                <button class="btn-primary" onclick="window.location.href='AddHomestay.jsp'">+ Thêm Homestay Mới</button>
+                <button class="btn-primary" onclick="window.location.href='${pageContext.request.contextPath}/owner/add-homestay'">+ Thêm Homestay Mới</button>
             </div>
 
             <!-- Search -->

@@ -290,7 +290,44 @@
                                 </c:if>
                             </div>
                         </c:if>
-                    </section>                               
+                    </section>
+
+                    <!-- Đánh giá từ khách -->
+                    <section class="reviews-section" style="margin-top: 40px; padding: 24px; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <h2 style="font-size: 24px; margin-bottom: 20px; color: #333;">
+                            <i class="fas fa-comments" style="margin-right: 8px;"></i>Đánh giá từ khách
+                        </h2>
+                        <c:choose>
+                            <c:when test="${not empty reviews}">
+                                <div class="reviews-list">
+                                    <c:forEach var="review" items="${reviews}">
+                                        <div class="review-item" style="padding: 16px; border-bottom: 1px solid #eee; margin-bottom: 16px;">
+                                            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                                <div style="font-weight: 600; color: #333; margin-right: 12px;">${review.user.fullName}</div>
+                                                <div style="color: #ffc107;">
+                                                    <c:forEach begin="1" end="5" var="i">
+                                                        <i class="${i <= review.rating ? 'fas' : 'far'} fa-star"></i>
+                                                    </c:forEach>
+                                                </div>
+                                                <div style="margin-left: auto; color: #999; font-size: 14px;">
+                                                    <% 
+                                                        model.dto.ReviewsDTO r = (model.dto.ReviewsDTO) pageContext.getAttribute("review");
+                                                        if (r != null && r.getCreatedAt() != null) {
+                                                            out.print(r.getCreatedAt().toLocalDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+                                                        }
+                                                    %>
+                                                </div>
+                                            </div>
+                                            <div style="color: #666; line-height: 1.6;">${review.comment}</div>
+                                        </div>
+                                    </c:forEach>
+                                </div>
+                            </c:when>
+                            <c:otherwise>
+                                <p style="color: #999; text-align: center; padding: 40px 0;">Chưa có đánh giá nào cho nhà hàng này.</p>
+                            </c:otherwise>
+                        </c:choose>
+                    </section>
                 </section>
 
                 <aside class="order-summary-wrapper">

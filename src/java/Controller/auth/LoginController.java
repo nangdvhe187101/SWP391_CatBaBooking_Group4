@@ -54,14 +54,19 @@ public class LoginController extends HttpServlet {
                         response.sendRedirect(request.getContextPath() + "/AdminPage/Dashboard.jsp");
                         break;
                     case "owner homestay":
-                        response.sendRedirect(request.getContextPath() + "/owner-dashboard");
+                        // Set permitted features for owner homestay
+                        int homestayRoleId = user.getRole().getRoleId();
+                        List<RoleFeature> homestayFeatures = featuresDAO.getPermittedFeaturesForRole(homestayRoleId);
+                        session.setAttribute("permittedFeatures", homestayFeatures);
+                        response.sendRedirect(request.getContextPath() + "/owner/dashboard");
                         break;
                     case "owner restaurant":
-                        response.sendRedirect(request.getContextPath() + "/owner-dashboard");
-                        int roleId = user.getRole().getRoleId();  
-                        List<RoleFeature> permittedFeatures = featuresDAO.getPermittedFeaturesForRole(roleId);
-                        session.setAttribute("permittedFeatures", permittedFeatures);
-                        response.sendRedirect(request.getContextPath() + "/OwnerPage/Dashboard.jsp");
+                        // Set permitted features for owner restaurant BEFORE redirect
+                        int restaurantRoleId = user.getRole().getRoleId();  
+                        List<RoleFeature> restaurantFeatures = featuresDAO.getPermittedFeaturesForRole(restaurantRoleId);
+                        session.setAttribute("permittedFeatures", restaurantFeatures);
+                        // Only ONE redirect after setting session attributes
+                        response.sendRedirect(request.getContextPath() + "/owner/dashboard");
                         break;
                     default:
                         response.sendRedirect(request.getContextPath() + "/Home");

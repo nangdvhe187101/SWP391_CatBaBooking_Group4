@@ -11,14 +11,9 @@ import util.DBUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.ResultSet;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import model.Bookings;
-import model.dto.BusinessesDTO;
 
 /**
  *
@@ -141,20 +136,108 @@ public class BusinessDAO {
             return ps.executeUpdate();
         }
     }
+
+    public boolean updateOwnerBusinessProfile(int ownerId, String name, String type, String address, String description, String image) {
+        if (ownerId <= 0) {
+            return false;
+        }
+        if (name == null || name.trim().isEmpty()) {
+            return false;
+        }
+        if (type == null || type.trim().isEmpty()) {
+            return false;
+        }
+        if (address == null || address.trim().isEmpty()) {
+            return false;
+        }
+
+        String sql = "UPDATE businesses SET name = ?, type = ?, address = ?, description = ?, image = ?, updated_at = ? WHERE owner_id = ?";
+
+        try (Connection conn = DBUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, name.trim());
+            ps.setString(2, type.trim());
+            ps.setString(3, address.trim());
+            if (description == null || description.trim().isEmpty()) {
+                ps.setNull(4, java.sql.Types.VARCHAR);
+            } else {
+                ps.setString(4, description.trim());
+            }
+            if (image == null || image.trim().isEmpty()) {
+                ps.setNull(5, java.sql.Types.VARCHAR);
+            } else {
+                ps.setString(5, image.trim());
+            }
+            ps.setObject(6, LocalDateTime.now());
+            ps.setInt(7, ownerId);
+
+            int updated = ps.executeUpdate();
+            if (updated > 0) {
+                return true;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        // Nếu không có business nào trước đó, tạo mới bản ghi
+        Businesses newBiz = new Businesses();
+        Users owner = new Users();
+        owner.setUserId(ownerId);
+        newBiz.setOwner(owner);
+        newBiz.setName(name);
+        newBiz.setType(type);
+        newBiz.setAddress(address);
+        newBiz.setDescription(description);
+        newBiz.setImage(image);
+        newBiz.setCreatedAt(LocalDateTime.now());
+        newBiz.setUpdatedAt(LocalDateTime.now());
+        return registerBusiness(newBiz);
+    }
+
+    public int countActiveBusinesses() {
+        String sql = "SELECT COUNT(*) FROM businesses WHERE status = 'active'";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public int countPendingBusinesses() {
+        String sql = "SELECT COUNT(*) FROM businesses WHERE status = 'pending'";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
     
-    // Phương thức để lấy business_id từ user_id
-    public int getBusinessIdForUser(int userId) throws SQLException {
-        String sql = "SELECT business_id FROM businesses WHERE owner_id = ?";
+    /**
+     * Lấy business_id từ user_id (owner)
+     */
+    public int getBusinessIdForUser(int userId) {
+        String sql = "SELECT business_id FROM businesses WHERE owner_id = ? LIMIT 1";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("business_id");
-                }
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("business_id");
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        throw new SQLException("Không tìm thấy business_id cho user_id: " + userId);
+        return -1;
     }
-
 }

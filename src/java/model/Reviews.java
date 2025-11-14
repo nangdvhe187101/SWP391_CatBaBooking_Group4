@@ -5,11 +5,14 @@
 package model;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 /**
  *
  * @author ADMIN
  */
 public class Reviews {
+    
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd");
 
     private int reviewId;
     private Bookings booking;
@@ -18,6 +21,7 @@ public class Reviews {
     private byte rating;
     private String comment;
     private LocalDateTime createdAt;
+    private String status;
 
     public Reviews() {
     }
@@ -89,8 +93,23 @@ public class Reviews {
         this.createdAt = createdAt;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getFormattedCreatedDate() {
+        if (createdAt == null) {
+            return "-";
+        }
+        return createdAt.format(DATE_FORMATTER);
+    }
+
     @Override
     public String toString() {
-        return "Reviews{" + "reviewId=" + reviewId + ", booking=" + booking + ", business=" + business + ", user=" + user + ", rating=" + rating + ", comment='" + comment + '\'' + ", createdAt=" + createdAt + '}';
+        return "Reviews{" + "reviewId=" + reviewId + ", booking=" + booking + ", business=" + business + ", user=" + user + ", rating=" + rating + ", comment='" + comment + '\'' + ", createdAt=" + createdAt + ", status=" + status + '}';
     }
 }
