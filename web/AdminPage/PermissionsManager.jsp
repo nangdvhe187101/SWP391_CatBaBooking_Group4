@@ -4,7 +4,7 @@
     Author     : ADMIN
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -376,7 +376,7 @@
                                         <div class="action-buttons">
                                             <button type="button" class="btn-edit" 
                                                     onclick="editPermission(${feature.featureId}, '${feature.featureName}', '${feature.url}')">Sửa</button>
-                                            <form method="post" action="${pageContext.request.contextPath}/delete-permission" 
+                                            <form method="post" action="${pageContext.request.contextPath}/delete-permissions" 
                                                   style="display: inline;" 
                                                   onsubmit="return confirm('Bạn có chắc muốn xóa URL này?');">
                                                 <input type="hidden" name="id" value="${feature.featureId}">

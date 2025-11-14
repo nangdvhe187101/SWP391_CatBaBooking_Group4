@@ -32,6 +32,7 @@
                 font-size: 0.9rem;
                 transition: all 0.3s ease;
                 z-index: 10;
+                display: block; /* Đảm bảo luôn hiển thị, không ẩn ban đầu */
             }
 
             .detail-btn:hover {
@@ -43,10 +44,19 @@
             }
 
             /* Đảm bảo card-content có position relative */
-            .homestay-card {
+            .homestay-card, .restaurant-card {
                 position: relative;
                 display: flex;
                 flex-direction: column;
+            }
+
+            /* Điều chỉnh bottom-section để không che nút */
+            .bottom-section {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: auto;
+                padding: 8px 0;
             }
         </style>
     </head>
@@ -507,12 +517,15 @@
                                     <i class="fas fa-clock"></i>
                                     ${res.openingHour} - ${res.closingHour}
                                 </div>
+                                <!-- Di chuyển nút Đặt bàn ra ngoài bottom-section để sử dụng position absolute, giống như homestay -->
+                                <a class="detail-btn" href="${pageContext.request.contextPath}/restaurant-detail?id=${res.businessId}">
+                                    Đặt bàn
+                                </a>
                                 <div class="bottom-section">
                                     <div class="phone">
                                         <i class="fas fa-phone"></i>
                                         <span>0${res.owner.userId}123456</span> <!-- Có thể thêm cột phone sau -->
                                     </div>
-                                    <button class="book-btn">Đặt bàn</button>
                                 </div>
                             </div>
                         </div>

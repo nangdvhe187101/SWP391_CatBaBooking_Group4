@@ -4,7 +4,7 @@
     Author     : ADMIN
 --%>
 
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!DOCTYPE html>
@@ -59,7 +59,7 @@
                     <c:set var="vClosingHour" value="${empty param.closingHour ? business.closingHour : param.closingHour}" />
                     <div class="card">
                         <div class="card-body p-4">
-                            <form action="${pageContext.request.contextPath}/restaurant-settings" method="post">
+                            <form action="${pageContext.request.contextPath}/restaurant-profile" method="post">
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <div class="mb-3">

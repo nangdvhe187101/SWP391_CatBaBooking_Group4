@@ -61,9 +61,11 @@ public class HomestaySettingsController extends HttpServlet {
         // 2. [FIX QUAN TRỌNG] Dùng HomestayDAO để lấy ĐẦY ĐỦ thông tin (bao gồm Giá)
         // BusinessDAO thường thiếu các trường chi tiết của Homestay
         Businesses homestay = homestayDAO.getHomestayById(basicInfo.getBusinessId());
-        
+
         // Fallback: Nếu homestayDAO null (hiếm), dùng tạm basicInfo
-        if (homestay == null) homestay = basicInfo;
+        if (homestay == null) {
+            homestay = basicInfo;
+        }
 
         // 3. Xử lý giá hiển thị (cho trường hợp load lần đầu)
         // Chuyển thành chuỗi số nguyên (bỏ .00) để form hiển thị đẹp
@@ -75,10 +77,10 @@ public class HomestaySettingsController extends HttpServlet {
 
         // 4. Load danh sách khu vực
         List<Areas> areas = areaDAO.getAllAreas();
-        
+
         request.setAttribute("business", homestay);
         request.setAttribute("allAreas", areas);
-        
+
         request.getRequestDispatcher("/OwnerPage/ManageHomestaySettings.jsp").forward(request, response);
     }
 
@@ -92,41 +94,120 @@ public class HomestaySettingsController extends HttpServlet {
         try {
             // Lấy lại object cũ để giữ ID
             Businesses basicInfo = businessDAO.getBusinessByOwnerId(currentUser.getUserId());
+            if (basicInfo == null || !"homestay".equals(basicInfo.getType())) {
+                request.setAttribute("error", "Không tìm thấy thông tin Homestay.");
+                doGet(request, response); // Redirect to doGet for reload
+                return;
+            }
+
             // Cũng nên lấy full info để update đè lên
             Businesses homestay = homestayDAO.getHomestayById(basicInfo.getBusinessId());
-            
+
+            // [NEW] Fallback: If homestayDAO returns null, use basicInfo (as in doGet)
+            if (homestay == null) {
+                System.err.println("Warning: homestayDAO.getHomestayById returned null for businessId=" + basicInfo.getBusinessId() + ". Falling back to basicInfo.");
+                homestay = basicInfo;
+            }
+
             String name = request.getParameter("name");
             String address = request.getParameter("address");
             String description = request.getParameter("description");
             String image = request.getParameter("image");
-            int areaId = Integer.parseInt(request.getParameter("areaId"));
-            
+
+            // [NEW] Validation for required fields
+            if (name == null || name.trim().isEmpty()) {
+                request.setAttribute("error", "Tên Homestay là bắt buộc.");
+                doGet(request, response);
+                return;
+            }
+            if (address == null || address.trim().isEmpty()) {
+                request.setAttribute("error", "Địa chỉ là bắt buộc.");
+                doGet(request, response);
+                return;
+            }
+
+            String areaIdStr = request.getParameter("areaId");
+            int areaId;
+            if (areaIdStr == null || areaIdStr.trim().isEmpty()) {
+                request.setAttribute("error", "Vui lòng chọn khu vực.");
+                doGet(request, response);
+                return;
+            } else {
+                try {
+                    areaId = Integer.parseInt(areaIdStr.trim());
+                    if (areaId <= 0) {
+                        request.setAttribute("error", "Khu vực không hợp lệ.");
+                        doGet(request, response);
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                    request.setAttribute("error", "Khu vực không hợp lệ.");
+                    doGet(request, response);
+                    return;
+                }
+            }
+
             // [FIX] Xử lý giá nhập vào: Chỉ lấy số (Loại bỏ dấu chấm, phẩy)
             String priceStr = request.getParameter("pricePerNight");
             BigDecimal pricePerNight = BigDecimal.ZERO;
-            if (priceStr != null && !priceStr.isEmpty()) {
-                String cleanPrice = priceStr.replaceAll("[^0-9]", ""); // 500.000 -> 500000
+            if (priceStr != null && !priceStr.trim().isEmpty()) {
+                String cleanPrice = priceStr.trim().replaceAll("[^0-9]", ""); // 500.000 -> 500000
                 if (!cleanPrice.isEmpty()) {
                     pricePerNight = new BigDecimal(cleanPrice);
+                    if (pricePerNight.compareTo(BigDecimal.ZERO) <= 0) {
+                        request.setAttribute("error", "Giá phải lớn hơn 0.");
+                        doGet(request, response);
+                        return;
+                    }
                 }
+            } else {
+                request.setAttribute("error", "Giá phòng là bắt buộc.");
+                doGet(request, response);
+                return;
             }
 
             String checkInStr = request.getParameter("openingHour");
             String checkOutStr = request.getParameter("closingHour");
-            
-            LocalTime checkInTime = (checkInStr != null && !checkInStr.isEmpty()) ? LocalTime.parse(checkInStr) : null;
-            LocalTime checkOutTime = (checkOutStr != null && !checkOutStr.isEmpty()) ? LocalTime.parse(checkOutStr) : null;
 
-            // Cập nhật object
-            homestay.setName(name);
-            homestay.setAddress(address);
-            homestay.setDescription(description);
-            homestay.setImage(image);
-            
+            LocalTime checkInTime = null;
+            if (checkInStr != null && !checkInStr.trim().isEmpty()) {
+                try {
+                    checkInTime = LocalTime.parse(checkInStr.trim());
+                } catch (Exception e) {
+                    request.setAttribute("error", "Giờ check-in không hợp lệ.");
+                    doGet(request, response);
+                    return;
+                }
+            }
+
+            LocalTime checkOutTime = null;
+            if (checkOutStr != null && !checkOutStr.trim().isEmpty()) {
+                try {
+                    checkOutTime = LocalTime.parse(checkOutStr.trim());
+                } catch (Exception e) {
+                    request.setAttribute("error", "Giờ check-out không hợp lệ.");
+                    doGet(request, response);
+                    return;
+                }
+            }
+
+            // Optional: Validate checkOut > checkIn
+            if (checkInTime != null && checkOutTime != null && checkOutTime.isBefore(checkInTime)) {
+                request.setAttribute("error", "Giờ check-out phải sau giờ check-in.");
+                doGet(request, response);
+                return;
+            }
+
+            // Cập nhật object (now safe: homestay is guaranteed non-null)
+            homestay.setName(name.trim());
+            homestay.setAddress(address.trim());
+            homestay.setDescription(description != null ? description.trim() : "");
+            homestay.setImage(image != null ? image.trim() : "");
+
             Areas area = new Areas();
             area.setAreaId(areaId);
             homestay.setArea(area);
-            
+
             homestay.setPricePerNight(pricePerNight);
             homestay.setOpeningHour(checkInTime);
             homestay.setClosingHour(checkOutTime);
@@ -135,7 +216,7 @@ public class HomestaySettingsController extends HttpServlet {
             if (homestayDAO.updateHomestay(homestay)) {
                 request.setAttribute("message", "Cập nhật thông tin thành công!");
             } else {
-                request.setAttribute("error", "Cập nhật thất bại.");
+                request.setAttribute("error", "Cập nhật thất bại. Vui lòng thử lại.");
             }
 
         } catch (Exception e) {

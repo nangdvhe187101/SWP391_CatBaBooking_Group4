@@ -526,7 +526,7 @@
                                 </c:when>
                                 <c:otherwise>
                                     <c:set var="page" value="${param.page != null && param.page > 0 ? param.page : 1}" />
-                                    <c:set var="itemsPerPage" value="2" />
+                                    <c:set var="itemsPerPage" value="6" />
 
                                     <c:set var="totalItems" value="${homestays.size()}" />
                                     <c:set var="totalPages" value="${(totalItems + itemsPerPage - 1) / itemsPerPage}" />
