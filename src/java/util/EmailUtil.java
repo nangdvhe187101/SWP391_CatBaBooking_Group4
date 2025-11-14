@@ -13,6 +13,7 @@ import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import java.io.InputStream;
+import java.util.Properties;
 import java.io.UnsupportedEncodingException;
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
@@ -21,9 +22,13 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import model.Bookings;
+import java.time.format.DateTimeFormatter;
+import java.util.Properties;
+import model.Bookings;
+import model.dto.BusinessesDTO;
 
 /**
- * @author ADMIN 
+ * @author ADMIN
  */
 public class EmailUtil {
 
@@ -148,6 +153,258 @@ public class EmailUtil {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static void sendBookingConfirmation(Bookings booking, BusinessesDTO restaurant) {
+        if (booking == null || restaurant == null
+                || booking.getBookerEmail() == null || booking.getBookerEmail().trim().isEmpty()) {
+            return;
+        }
+        try {
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(getFromEmail(), getSenderName()));
+            message.setRecipient(Message.RecipientType.TO, new InternetAddress(booking.getBookerEmail()));
+            message.setSubject("Booking Confirmation - " + restaurant.getName() + " | Cat Ba Booking");
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+            String dateStr = booking.getReservationDateForDB() != null
+                    ? dateFormatter.format(booking.getReservationDateForDB()) : "N/A";
+            String timeStr = booking.getReservationTimeForDB() != null
+                    ? timeFormatter.format(booking.getReservationTimeForDB()) : "N/A";
+            String totalStr = String.format("%,.0f ₫", booking.getTotalPrice().doubleValue());
+            message.setContent(createBookingConfirmationContent(
+                    booking.getBookerName(),
+                    booking.getBookingCode(),
+                    restaurant.getName(),
+                    restaurant.getAddress(),
+                    dateStr,
+                    timeStr,
+                    booking.getNumGuests(),
+                    totalStr
+            ), "text/html; charset=UTF-8");
+            Transport.send(message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * ✅ FIXED: Booking confirmation email template (NO PHONE NEEDED)
+     */
+    private static String createBookingConfirmationContent(
+            String recipientName,
+            String bookingCode,
+            String restaurantName,
+            String restaurantAddress,
+            String dateStr,
+            String timeStr,
+            int numGuests,
+            String totalStr) {
+        return """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .header .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .booking-details {
+            background: #f0fdf4;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #059669;
+        }
+        .booking-details h3 {
+            margin: 0 0 15px 0;
+            color: #059669;
+            font-size: 18px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #6b7280;
+        }
+        .detail-value {
+            color: #111827;
+            text-align: right;
+        }
+        .booking-code {
+            background: #059669;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin: 20px 0;
+        }
+        .important-note {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .important-note strong {
+            color: #d97706;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #059669;
+            color: white !important;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #047857;
+        }
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+            padding: 20px;
+            background-color: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer a {
+            color: #059669;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Booking Confirmed Successfully!</h2>
+        </div>
+       
+        <div class="content">
+            <p>Hello <strong>%s</strong>,</p>
+            <p>Thank you for your payment! We are pleased to inform you that your booking at <strong>%s</strong> has been successfully confirmed.</p>
+           
+            <div class="booking-code">
+                %s
+            </div>
+           
+            <div class="booking-details">
+                <h3>Booking Details</h3>
+                <div class="detail-row">
+                    <span class="detail-label">Restaurant:</span>
+                    <span class="detail-value">%s</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Address:</span>
+                    <span class="detail-value">%s</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Booking Date:</span>
+                    <span class="detail-value">%s</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Booking Time:</span>
+                    <span class="detail-value">%s</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Number of Guests:</span>
+                    <span class="detail-value">%d people</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Total Amount:</span>
+                    <span class="detail-value"><strong>%s</strong></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value" style="color: #059669; font-weight: bold;">Paid & Confirmed</span>
+                </div>
+            </div>
+           
+            <div class="important-note">
+                <strong>Important Note:</strong><br>
+                • Please arrive on time as booked<br>
+                • Bring your booking code when arriving at the restaurant<br>
+                • If you need to make changes, please contact us at least 24 hours in advance
+            </div>
+           
+            <p>If you have any questions, feel free to contact our support team.</p>
+           
+            <center>
+                <a href="mailto:%s" class="button">Contact Support</a>
+            </center>
+        </div>
+       
+        <div class="footer">
+            <p><strong>Best regards,</strong><br>Cat Ba Booking Team</p>
+            <p>Cát Bà Island, Vietnam<br>
+            <a href="mailto:%s">%s</a> | <a href="https://catbabooking.com">catbabooking.com</a></p>
+            <p style="margin-top: 15px; font-size: 11px; color: #9ca3af;">
+                This email was sent automatically, please do not reply directly.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+""".formatted(
+                escapeHtml(recipientName),
+                escapeHtml(restaurantName),
+                escapeHtml(bookingCode),
+                escapeHtml(restaurantName),
+                escapeHtml(restaurantAddress != null ? restaurantAddress : "Updating"),
+                escapeHtml(dateStr),
+                escapeHtml(timeStr),
+                numGuests,
+                escapeHtml(totalStr),
+                getSupportEmail(),
+                getSupportEmail(),
+                getSupportEmail()
+        );
     }
 
     private static String createRegistrationContent(String recipientName) {

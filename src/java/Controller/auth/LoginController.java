@@ -7,18 +7,22 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.List;
 import model.Users;
 import dao.UserDAO;
+import dao.FeaturesDAO;
+import model.RoleFeature;  
 
 @WebServlet("/Login")
 public class LoginController extends HttpServlet {
 
     private UserDAO userDAO;
+    private FeaturesDAO featuresDAO;
 
     @Override
     public void init() throws ServletException {
-        // Khởi tạo UserDAO một lần khi servlet được tạo
         userDAO = new UserDAO();
+        featuresDAO = new FeaturesDAO();
     }
 
     @Override
@@ -54,6 +58,10 @@ public class LoginController extends HttpServlet {
                         break;
                     case "owner restaurant":
                         response.sendRedirect(request.getContextPath() + "/owner-dashboard");
+                        int roleId = user.getRole().getRoleId();  
+                        List<RoleFeature> permittedFeatures = featuresDAO.getPermittedFeaturesForRole(roleId);
+                        session.setAttribute("permittedFeatures", permittedFeatures);
+                        response.sendRedirect(request.getContextPath() + "/OwnerPage/Dashboard.jsp");
                         break;
                     default:
                         response.sendRedirect(request.getContextPath() + "/Home");

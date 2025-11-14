@@ -159,7 +159,6 @@ public class CheckoutRestaurantController extends HttpServlet {
             try {
                 restaurantId = Integer.parseInt(restaurantIdStr);
             } catch (NumberFormatException e) {
-                // FIX: Forward thay vì redirect
                 request.setAttribute("errorMessage", "Mã nhà hàng không hợp lệ");
                 doGet(request, response);
                 return;
