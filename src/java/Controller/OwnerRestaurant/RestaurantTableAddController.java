@@ -48,7 +48,7 @@ public class RestaurantTableAddController extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         Users currentUser = (Users) session.getAttribute("currentUser");
-        if (currentUser == null || currentUser.getRole().getRoleId() != 2) {
+        if (currentUser == null || currentUser.getRole().getRoleId() != 4) {
             response.sendRedirect(request.getContextPath() + "/Login");
             return;
         }

@@ -226,18 +226,17 @@ public class BusinessDAO {
     /**
      * Lấy business_id từ user_id (owner)
      */
-    public int getBusinessIdForUser(int userId) {
-        String sql = "SELECT business_id FROM businesses WHERE owner_id = ? LIMIT 1";
+     public int getBusinessIdForUser(int userId) throws SQLException {
+        String sql = "SELECT business_id FROM businesses WHERE owner_id = ?";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("business_id");
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("business_id");
+                }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-        return -1;
+        throw new SQLException("Không tìm thấy business_id cho user_id: " + userId);
     }
 }

@@ -58,45 +58,73 @@ public class RestaurantSettingsController extends HttpServlet {
 
     
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        Users currentUser = (Users) session.getAttribute("currentUser");
-        if (currentUser == null || currentUser.getRole().getRoleId() != 2) {
-            response.sendRedirect(request.getContextPath() + "/Login");
-            return;
-        }
-        
-        String name = request.getParameter("name");
-        String address = request.getParameter("address");
-        String description = request.getParameter("description");
-        String image = request.getParameter("image");
-        String areaIdRaw = request.getParameter("areaId"); 
-        String openingHourRaw = request.getParameter("openingHour");
-        String closingHourRaw = request.getParameter("closingHour");
-        var vr = RestaurantBusinessSettingsValidator.validate(name, address, description, image, areaIdRaw);
-        if(!vr.valid){
-            request.setAttribute("errors", vr.errors); 
-            request.setAttribute("business", businessDAO.getBusinessByOwnerId(currentUser.getUserId()));
-            List<Areas> allAreas = areaDAO.getAllAreas();
-            request.setAttribute("allAreas", allAreas);
-            request.getRequestDispatcher("/OwnerPage/RestaurantSettings.jsp").forward(request, response);
-            return;
-        }
-        Integer areaId = (areaIdRaw == null || areaIdRaw.isBlank()) ? null : Integer.parseInt(areaIdRaw.trim());
-        
-        try{
-            int row = businessDAO.updateBusinessSettingsByOwnerId(currentUser.getUserId(), name, address, description, image, areaId, LocalTime.MIDNIGHT, LocalTime.MIDNIGHT);
-            request.setAttribute("message", row > 0 ? "Cập nhật thành công" : "Không có thay đổi nào được áp dụng" );
-        }catch(SQLException e){
-            request.setAttribute("errors", List.of("có lỗi khi cập nhật: " + e.getMessage())); 
-        }
-        
+protected void doPost(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+    HttpSession session = request.getSession();
+    Users currentUser = (Users) session.getAttribute("currentUser");
+    if (currentUser == null || currentUser.getRole().getRoleId() != 4) {
+        response.sendRedirect(request.getContextPath() + "/Login");
+        return;
+    }
+    
+    String name = request.getParameter("name");
+    String address = request.getParameter("address");
+    String description = request.getParameter("description");
+    String image = request.getParameter("image");
+    String areaIdRaw = request.getParameter("areaId"); 
+    String openingHourRaw = request.getParameter("openingHour");
+    String closingHourRaw = request.getParameter("closingHour");
+    var vr = RestaurantBusinessSettingsValidator.validate(name, address, description, image, areaIdRaw);
+    if(!vr.valid){
+        request.setAttribute("errors", vr.errors); 
         request.setAttribute("business", businessDAO.getBusinessByOwnerId(currentUser.getUserId()));
         List<Areas> allAreas = areaDAO.getAllAreas();
         request.setAttribute("allAreas", allAreas);
         request.getRequestDispatcher("/OwnerPage/RestaurantSettings.jsp").forward(request, response);
+        return;
     }
+    Integer areaId = (areaIdRaw == null || areaIdRaw.isBlank()) ? null : Integer.parseInt(areaIdRaw.trim());
+    
+    LocalTime openingHour = null;
+    LocalTime closingHour = null;
+    
+    try {
+        if (openingHourRaw != null && !openingHourRaw.trim().isEmpty()) {
+            openingHour = LocalTime.parse(openingHourRaw);
+        }
+        if (closingHourRaw != null && !closingHourRaw.trim().isEmpty()) {
+            closingHour = LocalTime.parse(closingHourRaw);
+        }
+    } catch (Exception e) {
+        request.setAttribute("errors", List.of("Định dạng giờ không hợp lệ: " + e.getMessage()));
+        request.setAttribute("business", businessDAO.getBusinessByOwnerId(currentUser.getUserId()));
+        List<Areas> allAreas = areaDAO.getAllAreas();
+        request.setAttribute("allAreas", allAreas);
+        request.getRequestDispatcher("/OwnerPage/RestaurantSettings.jsp").forward(request, response);
+        return;
+    }
+    
+    try {
+        int row = businessDAO.updateBusinessSettingsByOwnerId(
+            currentUser.getUserId(), 
+            name, 
+            address, 
+            description, 
+            image, 
+            areaId, 
+            openingHour,  
+            closingHour   
+        );
+        request.setAttribute("message", row > 0 ? "Cập nhật thành công" : "Không có thay đổi nào được áp dụng");
+    } catch(SQLException e) {
+        request.setAttribute("errors", List.of("Có lỗi khi cập nhật: " + e.getMessage())); 
+    }
+    
+    request.setAttribute("business", businessDAO.getBusinessByOwnerId(currentUser.getUserId()));
+    List<Areas> allAreas = areaDAO.getAllAreas();
+    request.setAttribute("allAreas", allAreas);
+    request.getRequestDispatcher("/OwnerPage/RestaurantSettings.jsp").forward(request, response);
+}
 
     
     @Override

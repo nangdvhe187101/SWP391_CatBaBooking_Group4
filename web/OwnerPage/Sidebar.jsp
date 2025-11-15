@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html; charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 
@@ -20,6 +20,16 @@
                 </c:forEach>
                 <c:if test="${hasDashboard}">
                     <li><a href="${pageContext.request.contextPath}/owner-dashboard" class="nav-link">🏠 Tổng quan</a></li>
+                    </c:if>
+
+                <c:set var="hasProfile" value="false" />
+                <c:forEach var="feature" items="${sessionScope.permittedFeatures}">
+                    <c:if test="${feature.url == '/owner/profile'}">
+                        <c:set var="hasProfile" value="true" />
+                    </c:if>
+                </c:forEach>
+                <c:if test="${hasProfile}">
+                    <li><a href="${pageContext.request.contextPath}/owner/profile" class="nav-link">🏠 Thông tin cá nhân</a></li>
                     </c:if>
 
                 <%-- Homestay Settings --%>
@@ -83,7 +93,7 @@
                     </c:if>
                 </c:forEach>
                 <c:if test="${hasOwnerBookings}">
-                    <li><a href="${pageContext.request.contextPath}/owner-bookings" class="nav-link">📅 Đặt bàn</a></li>
+                    <li><a href="${pageContext.request.contextPath}/owner-bookings" class="nav-link">📅 Lịch sử Đặt bàn</a></li>
                     </c:if>
 
                 <c:set var="hasRestaurantTables" value="false" />

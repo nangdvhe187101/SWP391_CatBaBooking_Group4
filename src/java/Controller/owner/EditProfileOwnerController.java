@@ -59,6 +59,24 @@ public class EditProfileOwnerController extends HttpServlet {
             return;
         }
 
+        String tab = request.getParameter("tab");
+
+        // Chỉ lấy thông tin business khi cần thiết
+        String businessName = null;
+        String businessType = null;
+        String businessAddress = null;
+        String businessDescription = null;
+        String businessImage = null;
+
+        // Nếu có tab business riêng, lấy thông tin business
+        if ("business".equals(tab)) {
+            businessName = request.getParameter("businessName");
+            businessType = request.getParameter("businessType");
+            businessAddress = request.getParameter("businessAddress");
+            businessDescription = request.getParameter("businessDescription");
+            businessImage = request.getParameter("businessImage");
+        }
+
         String fullName = request.getParameter("fullName");
         String email = request.getParameter("email");
         String phone = request.getParameter("phone");
@@ -70,12 +88,6 @@ public class EditProfileOwnerController extends HttpServlet {
         Integer birthMonth = parseIntOrNull(request.getParameter("birthMonth"));
         Integer birthYear = parseIntOrNull(request.getParameter("birthYear"));
         String gender = request.getParameter("gender");
-
-        String businessName = request.getParameter("businessName");
-        String businessType = request.getParameter("businessType");
-        String businessAddress = request.getParameter("businessAddress");
-        String businessDescription = request.getParameter("businessDescription");
-        String businessImage = request.getParameter("businessImage");
 
         try {
             String validationResult = userDAO.processUserProfileUpdate(
@@ -96,25 +108,31 @@ public class EditProfileOwnerController extends HttpServlet {
             if (validationResult != null) {
                 request.setAttribute("profileError", validationResult);
             } else {
-                boolean businessUpdated = businessDAO.updateOwnerBusinessProfile(
-                        currentUser.getUserId(),
-                        businessName,
-                        businessType,
-                        businessAddress,
-                        businessDescription,
-                        businessImage
-                );
+                // Chỉ cập nhật business khi có thông tin business
+                if ("business".equals(tab) && businessName != null) {
+                    boolean businessUpdated = businessDAO.updateOwnerBusinessProfile(
+                            currentUser.getUserId(),
+                            businessName,
+                            businessType,
+                            businessAddress,
+                            businessDescription,
+                            businessImage
+                    );
+
+                    if (!businessUpdated) {
+                        request.setAttribute("profileWarning", "Thông tin cá nhân đã lưu nhưng chưa cập nhật được thông tin cơ sở.");
+                    } else {
+                        request.setAttribute("profileSuccess", "Cập nhật thông tin thành công.");
+                    }
+                } else {
+                    request.setAttribute("profileSuccess", "Cập nhật thông tin cá nhân thành công.");
+                }
 
                 Users updatedUser = userDAO.getUserById(currentUser.getUserId());
                 session.setAttribute("currentUser", updatedUser);
-
-                if (!businessUpdated) {
-                    request.setAttribute("profileWarning", "Thông tin cá nhân đã lưu nhưng chưa cập nhật được thông tin cơ sở.");
-                } else {
-                    request.setAttribute("profileSuccess", "Cập nhật thông tin thành công.");
-                }
             }
         } catch (Exception e) {
+            e.printStackTrace();
             request.setAttribute("profileError", "Không thể cập nhật thông tin. Vui lòng thử lại sau.");
         }
 
@@ -142,4 +160,3 @@ public class EditProfileOwnerController extends HttpServlet {
         }
     }
 }
-

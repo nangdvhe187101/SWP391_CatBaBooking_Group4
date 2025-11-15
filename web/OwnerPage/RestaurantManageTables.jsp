@@ -28,7 +28,7 @@
             <h1>Xin chào, Owner!</h1>
             <div class="header-actions">
                 <span class="notification">🔔</span>
-                <span class="user">O Owner Name</span>
+                <span class="user">${currentUser.fullName}</span>
             </div>
         </header>
 

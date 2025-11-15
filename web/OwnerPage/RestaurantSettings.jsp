@@ -4,7 +4,7 @@
     Author     : ADMIN
 --%>
 
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html; charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!DOCTYPE html>
@@ -26,7 +26,7 @@
             <h1>Xin chào, Owner!</h1>
             <div class="header-actions">
                 <span class="notification">🔔</span>
-                <span class="user">O Owner Name</span>
+                <span class="user">${currentUser.fullName}</span>
             </div>
         </header>
         <div class="main-content">
