@@ -54,7 +54,7 @@ public class LoginController extends HttpServlet {
                 session.setAttribute("permittedFeatures", permittedFeatures);
                 switch (roleName.toLowerCase()) {
                     case "admin":
-                        response.sendRedirect(request.getContextPath() + "/AdminPage/Dashboard.jsp");
+                        response.sendRedirect(request.getContextPath() + "/admin/dashboard");
                         break;
                         
                     case "owner homestay":

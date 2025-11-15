@@ -43,7 +43,7 @@
                         </div>
                         <div class="dropdown-menu" id="dropdownMenu">
                             <div class="user-info">
-                                <img src="https://via.placeholder.com/40" alt="Avatar" class="avatar"> <!-- Thay bằng avatar thật nếu có, ví dụ: user.getAvatarUrl() -->
+                                <img src="https://via.placeholder.com/40" alt="Avatar" class="avatar">
                                 <div>
                                     <strong><%= fullName %></strong>
                                 </div>
@@ -53,12 +53,6 @@
                                     <a href="${pageContext.request.contextPath}/user/profile">
                                         <i class="fas fa-user-edit"></i> Edit Profile
                                     </a>
-                                </li>
-                                <li>
-                                    <span><i class="fas fa-credit-card"></i> My Cards</span>
-                                </li>
-                                <li>
-                                    <span><i class="fas fa-shopping-cart"></i> Purchase List</span>
                                 </li>
                                 <li>
                                     <a href="${pageContext.request.contextPath}/user/bookings">
